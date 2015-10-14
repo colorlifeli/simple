@@ -8,6 +8,7 @@ import common.ActionIf;
 import common.annotation.ActionAnno.Action;
 import common.annotation.ActionAnno.Pack;
 import common.annotation.ActionAnno.Result;
+import common.util.NetUtil;
 
 @Pack(path = "hello")
 public class HelloAction extends ActionIf {
@@ -55,6 +56,7 @@ public class HelloAction extends ActionIf {
 	}
 
 	public static void main(String args[]) {
+		NetUtil.me().setProxy();
 		HelloAction action = new HelloAction();
 		action.getData();
 	}
