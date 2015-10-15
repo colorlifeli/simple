@@ -22,7 +22,27 @@ public class SqlRunner {
 	// 可以先给定一个 connection
 	protected Connection conn = null;
 
-	public SqlRunner() {
+	public static class holder {
+		private static final SqlRunner instance = new SqlRunner();
+	}
+
+	private SqlRunner() {
+	};
+
+	public static final SqlRunner me() {
+		return holder.instance;
+	}
+
+	/**
+	 * 对某个 sql 语句批量执行不同值 使用预设 connection
+	 * 
+	 * @param sql
+	 * @param params
+	 * @return
+	 * @throws SQLException
+	 */
+	public int[] batch(String sql, Object[][] params) throws SQLException {
+		return batch(this.conn, sql, params);
 	}
 
 	/**
@@ -67,10 +87,54 @@ public class SqlRunner {
 		return rows;
 	}
 
+	/**
+	 * 查询，sql语句不需要参数 使用预设connection
+	 * 
+	 * @param sql
+	 * @param rsh
+	 * @return
+	 * @throws SQLException
+	 */
+	public <T> T query(String sql, ResultSetHandler<T> rsh) throws SQLException {
+		return this.<T> query(this.conn, sql, rsh, (Object[]) null);
+	}
+
+	/**
+	 * 查询，sql语句不需要参数
+	 * 
+	 * @param conn
+	 * @param sql
+	 * @param rsh
+	 * @return
+	 * @throws SQLException
+	 */
 	public <T> T query(Connection conn, String sql, ResultSetHandler<T> rsh) throws SQLException {
 		return this.<T> query(conn, sql, rsh, (Object[]) null);
 	}
 
+	/**
+	 * 查询，sql语句带参数 使用预设connection
+	 * 
+	 * @param sql
+	 * @param rsh
+	 * @param params
+	 * @return
+	 * @throws SQLException
+	 */
+	public <T> T query(String sql, ResultSetHandler<T> rsh, Object... params) throws SQLException {
+		return this.<T> query(this.conn, sql, rsh, params);
+	}
+
+	/**
+	 * 查询，sql语句带参数
+	 * 
+	 * @param conn
+	 * @param sql
+	 * @param rsh
+	 * @param params
+	 * @return
+	 * @throws SQLException
+	 */
 	public <T> T query(Connection conn, String sql, ResultSetHandler<T> rsh, Object... params) throws SQLException {
 		if (conn == null) {
 			throw new SQLException("Null connection");
@@ -108,14 +172,43 @@ public class SqlRunner {
 		return result;
 	}
 
+	public int update(String sql) throws SQLException {
+		return this.update(this.conn, sql, (Object[]) null);
+	}
+
+	/**
+	 * 执行jdbc的 executeUpdate，不带参数
+	 * 
+	 * @param conn
+	 * @param sql
+	 * @return
+	 * @throws SQLException
+	 */
 	public int update(Connection conn, String sql) throws SQLException {
 		return this.update(conn, sql, (Object[]) null);
 	}
 
-	public int update(Connection conn, String sql, Object param) throws SQLException {
-		return this.update(conn, sql, new Object[] { param });
+	/**
+	 * 执行jdbc的 executeUpdate，带参数,使用预设connection
+	 * 
+	 * @param sql
+	 * @param params
+	 * @return
+	 * @throws SQLException
+	 */
+	public int update(String sql, Object... params) throws SQLException {
+		return this.update(this.conn, sql, params);
 	}
 
+	/**
+	 * 执行jdbc的 executeUpdate，带参数
+	 * 
+	 * @param conn
+	 * @param sql
+	 * @param params
+	 * @return
+	 * @throws SQLException
+	 */
 	private int update(Connection conn, String sql, Object... params) throws SQLException {
 		if (conn == null) {
 			throw new SQLException("Null connection");
@@ -143,8 +236,16 @@ public class SqlRunner {
 		return rows;
 	}
 
+	public <T> T insert(String sql, ResultSetHandler<T> rsh) throws SQLException {
+		return insert(this.conn, sql, rsh, (Object[]) null);
+	}
+
 	public <T> T insert(Connection conn, String sql, ResultSetHandler<T> rsh) throws SQLException {
 		return insert(conn, sql, rsh, (Object[]) null);
+	}
+
+	public <T> T insert(String sql, ResultSetHandler<T> rsh, Object... params) throws SQLException {
+		return insert(conn, sql, rsh, params);
 	}
 
 	private <T> T insert(Connection conn, String sql, ResultSetHandler<T> rsh, Object... params) throws SQLException {
@@ -242,8 +343,8 @@ public class SqlRunner {
 			int paramsCount = params == null ? 0 : params.length;
 
 			if (stmtCount != paramsCount) {
-				throw new SQLException("Wrong number of parameters: expected " + stmtCount + ", was given "
-						+ paramsCount);
+				throw new SQLException(
+						"Wrong number of parameters: expected " + stmtCount + ", was given " + paramsCount);
 			}
 		}
 
@@ -285,8 +386,8 @@ public class SqlRunner {
 			Object value = null;
 			Method method = property.getReadMethod();
 			if (method == null) {
-				throw new RuntimeException("No read method for bean property " + bean.getClass() + " "
-						+ property.getName());
+				throw new RuntimeException(
+						"No read method for bean property " + bean.getClass() + " " + property.getName());
 			}
 			try {
 				value = method.invoke(bean, new Object[0]);
@@ -302,7 +403,8 @@ public class SqlRunner {
 		fillStatement(stmt, params);
 	}
 
-	public void fillStatementWithBean(PreparedStatement stmt, Object bean, String... propertyNames) throws SQLException {
+	public void fillStatementWithBean(PreparedStatement stmt, Object bean, String... propertyNames)
+			throws SQLException {
 		PropertyDescriptor[] descriptors;
 		try {
 			descriptors = Introspector.getBeanInfo(bean.getClass()).getPropertyDescriptors();

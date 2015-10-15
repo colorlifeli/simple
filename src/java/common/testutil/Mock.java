@@ -7,24 +7,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import common.util.TypeUtil;
 
 /**
- * 模拟指定接口或类的实例，用于单元测试
- * 其中：
- * createMock: 根据接口或类产生一个代理对象
- * except: 后面紧跟 andReturn 方法，表示对此方法的指定参数赋予一个预期的返回值
- * andReturn： 和 except 配合使用，如上
+ * 模拟指定接口或类的实例，用于单元测试 其中： createMock: 根据接口或类产生一个代理对象 except: 后面紧跟 andReturn
+ * 方法，表示对此方法的指定参数赋予一个预期的返回值 andReturn： 和 except 配合使用，如上
  * 
  * 说明：参考了 easyMock，进行了简化
+ * 
  * @author James
  *
  */
 public class Mock implements InvocationHandler {
-	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	// private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	private Object proxy; // 代理对象
 
@@ -52,11 +47,11 @@ public class Mock implements InvocationHandler {
 			invoHandler = new Mock();
 			try {
 				if (clazz.isInterface()) {
-					invoHandler.setProxy(Proxy.newProxyInstance(clazz.getClassLoader(), new Class[] { clazz },
-							invoHandler));
+					invoHandler.setProxy(
+							Proxy.newProxyInstance(clazz.getClassLoader(), new Class[] { clazz }, invoHandler));
 				} else {
-					invoHandler.setProxy(Proxy.newProxyInstance(clazz.getClassLoader(), clazz.getInterfaces(),
-							invoHandler));
+					invoHandler.setProxy(
+							Proxy.newProxyInstance(clazz.getClassLoader(), clazz.getInterfaces(), invoHandler));
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -87,7 +82,6 @@ public class Mock implements InvocationHandler {
 		}
 
 		// 返回模拟结果
-		System.out.println(mockInvoInfos.size());
 		for (int i = 0; i < mockInvoInfos.size(); i++) {
 			if (mockInvoInfos.get(i).matches(invo)) {
 				return mockInvoInfos.get(i).returnValue;
@@ -114,6 +108,7 @@ public class Mock implements InvocationHandler {
 
 	/**
 	 * 验证是否调用了桩的某个函数
+	 * 
 	 * @param object
 	 * @return
 	 */
@@ -146,11 +141,7 @@ public class Mock implements InvocationHandler {
 	}
 
 	/**
-	 * 内部类，保存调用信息，包括：
-	 * mockObject：代理对象
-	 * method：函数
-	 * args：函数参数
-	 * returnValue：返回值
+	 * 内部类，保存调用信息，包括： mockObject：代理对象 method：函数 args：函数参数 returnValue：返回值
 	 * 
 	 * @author James
 	 *
@@ -175,17 +166,19 @@ public class Mock implements InvocationHandler {
 					&& this.target.getClass().equals(invo.getTarget().getClass())
 					&& this.method.equals(invo.getMethod())) {
 				// 判断所有参数是否相等
-				boolean allEqual = true;
-				if (args.length == invo.getArgs().length) {
-					for (int i = 0; i < args.length; i++) {
-						if (!args[i].equals(invo.getArgs()[i])) {
-							allEqual = false;
-						}
+				if (args == null)
+					return true;
+				if (args.length != invo.getArgs().length)
+					return false;
+
+				for (int i = 0; i < args.length; i++) {
+					if (!args[i].equals(invo.getArgs()[i])) {
+						// 有一个不相等即为不等
+						return false;
 					}
-				} else {
-					allEqual = false;
 				}
-				return allEqual;
+
+				return true;
 			}
 			return false;
 		}

@@ -7,14 +7,13 @@ import common.util.Constant;
 
 public class H2Helper {
 
-	private static Connection conn;
-
 	public static Connection connEmbededDb() {
 		try {
 			org.h2.Driver.load();
 
-			conn = DriverManager.getConnection(Constant.db.url, Constant.db.user, Constant.db.password);
+			Connection conn = DriverManager.getConnection(Constant.db.url, Constant.db.user, Constant.db.password);
 
+			System.out.println("connect to h2 db in embeded mode...");
 			return conn;
 
 		} catch (Exception e) {
@@ -23,10 +22,11 @@ public class H2Helper {
 		}
 	}
 
-	public static void close() {
+	public static void close(Connection conn) {
 		try {
 			if (conn != null) {
 				conn.close();
+				System.out.println("close connection.");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
