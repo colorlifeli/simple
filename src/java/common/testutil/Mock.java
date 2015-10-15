@@ -26,12 +26,14 @@ import common.util.TypeUtil;
 public class Mock implements InvocationHandler {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	private Object target; // 代理目标
 	private Object proxy; // 代理对象
 
 	private static HashMap<Class<?>, Mock> invoHandlers = new HashMap<Class<?>, Mock>();
 
 	private static List<InvoInfo> mockInvoInfos = new ArrayList<InvoInfo>(); // 模拟的调用信息
+
+	// 验证是否调用了某个函数。验证时即第二次调用，看是否和最后一次调用的信息一样
+	private static boolean isVerify = false;
 
 	private Mock() {
 	}
@@ -72,14 +74,28 @@ public class Mock implements InvocationHandler {
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
-		InvoInfo invo = new InvoInfo(this, method, args);
+		InvoInfo invo = new InvoInfo(this, proxy, method, args);
+
+		// 仅是验证是否调用
+		if (isVerify) {
+			for (int i = 0; i < mockInvoInfos.size(); i++) {
+				if (mockInvoInfos.get(i).matches(invo)) {
+					return TypeUtil.emptyValuesFor(method.getReturnType());
+				}
+			}
+			throw new Exception(invo + " is not verify!");
+		}
+
+		// 返回模拟结果
+		System.out.println(mockInvoInfos.size());
 		for (int i = 0; i < mockInvoInfos.size(); i++) {
 			if (mockInvoInfos.get(i).matches(invo)) {
 				return mockInvoInfos.get(i).returnValue;
 			}
 		}
+
 		// 新增模拟调用
-		mockInvoInfos.add(new InvoInfo(this, method, args));
+		mockInvoInfos.add(invo);
 		return TypeUtil.emptyValuesFor(method.getReturnType());
 	}
 
@@ -97,6 +113,16 @@ public class Mock implements InvocationHandler {
 	}
 
 	/**
+	 * 验证是否调用了桩的某个函数
+	 * @param object
+	 * @return
+	 */
+	public static <T> T verify(T object) {
+		isVerify = true;
+		return object;
+	}
+
+	/**
 	 * 选择最后一个模拟调用来设置其返回值
 	 * 
 	 * 没有考虑并行
@@ -105,14 +131,6 @@ public class Mock implements InvocationHandler {
 	 */
 	public void andReturn(Object value) {
 		mockInvoInfos.get(mockInvoInfos.size() - 1).setReturnValue(value);
-	}
-
-	public Object getTarget() {
-		return target;
-	}
-
-	public void setTarget(Object target) {
-		this.target = target;
 	}
 
 	public Object getProxy() {
@@ -139,19 +157,23 @@ public class Mock implements InvocationHandler {
 	 */
 	class InvoInfo {
 		private final Mock mockObject;
+		private final Object target;
 		private final Method method;
 		private final Object[] args;
 		private Object returnValue;
 
-		public InvoInfo(Mock mockObject, Method method, Object[] args) {
+		public InvoInfo(Mock mockObject, Object target, Method method, Object[] args) {
 			this.mockObject = mockObject;
+			this.target = target;
 			this.method = method;
 			this.args = args;
 		}
 
 		public boolean matches(InvoInfo invo) {
 			// 判断是否完全相等，均使用 equals 方法
-			if (this.mockObject.equals(invo.getMockObject()) && this.method.equals(invo.getMethod())) {
+			if (this.mockObject.equals(invo.getMockObject())
+					&& this.target.getClass().equals(invo.getTarget().getClass())
+					&& this.method.equals(invo.getMethod())) {
 				// 判断所有参数是否相等
 				boolean allEqual = true;
 				if (args.length == invo.getArgs().length) {
@@ -166,6 +188,26 @@ public class Mock implements InvocationHandler {
 				return allEqual;
 			}
 			return false;
+		}
+
+		@Override
+		public String toString() {
+			if (mockObject == null)
+				return "";
+
+			StringBuffer sb = new StringBuffer("Mock Object[");
+			sb.append(target.getClass()).append(method.getName()).append("(");
+			if (args != null) {
+				for (int i = 0; i < args.length; i++) {
+					if (i != 0) {
+						sb.append(",");
+					}
+					sb.append(args[i]);
+				}
+			}
+			sb.append(")").append("]");
+
+			return sb.toString();
 		}
 
 		public Method getMethod() {
@@ -186,6 +228,10 @@ public class Mock implements InvocationHandler {
 
 		public Mock getMockObject() {
 			return mockObject;
+		}
+
+		public Object getTarget() {
+			return target;
 		}
 	}
 

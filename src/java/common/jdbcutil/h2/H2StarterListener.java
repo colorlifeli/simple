@@ -1,4 +1,4 @@
-package common;
+package common.jdbcutil.h2;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

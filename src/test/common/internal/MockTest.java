@@ -20,6 +20,12 @@ public class MockTest {
 		// 如果参数一致，则调用预期结果
 		Assert.assertEquals(3, tested.add(1, 2));
 
+		try {
+			Mock.verify(adder).add(1, 2);
+			Mock.verify(adder).add(2, 3);
+		} catch (Exception e) {
+			System.out.println(e.getCause().getMessage());
+		}
 	}
 
 	class Calculator {
