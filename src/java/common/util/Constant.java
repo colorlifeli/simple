@@ -19,4 +19,9 @@ public class Constant {
 		public final static String proxy_ip = "proxy.piccnet.com.cn";
 		public final static String proxy_port = "3128";
 	}
+
+	// 和 web 页面相关的，如 action 等
+	public class web {
+		public final static String jspPrefix = "/WEB-INF/jsp/";
+	}
 }

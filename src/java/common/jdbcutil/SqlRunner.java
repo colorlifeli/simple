@@ -172,6 +172,44 @@ public class SqlRunner {
 		return result;
 	}
 
+	public int execute(String sql) throws SQLException {
+		return this.execute(sql, (Object[]) null);
+	}
+
+	/**
+	 * 执行jdbc的executeUpdate
+	 * @param sql
+	 * @param params
+	 * @return
+	 * @throws SQLException
+	 */
+	public int execute(String sql, Object... params) throws SQLException {
+		if (conn == null) {
+			throw new SQLException("Null connection");
+		}
+
+		if (sql == null) {
+			throw new SQLException("Null SQL statement");
+		}
+
+		PreparedStatement stmt = null;
+		int rows = 0;
+
+		try {
+			stmt = this.prepareStatement(conn, sql);
+			this.fillStatement(stmt, params);
+			rows = stmt.executeUpdate();// if dds, return 0
+
+		} catch (SQLException e) {
+			this.rethrow(e, sql, params);
+
+		} finally {
+			close(stmt);
+		}
+
+		return rows;
+	}
+
 	public int update(String sql) throws SQLException {
 		return this.update(this.conn, sql, (Object[]) null);
 	}
@@ -343,8 +381,8 @@ public class SqlRunner {
 			int paramsCount = params == null ? 0 : params.length;
 
 			if (stmtCount != paramsCount) {
-				throw new SQLException(
-						"Wrong number of parameters: expected " + stmtCount + ", was given " + paramsCount);
+				throw new SQLException("Wrong number of parameters: expected " + stmtCount + ", was given "
+						+ paramsCount);
 			}
 		}
 
@@ -386,8 +424,8 @@ public class SqlRunner {
 			Object value = null;
 			Method method = property.getReadMethod();
 			if (method == null) {
-				throw new RuntimeException(
-						"No read method for bean property " + bean.getClass() + " " + property.getName());
+				throw new RuntimeException("No read method for bean property " + bean.getClass() + " "
+						+ property.getName());
 			}
 			try {
 				value = method.invoke(bean, new Object[0]);
@@ -403,8 +441,7 @@ public class SqlRunner {
 		fillStatement(stmt, params);
 	}
 
-	public void fillStatementWithBean(PreparedStatement stmt, Object bean, String... propertyNames)
-			throws SQLException {
+	public void fillStatementWithBean(PreparedStatement stmt, Object bean, String... propertyNames) throws SQLException {
 		PropertyDescriptor[] descriptors;
 		try {
 			descriptors = Introspector.getBeanInfo(bean.getClass()).getPropertyDescriptors();

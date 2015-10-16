@@ -24,19 +24,10 @@ public class ControlServlet extends HttpServlet {
 		 * 得到当前Servlet的请求路径   
 		 * */
 		String pathName = request.getServletPath();
-		// System.out.println("pathName:"+pathName);
-		/**
-		 * 得到请求的Action名字
-		 * */
-		int index = pathName.indexOf(".");
-		String ActionName = pathName.substring(1, index);
-
-		// String ActionClassName = this.getInitParameter(ActionName);
-		System.out.println(pathName);
-		System.out.println(ActionName);
+		System.out.println("pathName:" + pathName);
 
 		// 执行Action的execute得到要返回的URL路径
-		ActionAnno.ActionInfo info = ActionAnno.actions.get(ActionName);
+		ActionAnno.ActionInfo info = ActionAnno.actions.get(pathName);
 		String url = null;
 		if (info != null) {
 			try {
@@ -47,10 +38,10 @@ public class ControlServlet extends HttpServlet {
 			}
 		}
 
-		if (url == null) {
-			request.getRequestDispatcher("error.jsp").forward(request, response);
-		} else {
+		if (url != null && !"".equals(url)) {
 			request.getRequestDispatcher(url).forward(request, response);
 		}
+		// 没有返回url认为是 ajax请求了，不作处理。至于网页找不到等的错误，在 web.xml中配置相应页面。
+		// request.getRequestDispatcher("error.jsp").forward(request, response);
 	}
 }

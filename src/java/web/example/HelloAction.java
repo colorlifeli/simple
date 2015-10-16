@@ -13,7 +13,7 @@ import common.util.NetUtil;
 @Pack(path = "hello")
 public class HelloAction extends ActionIf {
 
-	@Action(path = "hello", targets = { @Result(name = "success", value = "/WEB-INF/jsp/Hello.jsp") })
+	@Action(path = "hello", targets = { @Result(name = "success", value = "Hello.jsp") })
 	public String hello() {
 
 		request.setAttribute("str", "Hello world");
