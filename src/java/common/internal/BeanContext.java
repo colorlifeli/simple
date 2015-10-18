@@ -4,9 +4,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import common.annotation.IocAnno;
 
 /**
  * bean 管理器
@@ -23,13 +26,14 @@ import org.slf4j.LoggerFactory;
 public class BeanContext {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	// private final List<BeanDef> beanDefs = new ArrayList<BeanDef>();
+	private final Map<String, Class<?>> beanClazzs = new HashMap<String, Class<?>>();
 	private final Map<String, Object> beans = new HashMap<String, Object>();
 
 	private final String[] packages = { "web.example" };
 
 	public BeanContext() {
 		readBeans();
+		setProperty();
 	}
 
 	private void readBeans() {
@@ -48,6 +52,7 @@ public class BeanContext {
 				id = id.replaceFirst(id.substring(0, 1), id.substring(0, 1).toLowerCase());
 				try {
 					beans.put(id, clazz.newInstance());
+					beanClazzs.put(id, clazz);
 				} catch (InstantiationException | IllegalAccessException e) {
 					logger.error("创建类实例错误, id:" + id);
 				}
@@ -55,9 +60,14 @@ public class BeanContext {
 		}
 	}
 
-	// 对bean依赖的对象进行注入
+	/**
+	 * 对bean依赖的对象进行注入
+	 * 有 Ioc 注解的进行注入
+	 */
 	private void setProperty() {
-
+		for (Entry<String, Object> entry : beans.entrySet()) {
+			IocAnno.processor(entry.getValue(), beanClazzs.get(entry.getKey()), beans);
+		}
 	}
 
 	/**
@@ -68,8 +78,9 @@ public class BeanContext {
 	public Object getBean(String id) {
 		return this.beans.get(id);
 	}
-	
+
 	public Map<String, Object> getAllBeans() {
 		return beans;
 	}
+
 }
