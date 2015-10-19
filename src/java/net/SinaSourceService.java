@@ -1,45 +1,24 @@
-package web.example;
+package net;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
-import common.ActionIf;
-import common.annotation.ActionAnno.Action;
-import common.annotation.ActionAnno.Pack;
-import common.annotation.ActionAnno.Result;
-import common.annotation.IocAnno.Ioc;
-import common.util.NetUtil;
+import net.model.RealTime;
 
-@Pack(path = "hello")
-public class HelloAction extends ActionIf {
-	@Ioc(name = "helloService")
-	private HelloService hservice;
+public class SinaSourceService {
 
-	@Action(path = "hello", targets = { @Result(name = "success", value = "Hello.jsp") })
-	public String hello() {
+	private String realTimeUrl = "http://hq.sinajs.cn/list=";
 
-		request.setAttribute("str", "Hello world");
-
-		return "success";
-	}
-
-	public String getHello() {
-		return hservice.getHello();
-	}
-
-	public HelloService getHservice() {
-		return hservice;
-	}
-
-	public void setHservice(HelloService hservice) {
-		this.hservice = hservice;
-	}
-
-	public void getData() {
-
-		String url1 = "http://hq.sinajs.cn/list=sh600151,sz000830,s_sh000001,s_sz399001,s_sz399106";
-		String url = "http://hq.sinajs.cn/list=sh600151,sz000830,";
+	public List<Object[]> getRealTime(List<String> codes) {
+		String url = realTimeUrl;
+		for (String i_code : codes) {
+			url = url + i_code + ",";
+		}
+		url.subSequence(0, url.length() - 1);
+		List<Object[]> paramList = new ArrayList<Object[]>();
 
 		try {
 			URL u = new URL(url);
@@ -62,7 +41,8 @@ public class HelloAction extends ActionIf {
 					String[] datas = str[1].split(",");
 					datas[0] = code; // 将名称换成code
 					// 根据对照自己对应数据
-					System.out.println(stock);
+					// System.out.println(stock);
+					addParam(paramList, datas);
 				}
 				bo.reset();
 			} catch (Exception e) {
@@ -76,12 +56,23 @@ public class HelloAction extends ActionIf {
 			System.out.println(ex.getMessage());
 		}
 
+		return paramList;
 	}
 
-	public static void main(String args[]) {
-		NetUtil.me().setProxy();
-		HelloAction action = new HelloAction();
-		action.getData();
-	}
+	private void addParam(List<Object[]> list, String[] datas) {
+		RealTime realtime = new RealTime();
+		realtime.code = datas[0];
+		realtime.tOpen = datas[1];
+		realtime.yClose = datas[2];
+		realtime.now = datas[3];
+		realtime.high = datas[4];
+		realtime.low = datas[5];
+		realtime.deals = datas[8];
+		realtime.dealsum = datas[9];
+		realtime.time = datas[31];
+		realtime.source = "sina";
+		list.add(new Object[] { realtime.code, realtime.tOpen, realtime.yClose, realtime.now, realtime.high,
+				realtime.low, realtime.deals, realtime.dealsum, realtime.time, realtime.source });
 
+	}
 }

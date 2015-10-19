@@ -1,52 +1,20 @@
 package net;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.List;
 
 import common.annotation.IocAnno.Ioc;
 
 public class StockSourceImpl1 implements StockSource {
 
-	private String realTimeUrl = "http://hq.sinajs.cn/list=";
-	private String historyUrl = "";
+	@Ioc(name = "sinaSourceService")
+	private SinaSourceService sina;
 	@Ioc
 	private StockService stockService;
 
 	@Override
 	public void getRealTime(List<String> codes) {
-		// TODO Auto-generated method stub
-		String url = realTimeUrl;
-		try {
-			URL u = new URL(url);
-			byte[] b = new byte[256];
-			InputStream in = null;
-			ByteArrayOutputStream bo = new ByteArrayOutputStream();
-			try {
-				in = u.openStream();
-				int i;
-				while ((i = in.read(b)) != -1) {
-					bo.write(b, 0, i);
-				}
-				String result = bo.toString("GBK");
-				String[] stocks = result.split(";");
-				for (String stock : stocks) {
-					String[] datas = stock.split(",");
-					// 根据对照自己对应数据
-					System.out.println(stock);
-				}
-				bo.reset();
-			} catch (Exception e) {
-				System.out.println(e.getMessage());
-			} finally {
-				if (in != null) {
-					in.close();
-				}
-			}
-		} catch (Exception ex) {
-			System.out.println(ex.getMessage());
-		}
+		List<Object[]> list = sina.getRealTime(codes);
+		stockService.saveRealTimeData(list);
 	}
 
 	@Override
@@ -79,6 +47,14 @@ public class StockSourceImpl1 implements StockSource {
 
 	public void setStockService(StockService stockService) {
 		this.stockService = stockService;
+	}
+
+	public SinaSourceService getSina() {
+		return sina;
+	}
+
+	public void setSina(SinaSourceService sina) {
+		this.sina = sina;
 	}
 
 }
