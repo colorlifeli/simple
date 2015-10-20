@@ -2,6 +2,8 @@ package net;
 
 import java.util.List;
 
+import net.model.RealTime;
+
 import common.annotation.IocAnno.Ioc;
 
 public class StockSourceImpl1 implements StockSource {
@@ -13,7 +15,7 @@ public class StockSourceImpl1 implements StockSource {
 
 	@Override
 	public void getRealTime(List<String> codes) {
-		List<Object[]> list = sina.getRealTime(codes);
+		List<RealTime> list = sina.getRealTime(codes);
 		stockService.saveRealTimeData(list);
 	}
 

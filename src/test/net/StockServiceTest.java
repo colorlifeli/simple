@@ -1,9 +1,11 @@
 package net;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import common.jdbcutil.SqlRunner;
@@ -23,9 +25,24 @@ public class StockServiceTest {
 		H2Helper.close(SqlRunner.me().getConn());
 	}
 
+	@Ignore
 	@Test
 	public void initCode() throws SQLException {
+		System.out.println("aaa");
 		service.initCode("d:/codes.csv");
+	}
+
+	@Test
+	public void getCodes_forsina() {
+		try {
+			List<String> strs = service.getCodes_forsina(10);
+			for (String str : strs) {
+				System.out.println(str);
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

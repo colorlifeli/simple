@@ -18,7 +18,7 @@ public class RealTime {
 	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer("");
-		Class clazz = this.getClass();
+		Class<?> clazz = this.getClass();
 		Field[] fields = clazz.getFields();
 		for (Field field : fields) {
 			try {
@@ -28,5 +28,14 @@ public class RealTime {
 			}
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * 得到一个按顺序的对象数组
+	 * @return
+	 */
+	public Object[] toObjectArray() {
+		return new Object[] { this.code, this.tOpen, this.yClose, this.now, this.high, this.low, this.deals,
+				this.dealsum, this.time, this.source };
 	}
 }
