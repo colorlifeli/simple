@@ -10,11 +10,18 @@ import java.util.List;
 
 import net.model.RealTime;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SinaSourceService {
+
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	private String realTimeUrl = "http://hq.sinajs.cn/list=";
 
 	public List<RealTime> getRealTime(List<String> codes) {
+		if (codes == null || codes.size() == 0)
+			return null;
 		String url = realTimeUrl;
 		for (String i_code : codes) {
 			url = url + i_code + ",";
@@ -30,7 +37,7 @@ public class SinaSourceService {
 			try {
 				while ((stock = br.readLine()) != null) {
 
-					if (stock.length() < 10)
+					if (stock.length() < 25)
 						continue;
 					// "var hq_str_sz000830="鲁西化工,6.86,6.86,6.78,6.90,6.74,6.78,6.79,33275590,227193182.00,69000,6.78,19400,6.77,58900,6.76,122800,6.75,123900,6.74,112161,6.79,64000,6.80,49000,6.81,146600,6.82,142800,6.83,2015-10-19,13:41:22,00""
 					String[] str = stock.split("=");
@@ -43,6 +50,7 @@ public class SinaSourceService {
 					dataList.add(toRealtime(datas));
 				}
 			} catch (Exception e) {
+				logger.error("sina getRealTime error. stock:" + stock);
 				e.printStackTrace();
 			} finally {
 				br.close();
@@ -69,7 +77,7 @@ public class SinaSourceService {
 		realtime.low = datas[5];
 		realtime.deals = datas[8];
 		realtime.dealsum = datas[9];
-		realtime.time = datas[31];
+		realtime.time_ = datas[31];
 		realtime.source = "sina";
 
 		return realtime;

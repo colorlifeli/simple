@@ -12,7 +12,7 @@ public class RealTime {
 	public String low;
 	public String deals;
 	public String dealsum;
-	public String time;
+	public String time_;
 	public String source;
 
 	@Override
@@ -36,6 +36,46 @@ public class RealTime {
 	 */
 	public Object[] toObjectArray() {
 		return new Object[] { this.code, this.tOpen, this.yClose, this.now, this.high, this.low, this.deals,
-				this.dealsum, this.time, this.source };
+				this.dealsum, this.time_, this.source };
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	public void setyClose(String yClose) {
+		this.yClose = yClose;
+	}
+
+	public void settOpen(String tOpen) {
+		this.tOpen = tOpen;
+	}
+
+	public void setNow(String now) {
+		this.now = now;
+	}
+
+	public void setHigh(String high) {
+		this.high = high;
+	}
+
+	public void setLow(String low) {
+		this.low = low;
+	}
+
+	public void setDeals(String deals) {
+		this.deals = deals;
+	}
+
+	public void setDealsum(String dealsum) {
+		this.dealsum = dealsum;
+	}
+
+	public void setTime_(String time_) {
+		this.time_ = time_;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
 	}
 }
