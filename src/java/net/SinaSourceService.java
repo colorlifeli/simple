@@ -8,10 +8,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.model.RealTime;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.model.RealTime;
 
 public class SinaSourceService {
 
@@ -37,6 +37,7 @@ public class SinaSourceService {
 			try {
 				while ((stock = br.readLine()) != null) {
 
+					//经测试，有些数据会异常，跳过 
 					if (stock.length() < 25)
 						continue;
 					// "var hq_str_sz000830="鲁西化工,6.86,6.86,6.78,6.90,6.74,6.78,6.79,33275590,227193182.00,69000,6.78,19400,6.77,58900,6.76,122800,6.75,123900,6.74,112161,6.79,64000,6.80,49000,6.81,146600,6.82,142800,6.83,2015-10-19,13:41:22,00""
@@ -45,8 +46,6 @@ public class SinaSourceService {
 					str[1] = str[1].substring(1).substring(0, str[1].length() - 2);
 					String[] datas = str[1].split(",");
 					datas[0] = code; // 将名称换成code
-					// 根据对照自己对应数据
-					// System.out.println(stock);
 					dataList.add(toRealtime(datas));
 				}
 			} catch (Exception e) {

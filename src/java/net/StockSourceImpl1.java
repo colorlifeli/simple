@@ -2,14 +2,14 @@ package net;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
-
-import net.model.RealTime;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import common.annotation.IocAnno.Ioc;
+import net.model.RealTime;
 
 public class StockSourceImpl1 implements StockSource {
 
@@ -36,10 +36,20 @@ public class StockSourceImpl1 implements StockSource {
 
 	@Override
 	public void getRealTime(List<String> codes, int interval) {
-		// TODO Auto-generated method stub
-
+		getRealTime(codes);
+		try {
+			Thread.sleep(interval * 1000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
+	/**
+	 * 总数约2780，分批进行获取和保存。
+	 * 每批数量暂定 200
+	 * 经测试，如果一次获取达到1000个code，sina服务器也会拒绝访问
+	 * 获取完所有约需5－6秒
+	 */
 	@Override
 	public void getRealTimeAll() {
 		List<String> sina_codes;
@@ -82,10 +92,24 @@ public class StockSourceImpl1 implements StockSource {
 
 	}
 
+	/**
+	 * 由于一次获取需5－6秒，实际的时间间隔将是 interval + 6秒
+	 */
 	@Override
 	public void getRealTimeAll(int interval) {
-		// TODO Auto-generated method stub
-
+		//由于是循环获取，需要进行限制
+		while (true) {
+			//获取当前时间
+			Calendar cal = Calendar.getInstance();
+			int hour = cal.get(Calendar.HOUR);//小时
+			if (hour < 9 || (hour > 11))
+				getRealTimeAll();
+			try {
+				Thread.sleep(interval * 1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	@Override
