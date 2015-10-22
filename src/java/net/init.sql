@@ -15,7 +15,7 @@ flag varchar(2)
 
 create table sto_realtime (
 code varchar(10),
-yClose varchar(15),tOpen varchar(15),now varchar(15),high varchar(15),low varchar(15),deals varchar(15),
+yClose varchar(15),tOpen varchar(15),now varchar(15),high varchar(15),low varchar(15),deals varchar(20),
 dealsum varchar(15),
 time_ varchar(10),
 source varchar(10),
@@ -29,12 +29,13 @@ source varchar(10)
 );
 
 create table sto_code (
-code varchar(10) primary key,
+code varchar(10),
 name varchar(50),
 market varchar(10),
 source varchar(10),
 valid varchar(1),
-flag varchar(2)
+flag varchar(2),
+PRIMARY KEY(code,market)
 );
 
 create table dd_code (
@@ -54,6 +55,8 @@ valid varchar(1)
 
 --20151022
 alter table sto_code add code_sina varchar(15);
+
+update sto_code t set code_sina=(select market||code from sto_code where code=t.code and market=t.market);
 
 
 truncate table sto_realtime_original;

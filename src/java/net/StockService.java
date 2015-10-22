@@ -4,8 +4,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.model.RealTime;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +12,7 @@ import common.jdbcutil.ArrayListHandler;
 import common.jdbcutil.BeanListHandler;
 import common.jdbcutil.SqlRunner;
 import common.util.TypeUtil;
+import net.model.RealTime;
 
 public class StockService {
 
@@ -29,6 +28,14 @@ public class StockService {
 		String sql = "truncate table sto_code";
 		sqlrunner.execute(sql);
 		sql = "insert into sto_code(market,code,name) select * from CSVREAD('" + csvFilePath + "',null,'charset=GBK')";
+		sqlrunner.execute(sql);
+
+		//对sina code 作特殊处理
+		sql = "update sto_code t set code_sina=(select market||code from sto_code where code=t.code and market=t.market)";
+		sqlrunner.execute(sql);
+		sql = "update sto_code set code_sina='s_sh000001' where code='000001' and market='sh'";
+		sqlrunner.execute(sql);
+		sql = "update sto_code set code_sina='s_sz000001' where code='399001' and market='sz'";
 		sqlrunner.execute(sql);
 	}
 
@@ -215,7 +222,7 @@ public class StockService {
 	}
 
 	public void setCodeFlag(Object[][] params, String flag) throws SQLException {
-		String sql = "update sto_codes set flag = %s where code = ?";
+		String sql = "update sto_code set flag = %s where code = ?";
 		sql = String.format(sql, "'" + flag + "'");
 		try {
 			sqlrunner.insertBatch(sql, new ArrayHandler(), params);

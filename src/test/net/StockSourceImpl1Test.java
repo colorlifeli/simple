@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -18,6 +19,12 @@ public class StockSourceImpl1Test {
 	private StockSourceImpl1 impl = new StockSourceImpl1();
 	private SinaSourceService sina = new SinaSourceService();
 	private StockService stockService = new StockService();
+
+	@Before
+	public void init() {
+		impl.setSina(sina);
+		impl.setStockService(stockService);
+	}
 
 	@BeforeClass
 	public static void before() {
@@ -38,8 +45,6 @@ public class StockSourceImpl1Test {
 		codes.add("600151");
 		codes.add("000830");
 
-		impl.setSina(sina);
-		impl.setStockService(stockService);
 		impl.getRealTime(codes);
 	}
 
@@ -47,11 +52,22 @@ public class StockSourceImpl1Test {
 	public void getRealTimeAll() {
 		NetUtil.me().setProxy();
 
-		impl.setSina(sina);
-		impl.setStockService(stockService);
 		long start = System.currentTimeMillis();
 
 		impl.getRealTimeAll();
+
+		long end = System.currentTimeMillis();
+		System.out.println("time:" + (end - start));
+	}
+
+	@Ignore
+	@Test
+	public void checkStocks() {
+		NetUtil.me().setProxy();
+
+		long start = System.currentTimeMillis();
+
+		impl.checkStocks();
 
 		long end = System.currentTimeMillis();
 		System.out.println("time:" + (end - start));

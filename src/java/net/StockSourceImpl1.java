@@ -5,13 +5,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import net.model.RealTime;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import common.annotation.IocAnno.Ioc;
 import common.util.TypeUtil;
+import net.model.RealTime;
 
 public class StockSourceImpl1 implements StockSource {
 
@@ -125,29 +124,32 @@ public class StockSourceImpl1 implements StockSource {
 	 * @return
 	 * @throws SQLException 
 	 */
-	public boolean checkLast() throws SQLException {
-
-		Calendar cal = Calendar.getInstance();
-		int hour = cal.get(Calendar.HOUR);// 小时
-		// 当获取的时间和上次一样时，证明上次已是最后的时间了
-		if (hour >= 15) {
-			String code = stockService.getAvailableCode();
-			List<String> list = new ArrayList<String>();
-			list.add(code);
-			RealTime data = sina.getRealTime(list).get(0);
-			return stockService.checkSameTime(code, data);
-		}
-		return false;
-	}
+	//	public boolean checkLast() throws SQLException {
+	//
+	//		Calendar cal = Calendar.getInstance();
+	//		int hour = cal.get(Calendar.HOUR);// 小时
+	//		// 当获取的时间和上次一样时，证明上次已是最后的时间了
+	//		if (hour >= 15) {
+	//			String code = stockService.getAvailableCode();
+	//			List<String> list = new ArrayList<String>();
+	//			list.add(code);
+	//			RealTime data = sina.getRealTime(list).get(0);
+	//			return stockService.checkSameTime(code, data);
+	//		}
+	//		return false;
+	//	}
 
 	/**
 	 * 对所有stock进行检查，看是否正常，不正常的设置 flag
 	 */
 	public void checkStocks() {
+
 		List<String> sina_codes;
 		List<String> part = new ArrayList<String>();
 
 		try {
+			stockService.freshAllcode();
+
 			sina_codes = stockService.getCodes(0);
 			int size = sina_codes.size();
 			int each = 200;
@@ -184,11 +186,11 @@ public class StockSourceImpl1 implements StockSource {
 	private void dealAbnormal(Object[][] result) throws SQLException {
 		if (result[0].length > 0) {
 			// 表示停牌的
-			stockService.setCodeFlag(TypeUtil.oneToTwo(result[0]), "01");
+			stockService.setCodeFlag(TypeUtil.oneToTwo(result[0]), TypeUtil.StockCodeFlag.STOP.toString());
 		}
 		if (result[1].length > 0) {
 			// 表示异常的
-			stockService.setCodeFlag(TypeUtil.oneToTwo(result[1]), "99");
+			stockService.setCodeFlag(TypeUtil.oneToTwo(result[1]), TypeUtil.StockCodeFlag.ERROR.toString());
 		}
 	}
 

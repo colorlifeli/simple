@@ -4,8 +4,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.model.RealTime;
-
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -14,6 +12,7 @@ import org.junit.Test;
 
 import common.jdbcutil.SqlRunner;
 import common.jdbcutil.h2.H2Helper;
+import net.model.RealTime;
 
 public class StockServiceTest {
 
@@ -33,7 +32,7 @@ public class StockServiceTest {
 		H2Helper.close(SqlRunner.me().getConn());
 	}
 
-	@Ignore
+	//@Ignore
 	@Test
 	public void initCode() throws SQLException {
 		System.out.println("aaa");

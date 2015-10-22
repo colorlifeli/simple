@@ -60,6 +60,21 @@ public class TypeUtil {
 		private String value;
 	}
 
+	public enum StockCodeFlag {
+		STOP("01"), ERROR("99");
+
+		private StockCodeFlag(String value) {
+			this.value = value;
+		}
+
+		@Override
+		public String toString() {
+			return value;
+		}
+
+		private String value;
+	}
+
 	// 返回一个空对象，而不是 null
 	public static final Object[] EMPTY_ARRAY = new Object[0];
 
