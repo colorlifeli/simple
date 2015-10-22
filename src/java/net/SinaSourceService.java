@@ -8,11 +8,17 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.model.RealTime;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.model.RealTime;
-
+/**
+ * sina 数据特点：
+ * 
+ * @author James
+ *
+ */
 public class SinaSourceService {
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -37,7 +43,7 @@ public class SinaSourceService {
 			try {
 				while ((stock = br.readLine()) != null) {
 
-					//经测试，有些数据会异常，跳过 
+					// 经测试，有些数据会异常，跳过
 					if (stock.length() < 25)
 						continue;
 					// "var hq_str_sz000830="鲁西化工,6.86,6.86,6.78,6.90,6.74,6.78,6.79,33275590,227193182.00,69000,6.78,19400,6.77,58900,6.76,122800,6.75,123900,6.74,112161,6.79,64000,6.80,49000,6.81,146600,6.82,142800,6.83,2015-10-19,13:41:22,00""
@@ -59,6 +65,72 @@ public class SinaSourceService {
 		}
 
 		return dataList;
+	}
+
+	public Object[][] findAbnormal(List<String> codes) {
+		List<String> stopList = new ArrayList<String>();
+		List<String> errorList = new ArrayList<String>();
+
+		String url = realTimeUrl;
+		for (String i_code : codes) {
+			url = url + i_code + ",";
+		}
+		url.subSequence(0, url.length() - 1);
+		BufferedReader br;
+		String stock = null;
+
+		try {
+			URL u = new URL(url);
+			br = new BufferedReader(new InputStreamReader(u.openStream(), "GBK"));
+			try {
+				while ((stock = br.readLine()) != null) {
+
+					if (stock.length() < 20) {
+						logger.error("未知问题的 stock:" + stock);
+						continue;
+					}
+					if (stock.length() >= 20 && stock.length() < 25) {
+						String[] str = stock.split("=");
+						String code = str[0].substring(13);
+						errorList.add(code);
+						continue;
+					}
+
+					String[] str = stock.split("=");
+					String code = str[0].substring(13);
+					str[1] = str[1].substring(1).substring(0, str[1].length() - 2);
+					String[] datas = str[1].split(",");
+
+					RealTime tmp = toRealtime(datas);
+					if (this.checkStop(tmp)) {
+						stopList.add(code);
+					}
+				}
+
+			} catch (Exception e) {
+				logger.error("sina getRealTime error. stock:" + stock);
+				e.printStackTrace();
+			} finally {
+				br.close();
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		Object[][] result = new Object[2][];
+		result[0] = stopList.toArray();
+		result[1] = errorList.toArray();
+
+		return result;
+
+	}
+
+	public boolean checkStop(RealTime data) {
+		if (data != null && "0.000".equals(data.yClose) && "0.000".equals(data.now)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

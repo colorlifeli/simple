@@ -45,6 +45,21 @@ public class TypeUtil {
 		private String value;
 	}
 
+	public enum StockSource {
+		SINA("sina"), YAHOO("yahoo");
+
+		private StockSource(String value) {
+			this.value = value;
+		}
+
+		@Override
+		public String toString() {
+			return value;
+		}
+
+		private String value;
+	}
+
 	// 返回一个空对象，而不是 null
 	public static final Object[] EMPTY_ARRAY = new Object[0];
 

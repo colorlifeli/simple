@@ -1,5 +1,6 @@
 package net;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,12 +14,17 @@ import common.jdbcutil.ArrayHandler;
 import common.jdbcutil.ArrayListHandler;
 import common.jdbcutil.BeanListHandler;
 import common.jdbcutil.SqlRunner;
+import common.util.TypeUtil;
 
 public class StockService {
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	SqlRunner sqlrunner = SqlRunner.me();
+
+	// 根据不同的实现进行设置
+	private String impl;
+	private SourceVar sourceVar = new SourceVar();
 
 	public void initCode(String csvFilePath) throws SQLException {
 		String sql = "truncate table sto_code";
@@ -56,15 +62,17 @@ public class StockService {
 	 * @return
 	 * @throws SQLException
 	 */
-	public List<String> getCodes_forsina(int num) throws SQLException {
+	public List<String> getCodes(int num) throws SQLException {
 		if (num < 0)
 			return null;
 		String sql = null;
 		Object[] params = null;
 		if (num == 0) {
-			sql = "select market||code from sto_code";
+			sql = "select %s from sto_code where flag is null";
+			sql = String.format(sql, sourceVar.rCodeName);
 		} else {
-			sql = "select market||code from sto_code where rownum<=?";
+			sql = "select %s from sto_code where flag is null and rownum<=?";
+			sql = String.format(sql, sourceVar.rCodeName);
 			params = new Object[] { num };
 		}
 		List<Object[]> result = sqlrunner.query(sql, new ArrayListHandler(), params);
@@ -83,7 +91,7 @@ public class StockService {
 	 * @return
 	 * @throws SQLException
 	 */
-	public List<String> getCodes_forsina(List<String> codes) throws SQLException {
+	public List<String> getCodes(List<String> codes) throws SQLException {
 		if (codes == null || codes.size() == 0) {
 			return null;
 		}
@@ -94,7 +102,8 @@ public class StockService {
 		codestr = codestr.substring(0, codestr.length() - 1) + ")";
 		String sql = null;
 
-		sql = "select market||code from sto_code where code in " + codestr;
+		sql = "select %s from sto_code where code in %s";
+		sql = String.format(sql, sourceVar.rCodeName, codestr);
 
 		List<Object[]> result = sqlrunner.query(sql, new ArrayListHandler());
 
@@ -124,7 +133,8 @@ public class StockService {
 		codestr = codestr.substring(0, codestr.length() - 1) + ")";
 		String sql = null;
 
-		sql = "select * from sto_realtime where code in " + codestr;
+		sql = "select * from sto_realtime where code in %s";
+		sql = String.format(sql, codestr);
 
 		return sqlrunner.query(sql, new BeanListHandler<RealTime>(RealTime.class));
 	}
@@ -162,6 +172,93 @@ public class StockService {
 		String sql = "select  * from sto_realtime a where not exists (select 1 from sto_realtime b where a.code=b.code and b.time_>a.time_)";
 
 		return sqlrunner.query(sql, new BeanListHandler<RealTime>(RealTime.class));
+	}
+
+	/**
+	 * 对某个code，检查当前获得的数据是否和数据库的时间一样
+	 * @param code
+	 * @param data
+	 * @return
+	 * @throws SQLException 
+	 */
+	public boolean checkSameTime(String code, RealTime data) throws SQLException {
+		if (code == null || "".equals(code) || data == null)
+			return false;
+		String sql = "select top 1 * from sto_realtime where code=? order by time_ desc";
+		RealTime his = sqlrunner.query(sql, new BeanListHandler<RealTime>(RealTime.class), new Object[] { code })
+				.get(0);
+
+		if (his != null && his.time_.equals(data.time_))
+			return true;
+
+		return false;
+	}
+
+	/**
+	 * 查出一个可用的code
+	 * @return
+	 * @throws SQLException
+	 */
+	public String getAvailableCode() throws SQLException {
+		// 约定没有flag的是正常code
+		String sql = "select top 1 %s from sto_code where flag is null";
+		sql = String.format(sql, sourceVar.rCodeName);
+		return (String) sqlrunner.query(sql, new ArrayHandler())[0];
+	}
+
+	/**
+	 * 将所有 code 设为正常
+	 * @throws SQLException 
+	 */
+	public void freshAllcode() throws SQLException {
+		String sql = "update sto_code set flag = null";
+		sqlrunner.execute(sql);
+	}
+
+	public void setCodeFlag(Object[][] lists) throws SQLException {
+		Connection conn = sqlrunner.getConn();
+		try {
+			conn.setAutoCommit(false);
+			
+		} catch (SQLException e) {
+			// 在这里不需要rollback
+			// conn.rollback();
+			e.printStackTrace();
+		} finally {
+			conn.setAutoCommit(true);
+		}
+		String sql = "update "
+	}
+
+	public String getImpl() {
+		return impl;
+	}
+
+	public void setImpl(String impl) {
+		this.impl = impl;
+		sourceVar.setVar(impl);
+	}
+
+	class SourceVar {
+		TypeUtil.StockSource realSource;
+		TypeUtil.StockSource historySource;
+		// 查询实时数据时的code字段名称
+		String rCodeName;
+
+		public void setVar(String impl) {
+			if (impl == null) {
+				logger.error("SourceVar->setVar, impl is null");
+				return;
+			}
+			switch (impl) {
+			case "impl1":
+				realSource = TypeUtil.StockSource.SINA;
+				rCodeName = "code_sina";
+				break;
+			default:
+				logger.error("not support impl:" + impl);
+			}
+		}
 	}
 
 }

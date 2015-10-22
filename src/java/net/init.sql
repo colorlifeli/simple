@@ -52,6 +52,10 @@ value_desc_cn varchar(30),
 valid varchar(1)
 );
 
+--20151022
+alter table sto_code add code_sina varchar(15);
+
+
 truncate table sto_realtime_original;
 truncate table sto_realtime;
 truncate table sto_day;

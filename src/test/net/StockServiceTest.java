@@ -19,6 +19,10 @@ public class StockServiceTest {
 
 	private StockService service = new StockService();
 
+	public StockServiceTest() {
+		service.setImpl("impl1");
+	}
+
 	@BeforeClass
 	public static void before() {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
@@ -40,7 +44,7 @@ public class StockServiceTest {
 	@Test
 	public void getCodes_forsina() {
 		try {
-			List<String> strs = service.getCodes_forsina(10);
+			List<String> strs = service.getCodes(10);
 			for (String str : strs) {
 				System.out.println(str);
 			}
@@ -57,7 +61,7 @@ public class StockServiceTest {
 			List<String> codes = new ArrayList<String>();
 			codes.add("600151");
 			codes.add("000830");
-			List<String> strs = service.getCodes_forsina(codes);
+			List<String> strs = service.getCodes(codes);
 			Assert.assertTrue(strs.contains("sh600151"));
 			Assert.assertTrue(strs.contains("sz000830"));
 		} catch (SQLException e) {
@@ -105,7 +109,7 @@ public class StockServiceTest {
 		try {
 			List<RealTime> strs = service.findRealtimeAllLast();
 			for (RealTime str : strs) {
-				System.out.println(str);
+				// System.out.println(str);
 			}
 
 		} catch (SQLException e) {
