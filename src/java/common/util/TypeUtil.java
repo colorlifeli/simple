@@ -63,4 +63,14 @@ public class TypeUtil {
 	// 返回一个空对象，而不是 null
 	public static final Object[] EMPTY_ARRAY = new Object[0];
 
+	public static Object[][] oneToTwo(final Object[] var) {
+		if (var.length == 0)
+			return null;
+		Object[][] result = new Object[var.length][1];
+		for (int i = 0; i < var.length; i++) {
+			result[i][0] = var[i];
+		}
+		return result;
+	}
+
 }

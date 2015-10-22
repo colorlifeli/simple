@@ -1,6 +1,5 @@
 package net;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -215,19 +214,15 @@ public class StockService {
 		sqlrunner.execute(sql);
 	}
 
-	public void setCodeFlag(Object[][] lists) throws SQLException {
-		Connection conn = sqlrunner.getConn();
+	public void setCodeFlag(Object[][] params, String flag) throws SQLException {
+		String sql = "update sto_codes set flag = %s where code = ?";
+		sql = String.format(sql, "'" + flag + "'");
 		try {
-			conn.setAutoCommit(false);
-			
+			sqlrunner.insertBatch(sql, new ArrayHandler(), params);
 		} catch (SQLException e) {
-			// 在这里不需要rollback
-			// conn.rollback();
+			logger.error("批量更新flag失败.");
 			e.printStackTrace();
-		} finally {
-			conn.setAutoCommit(true);
 		}
-		String sql = "update "
 	}
 
 	public String getImpl() {

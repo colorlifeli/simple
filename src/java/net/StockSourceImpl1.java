@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import common.annotation.IocAnno.Ioc;
+import common.util.TypeUtil;
 
 public class StockSourceImpl1 implements StockSource {
 
@@ -145,7 +146,6 @@ public class StockSourceImpl1 implements StockSource {
 	public void checkStocks() {
 		List<String> sina_codes;
 		List<String> part = new ArrayList<String>();
-		List<RealTime> list = null;
 
 		try {
 			sina_codes = stockService.getCodes(0);
@@ -158,8 +158,7 @@ public class StockSourceImpl1 implements StockSource {
 					for (int i = start; i < size; i++) {
 						part.add(sina_codes.get(i));
 					}
-					list.addAll(sina.getRealTime(part));
-					// stockService.saveRealTimeData(list);
+					this.dealAbnormal(sina.findAbnormal(part));
 
 					break;
 				} else {
@@ -168,8 +167,7 @@ public class StockSourceImpl1 implements StockSource {
 						part.add(sina_codes.get(i));
 					}
 
-					list.addAll(sina.getRealTime(part));
-					// stockService.saveRealTimeData(list);
+					this.dealAbnormal(sina.findAbnormal(part));
 
 					start += each;
 					part.clear();
@@ -180,6 +178,17 @@ public class StockSourceImpl1 implements StockSource {
 		} catch (Exception e) {
 			logger.error("getRealTimeAll failed");
 			e.printStackTrace();
+		}
+	}
+
+	private void dealAbnormal(Object[][] result) throws SQLException {
+		if (result[0].length > 0) {
+			// 表示停牌的
+			stockService.setCodeFlag(TypeUtil.oneToTwo(result[0]), "01");
+		}
+		if (result[1].length > 0) {
+			// 表示异常的
+			stockService.setCodeFlag(TypeUtil.oneToTwo(result[1]), "99");
 		}
 	}
 
