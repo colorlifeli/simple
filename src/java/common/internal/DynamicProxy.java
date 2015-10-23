@@ -26,6 +26,7 @@ public class DynamicProxy implements InvocationHandler {
 	 * @param clazz
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public synchronized static <T> T getProxyInstance(Class<T> clazz) {
 		DynamicProxy invoHandler = invoHandlers.get(clazz);
 

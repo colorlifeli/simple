@@ -73,6 +73,9 @@ public class H2Test {
 		System.out.println(resultBs.get(1));
 		Assert.assertEquals(resultBs.get(1).getName(), "小明");
 
+		// 测试表是否存在
+		Assert.assertTrue(sqlrunner.isTableExists("test"));
+
 	}
 
 	public static class TestBean {

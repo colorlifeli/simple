@@ -6,7 +6,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import common.annotation.ActionAnno.Action;
-import web.example.HelloAction;
 
 public class HelloActionTest {
 
@@ -23,10 +22,4 @@ public class HelloActionTest {
 
 	}
 
-	@Test
-	public void testGetData() {
-		HelloAction action = new HelloAction();
-		System.out.println("aaa");
-		action.getData();
-	}
 }

@@ -24,4 +24,13 @@ public class Constant {
 	public class web {
 		public final static String jspPrefix = "/WEB-INF/jsp/";
 	}
+
+	// stock 相关
+	public class stock {
+		// 开盘时间
+		public final static String morningStart = "09:30";
+		public final static String morningEnd = "11:30";
+		public final static String afternoonStart = "13:00";
+		public final static String afternoonEnd = "15:00";
+	}
 }

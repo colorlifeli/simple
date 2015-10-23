@@ -24,7 +24,7 @@ flag varchar(2)
 
 create table sto_day (
 code varchar(10),
-date_ date,open_ varchar(15),high varchar(15),low varchar(15),close_ varchar(15),volume varchar(15),
+date_ date,open_ varchar(15),high varchar(15),low varchar(15),close_ varchar(15),volume varchar(20),
 source varchar(10)
 );
 
@@ -35,6 +35,7 @@ market varchar(10),
 source varchar(10),
 valid varchar(1),
 flag varchar(2),
+code_sina varchar(15),
 PRIMARY KEY(code,market)
 );
 
@@ -54,7 +55,7 @@ valid varchar(1)
 );
 
 --20151022
-alter table sto_code add code_sina varchar(15);
+--alter table sto_code add code_sina varchar(15);
 
 update sto_code t set code_sina=(select market||code from sto_code where code=t.code and market=t.market);
 

@@ -8,10 +8,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.model.RealTime;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import net.model.RealTime;
 
 /**
  * sina 数据特点：
@@ -125,6 +125,11 @@ public class SinaSourceService {
 
 	}
 
+	/*
+	 * 判断是否 stop
+	 * 
+	 * 注意：早上开盘前和下午收盘后会有不同
+	 */
 	public boolean checkStop(RealTime data) {
 		if (data != null && Double.parseDouble(data.tOpen) == 0) {
 			return true;
@@ -141,11 +146,11 @@ public class SinaSourceService {
 	private RealTime toRealtime(String[] datas) {
 		RealTime realtime = new RealTime();
 		if (datas.length != 33) {
-			//指数
+			// 指数
 			realtime.code = datas[0];
-			realtime.tOpen = datas[1];//当前点数
+			realtime.tOpen = datas[1];// 当前点数
 			realtime.now = datas[2];
-			realtime.high = datas[3];//涨跌率
+			realtime.high = datas[3];// 涨跌率
 			realtime.deals = datas[4];
 			realtime.dealsum = datas[5];
 			realtime.source = "sina";

@@ -33,6 +33,15 @@ public class SqlRunner {
 		return holder.instance;
 	}
 
+	public boolean isTableExists(String tableName) throws SQLException {
+		boolean state = false;
+		ResultSet set = conn.getMetaData().getTables(null, null, tableName.toUpperCase(), null);
+		while (set.next()) {
+			state = true;
+		}
+		return state;
+	}
+
 	/**
 	 * 对某个 sql 语句批量执行不同值 使用预设 connection
 	 * 
@@ -51,7 +60,7 @@ public class SqlRunner {
 	 * @param conn
 	 * @param sql
 	 * @param params
-	 * @return
+	 * @return 返回每条语句更新的数量
 	 * @throws SQLException
 	 */
 	public int[] batch(Connection conn, String sql, Object[][] params) throws SQLException {

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -36,7 +37,6 @@ public class StockSourceImpl1Test {
 		H2Helper.close(SqlRunner.me().getConn());
 	}
 
-	@Ignore
 	@Test
 	public void getRealTime() {
 		NetUtil.me().setProxy();
@@ -48,6 +48,7 @@ public class StockSourceImpl1Test {
 		impl.getRealTime(codes);
 	}
 
+	@Ignore
 	@Test
 	public void getRealTimeAll() {
 		NetUtil.me().setProxy();
@@ -60,17 +61,41 @@ public class StockSourceImpl1Test {
 		System.out.println("time:" + (end - start));
 	}
 
-	@Ignore
+	// @Ignore
 	@Test
 	public void checkStocks() {
 		NetUtil.me().setProxy();
 
-		long start = System.currentTimeMillis();
+		try {
 
-		impl.checkStocks();
+			long start = System.currentTimeMillis();
 
-		long end = System.currentTimeMillis();
-		System.out.println("time:" + (end - start));
+			impl.checkStocks();
+
+			long end = System.currentTimeMillis();
+			System.out.println("time:" + (end - start));
+
+			List<String> list = stockService.getCodes(0);
+			Assert.assertTrue(list.size() < 2600); // 必然有一些停牌
+		} catch (SQLException e) {
+			Assert.fail();
+			e.printStackTrace();
+		}
+
+	}
+
+	@Test
+	public void getRealTimeAllByInterval() {
+		NetUtil.me().setProxy();
+
+		try {
+
+			impl.getRealTimeAll(60);
+
+		} catch (Exception e) {
+			Assert.fail();
+			e.printStackTrace();
+		}
 	}
 
 }
