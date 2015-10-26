@@ -8,7 +8,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import common.jdbcutil.SqlRunner;
@@ -48,7 +47,7 @@ public class StockSourceImpl1Test {
 		impl.getRealTime(codes);
 	}
 
-	@Ignore
+	//@Ignore
 	@Test
 	public void getRealTimeAll() {
 		NetUtil.me().setProxy();
@@ -96,6 +95,11 @@ public class StockSourceImpl1Test {
 			Assert.fail();
 			e.printStackTrace();
 		}
+	}
+
+	@Test
+	public void isSameAsPrevious() {
+
 	}
 
 }

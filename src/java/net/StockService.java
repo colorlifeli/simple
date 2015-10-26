@@ -6,9 +6,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import net.model.RealTime;
-import net.model.StockDay;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +15,8 @@ import common.jdbcutil.BeanListHandler;
 import common.jdbcutil.SqlRunner;
 import common.util.Constant;
 import common.util.TypeUtil;
+import net.model.RealTime;
+import net.model.StockDay;
 
 public class StockService {
 
@@ -35,12 +34,12 @@ public class StockService {
 		sql = "insert into sto_code(market,code,name) select * from CSVREAD('" + csvFilePath + "',null,'charset=GBK')";
 		sqlrunner.execute(sql);
 
-		// 对sina code 作特殊处理
+		// 对sina code 作特殊处理,对指数作特殊处理
 		sql = "update sto_code t set code_sina=(select market||code from sto_code where code=t.code and market=t.market)";
 		sqlrunner.execute(sql);
-		sql = "update sto_code set code_sina='s_sh000001' where code='000001' and market='sh'";
+		sql = "update sto_code set type_='1',code_sina='s_sh000001' where code='000001' and market='sh'";
 		sqlrunner.execute(sql);
-		sql = "update sto_code set code_sina='s_sz000001' where code='399001' and market='sz'";
+		sql = "update sto_code set type_='1',code_sina='s_sz399001' where code='399001' and market='sz'";
 		sqlrunner.execute(sql);
 	}
 
@@ -212,7 +211,7 @@ public class StockService {
 	 */
 	public String getAvailableCode() throws SQLException {
 		// 约定没有flag的是正常code
-		String sql = "select top 1 %s from sto_code where flag is null";
+		String sql = "select top 1 %s from sto_code where flag is null and type_ is null";
 		sql = String.format(sql, sourceVar.rCodeName);
 		return (String) sqlrunner.query(sql, new ArrayHandler())[0];
 	}
@@ -247,7 +246,8 @@ public class StockService {
 		String now = format.format(date);
 
 		if ((now.compareTo(Constant.stock.morningStart) > 0 && now.compareTo(Constant.stock.morningEnd) <= 0)
-				|| (now.compareTo(Constant.stock.afternoonStart) > 0 && now.compareTo(Constant.stock.afternoonEnd) <= 0)) {
+				|| (now.compareTo(Constant.stock.afternoonStart) > 0
+						&& now.compareTo(Constant.stock.afternoonEnd) <= 0)) {
 			return true;
 		}
 

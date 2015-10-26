@@ -8,10 +8,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.model.RealTime;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.model.RealTime;
 
 /**
  * sina 数据特点：
@@ -165,6 +165,7 @@ public class SinaSourceService {
 			realtime.dealsum = datas[9];
 			realtime.time_ = datas[31];
 			realtime.source = "sina";
+			realtime.date = datas[30];
 		}
 
 		return realtime;

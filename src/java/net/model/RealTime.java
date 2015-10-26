@@ -14,6 +14,7 @@ public class RealTime {
 	public String dealsum;
 	public String time_;
 	public String source;
+	public String date;
 
 	@Override
 	public String toString() {

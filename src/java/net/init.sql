@@ -35,6 +35,7 @@ market varchar(10),
 source varchar(10),
 valid varchar(1),
 flag varchar(2),
+type_ varchar(2),
 code_sina varchar(15),
 PRIMARY KEY(code,market)
 );

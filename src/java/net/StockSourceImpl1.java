@@ -4,14 +4,13 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.model.RealTime;
-import net.model.StockDay;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import common.annotation.IocAnno.Ioc;
 import common.util.TypeUtil;
+import net.model.RealTime;
+import net.model.StockDay;
 
 public class StockSourceImpl1 implements StockSource {
 
@@ -99,6 +98,7 @@ public class StockSourceImpl1 implements StockSource {
 	 */
 	@Override
 	public void getRealTimeAll(int interval) {
+		boolean everydayFirstTime = true;
 		// 由于是循环获取，需要进行限制
 		while (true) {
 			try {
