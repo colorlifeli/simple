@@ -8,10 +8,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.model.RealTime;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import net.model.RealTime;
 
 /**
  * sina 数据特点：
@@ -25,6 +25,11 @@ public class SinaSourceService {
 
 	private String realTimeUrl = "http://hq.sinajs.cn/list=";
 
+	/**
+	 * 获取实时数据
+	 * @param codes
+	 * @return
+	 */
 	public List<RealTime> getRealTime(List<String> codes) {
 		if (codes == null || codes.size() == 0)
 			return null;
@@ -67,6 +72,15 @@ public class SinaSourceService {
 		return dataList;
 	}
 
+	/**
+	 * 获取非正常数据
+	 * 
+	 * 结果是数组
+	 * result[0]: stop stocks
+	 * result[1]: 数据异常,当前是指获取不到数据的code
+	 * @param codes
+	 * @return
+	 */
 	public Object[][] findAbnormal(List<String> codes) {
 		List<String> stopList = new ArrayList<String>();
 		List<String> errorList = new ArrayList<String>();

@@ -2,16 +2,24 @@ package net;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+
+import net.model.RealTime;
+import net.model.StockDay;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import common.annotation.IocAnno.Ioc;
 import common.util.TypeUtil;
-import net.model.RealTime;
-import net.model.StockDay;
 
+/**
+ * 本实现类，
+ * 1.
+ * @author James
+ *
+ */
 public class StockSourceImpl1 implements StockSource {
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -63,6 +71,7 @@ public class StockSourceImpl1 implements StockSource {
 			int each = 200;
 			int start = 0;
 
+			logger.info("get and save realtime data all. size:" + size);
 			while (true) {
 				if (size <= start + each) {
 					for (int i = start; i < size; i++) {
@@ -73,7 +82,6 @@ public class StockSourceImpl1 implements StockSource {
 
 					break;
 				} else {
-					logger.info("get and save realtime data all. size:" + size + ",start:" + start);
 					for (int i = start; i < start + each; i++) {
 						part.add(sina_codes.get(i));
 					}
@@ -98,27 +106,41 @@ public class StockSourceImpl1 implements StockSource {
 	 */
 	@Override
 	public void getRealTimeAll(int interval) {
-		boolean everydayFirstTime = true;
+		// 标记是否开市
+		boolean isOpen = false;
 		// 由于是循环获取，需要进行限制
 		while (true) {
 			try {
 				if (stockService.isStockTime()) {
-					getRealTimeAll();
+					if (isOpen)
+						getRealTimeAll();
+					else {
+						if (this.checkOpen()) {
+							isOpen = true;
+							this.checkStocks();
+						}
+					}
 				} else {
-					// 当获取的时间和上次一样时，证明上次已是最后一次
 					if (stockService.isAfterStockTime()) {
-						if (this.isSameAsPrevious()) {
-							// 保存到历史表,并重命名今日的实时数据表
-							this.everydayFinalDealing();
+						// 防止程序是否多次重启进入
+						if (!stockService.isRealtimeDayTableExists()) {
 
-							break;
-						} else {
-							// 数据一般会有延迟，并不一定在严格的开盘时间范围内。所以仍需继续获取数据
-							// 表有可能已经改名了
-							if (stockService.isRealtimeDayTableExists())
+							// 当获取的时间和上次一样时，证明上次已是最后一次
+							if (this.isSameAsPrevious()) {
+								// 保存到历史表,并重命名今日的实时数据表
+								this.dayFinalDo();
+
+								// 收市了
+								isOpen = false;
+
 								break;
-							else
+							} else {
+								// 数据一般会有延迟，并不一定在严格的开盘时间范围内。所以仍需继续获取数据
 								getRealTimeAll();
+							}
+						} else {
+							// TODO 如果作为 web运行，24小时不间断，则不要break
+							break;
 						}
 					}
 				}
@@ -136,8 +158,14 @@ public class StockSourceImpl1 implements StockSource {
 
 	@Override
 	public void getHistory(List<String> codes, String startDate, String endDate) {
-		// TODO Auto-generated method stub
-
+		try {
+			// String url =
+			// "http://ichart.finance.yahoo.com/table.csv?s=300072.sz&d=7&e=23&f=2010&a=5&b=11&c=2010";
+			// NetUtil.me().saveUrlAs(url, "d:/his.csv");
+			stockService.saveCsvFromUrl();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -150,13 +178,23 @@ public class StockSourceImpl1 implements StockSource {
 		String code = stockService.getAvailableCode();
 		List<String> list = new ArrayList<String>();
 		list.add(code);
-		RealTime data = sina.getRealTime(list).get(0);
-		return stockService.checkSameTime(code, data);
+		List<RealTime> datas = sina.getRealTime(list);
+		if (datas == null || datas.get(0) == null) {
+			logger.error("isSameAsPrevious, cannot get realtime,code:" + code);
+			return false;
+		}
+
+		boolean result = stockService.checkSameTime(datas.get(0).code, datas.get(0));
+
+		logger.info("isSameAsPrevious, code:" + code + ", same:" + result);
+		return result;
 
 	}
 
 	/**
 	 * 对所有stock进行检查，看是否正常，不正常的设置 flag
+	 * 
+	 * 注意：对于sina, 9:00-9:30 时间，不能进行 checkStock，此时所有stock 都是类似 stop 的状态
 	 */
 	public void checkStocks() {
 
@@ -171,6 +209,8 @@ public class StockSourceImpl1 implements StockSource {
 			int each = 200;
 			int start = 0;
 
+			logger.info("checkStocks and set flag. size:" + size);
+
 			while (true) {
 				if (size <= start + each) {
 					for (int i = start; i < size; i++) {
@@ -180,7 +220,6 @@ public class StockSourceImpl1 implements StockSource {
 
 					break;
 				} else {
-					logger.info("checkStocks and set flag. size:" + size + ",start:" + start);
 					for (int i = start; i < start + each; i++) {
 						part.add(sina_codes.get(i));
 					}
@@ -200,8 +239,13 @@ public class StockSourceImpl1 implements StockSource {
 
 	/**
 	 * 每日最后事情
+	 * 
+	 * 1. 实时数据转为 day 数据
+	 * 2. 由于分时数据只对当日有意义，没必要一个表存储所有分时数据，也担心性能问题，所以每日一个实时表
+	 * 		
 	 */
-	public void everydayFinalDealing() {
+	public void dayFinalDo() {
+		// TODO 有时并不会整日去获取实时数据，实时数据就会很少，这时存在一个表也会有浪费，以后考虑怎么处理
 		List<String> sina_codes;
 		List<String> part = new ArrayList<String>();
 		List<StockDay> list = null;
@@ -211,6 +255,8 @@ public class StockSourceImpl1 implements StockSource {
 			int size = sina_codes.size();
 			int each = 200;
 			int start = 0;
+
+			logger.info("get realtime to stock day data all. size:" + size);
 
 			// 1. 将实时数据转为 day
 			while (true) {
@@ -223,7 +269,6 @@ public class StockSourceImpl1 implements StockSource {
 
 					break;
 				} else {
-					logger.info("get realtime to stock day data all. size:" + size + ",start:" + start);
 					for (int i = start; i < start + each; i++) {
 						part.add(sina_codes.get(i));
 					}
@@ -236,8 +281,9 @@ public class StockSourceImpl1 implements StockSource {
 				}
 			}
 
-			// 2. 对实时表改名，以今日日期为后缀
-			stockService.dealRealTimeTable();
+			// 2. 对实时表改名，以今日日期为标识
+			if (!stockService.isRealtimeDayTableExists())
+				stockService.dealRealTimeTable();
 
 		} catch (Exception e) {
 			logger.error("everydayFinalDealing failed");
@@ -245,14 +291,25 @@ public class StockSourceImpl1 implements StockSource {
 		}
 	}
 
+	/**
+	 * 判断是否开市
+	 */
+	public boolean checkOpen() {
+		// TODO 补充判断开市逻辑
+		logger.info("checkOpen. time:" + new Date() + ", open:" + true);
+		return true;
+	}
+
 	private void dealAbnormal(Object[][] result) throws SQLException {
 		if (result[0].length > 0) {
 			// 表示停牌的
 			stockService.setCodeFlag(TypeUtil.oneToTwo(result[0]), TypeUtil.StockCodeFlag.STOP.toString());
+			logger.info("dealAbnormal, stop size:" + result[0].length);
 		}
 		if (result[1].length > 0) {
 			// 表示异常的
 			stockService.setCodeFlag(TypeUtil.oneToTwo(result[1]), TypeUtil.StockCodeFlag.ERROR.toString());
+			logger.info("dealAbnormal, error size:" + result[1].length);
 		}
 	}
 

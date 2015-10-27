@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import net.model.RealTime;
+import net.model.StockDay;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,8 +18,6 @@ import common.jdbcutil.BeanListHandler;
 import common.jdbcutil.SqlRunner;
 import common.util.Constant;
 import common.util.TypeUtil;
-import net.model.RealTime;
-import net.model.StockDay;
 
 public class StockService {
 
@@ -195,10 +196,9 @@ public class StockService {
 		if (code == null || "".equals(code) || data == null)
 			return false;
 		String sql = "select top 1 * from sto_realtime where code=? order by time_ desc";
-		RealTime his = sqlrunner.query(sql, new BeanListHandler<RealTime>(RealTime.class), new Object[] { code })
-				.get(0);
+		List<RealTime> his = sqlrunner.query(sql, new BeanListHandler<RealTime>(RealTime.class), new Object[] { code });
 
-		if (his != null && his.time_.equals(data.time_))
+		if (his != null && his.get(0) != null && his.get(0).time_.equals(data.time_))
 			return true;
 
 		return false;
@@ -246,8 +246,7 @@ public class StockService {
 		String now = format.format(date);
 
 		if ((now.compareTo(Constant.stock.morningStart) > 0 && now.compareTo(Constant.stock.morningEnd) <= 0)
-				|| (now.compareTo(Constant.stock.afternoonStart) > 0
-						&& now.compareTo(Constant.stock.afternoonEnd) <= 0)) {
+				|| (now.compareTo(Constant.stock.afternoonStart) > 0 && now.compareTo(Constant.stock.afternoonEnd) <= 0)) {
 			return true;
 		}
 
@@ -306,6 +305,7 @@ public class StockService {
 			day.volume = realtime.deals;
 			day.source = realtime.source;
 			day.date_ = new Date();
+			list.add(day);
 		}
 		return list;
 	}
@@ -324,6 +324,7 @@ public class StockService {
 		sql = "alter table sto_realtime_tmp rename to sto_realtime";
 		sqlrunner.execute(sql);
 
+		logger.info("rename realtime table success. table name:sto_realtime" + day);
 	}
 
 	/**
@@ -338,6 +339,11 @@ public class StockService {
 
 		String table = "sto_realtime" + day;
 		return sqlrunner.isTableExists(table);
+	}
+
+	public void saveCsvFromUrl() throws SQLException {
+		String sql = "insert into TEST  SELECT * FROM CSVREAD('http://ichart.finance.yahoo.com/table.csv?s=300072.sz&d=7&e=23&f=2010&a=5&b=11&c=2010')";
+		sqlrunner.execute(sql);
 	}
 
 	public String getImpl() {

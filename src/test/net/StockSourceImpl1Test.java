@@ -29,6 +29,7 @@ public class StockSourceImpl1Test {
 	@BeforeClass
 	public static void before() {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
+		NetUtil.me().setProxy();
 	}
 
 	@AfterClass
@@ -47,7 +48,7 @@ public class StockSourceImpl1Test {
 		impl.getRealTime(codes);
 	}
 
-	//@Ignore
+	// @Ignore
 	@Test
 	public void getRealTimeAll() {
 		NetUtil.me().setProxy();
@@ -85,7 +86,6 @@ public class StockSourceImpl1Test {
 
 	@Test
 	public void getRealTimeAllByInterval() {
-		NetUtil.me().setProxy();
 
 		try {
 
@@ -99,7 +99,32 @@ public class StockSourceImpl1Test {
 
 	@Test
 	public void isSameAsPrevious() {
+		try {
+			boolean result = impl.isSameAsPrevious();
+			if (stockService.isStockTime()) {
+				Assert.assertFalse(result);
+			} else {
+				Assert.assertTrue(result);
+			}
+		} catch (SQLException e) {
+			Assert.fail();
+			e.printStackTrace();
+		}
+	}
 
+	@Test
+	public void dayFinalDo() {
+		impl.dayFinalDo();
+	}
+
+	@Test
+	public void getHistory() {
+		long start = System.currentTimeMillis();
+
+		impl.getHistory(null, null, null);
+
+		long end = System.currentTimeMillis();
+		System.out.println("time:" + (end - start));
 	}
 
 }
