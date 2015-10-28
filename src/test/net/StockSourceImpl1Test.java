@@ -18,11 +18,13 @@ public class StockSourceImpl1Test {
 
 	private StockSourceImpl1 impl = new StockSourceImpl1();
 	private SinaSourceService sina = new SinaSourceService();
+	private YahooSourceService yahoo = new YahooSourceService();
 	private StockService stockService = new StockService();
 
 	@Before
 	public void init() {
 		impl.setSina(sina);
+		impl.setYahoo(yahoo);
 		impl.setStockService(stockService);
 	}
 
@@ -75,7 +77,7 @@ public class StockSourceImpl1Test {
 			long end = System.currentTimeMillis();
 			System.out.println("time:" + (end - start));
 
-			List<String> list = stockService.getCodes(0);
+			List<String> list = stockService.getAllAvailableCodes(0, "r");
 			Assert.assertTrue(list.size() < 2600); // 必然有一些停牌
 		} catch (SQLException e) {
 			Assert.fail();
@@ -119,12 +121,26 @@ public class StockSourceImpl1Test {
 
 	@Test
 	public void getHistory() {
+
+		List<String> codes = new ArrayList<String>();
+		codes.add("300072");
+
 		long start = System.currentTimeMillis();
 
-		impl.getHistory(null, null, null);
+		impl.getHistory(codes, null, null);
 
 		long end = System.currentTimeMillis();
-		System.out.println("time:" + (end - start));
+		System.out.println("use time:" + (end - start));
+	}
+
+	@Test
+	public void getHistoryAll() {
+		long start = System.currentTimeMillis();
+
+		impl.getHistoryAll(null, null);
+
+		long end = System.currentTimeMillis();
+		System.out.println("use time:" + (end - start));
 	}
 
 }

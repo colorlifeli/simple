@@ -1,9 +1,11 @@
 package net;
 
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import net.model.RealTime;
 import net.model.StockDay;
@@ -26,14 +28,18 @@ public class StockSourceImpl1 implements StockSource {
 
 	@Ioc(name = "sinaSourceService")
 	private SinaSourceService sina;
+	@Ioc(name = "yahooSourceService")
+	private YahooSourceService yahoo;
 	@Ioc
 	private StockService stockService;
+
+	private String historyStartDate = "20140101";
 
 	@Override
 	public void getRealTime(List<String> codes) {
 		List<String> sina_codes = null;
 		try {
-			sina_codes = stockService.getCodes(codes);
+			sina_codes = stockService.getCodes(codes, "r");
 		} catch (SQLException e) {
 			logger.error("将code转为 sina code失败");
 			e.printStackTrace();
@@ -66,7 +72,7 @@ public class StockSourceImpl1 implements StockSource {
 		List<RealTime> list = null;
 
 		try {
-			sina_codes = stockService.getCodes(0);
+			sina_codes = stockService.getAllAvailableCodes(0, "r");
 			int size = sina_codes.size();
 			int each = 200;
 			int start = 0;
@@ -159,10 +165,50 @@ public class StockSourceImpl1 implements StockSource {
 	@Override
 	public void getHistory(List<String> codes, String startDate, String endDate) {
 		try {
-			// String url =
-			// "http://ichart.finance.yahoo.com/table.csv?s=300072.sz&d=7&e=23&f=2010&a=5&b=11&c=2010";
-			// NetUtil.me().saveUrlAs(url, "d:/his.csv");
-			stockService.saveCsvFromUrl();
+			if (startDate == null)
+				startDate = this.historyStartDate;
+			if (endDate == null) {
+				SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
+				Date date = new Date();
+				endDate = format.format(date);
+			}
+			List<String> hcodes = stockService.getCodes(codes, "h");
+			Map<String, String> urls = yahoo.getHistory(hcodes, startDate, endDate);
+
+			logger.info("getHistory, number of urls:" + urls.size() + ", " + new Date());
+			stockService.saveCsvFromUrl(urls);
+			logger.info("getHistoryAll, end " + new Date());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void getHistoryAll(String startDate, String endDate) {
+		try {
+			if (startDate == null)
+				startDate = this.historyStartDate;
+			if (endDate == null) {
+				SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
+				Date date = new Date();
+				endDate = format.format(date);
+			}
+
+			List<String> codes = stockService.getCodes(0, "h");
+			Map<String, String> urls = yahoo.getHistory(codes, startDate, endDate);
+
+			int i = 5; // 最大重做次数
+			while (i-- > 0) {
+				// 因为网络可能超时，或服务器一时没有反应，所以尝试多次重做
+				logger.info("getHistoryAll, number of urls:" + urls.size() + ", " + new Date());
+				urls = stockService.saveCsvFromUrl(urls);
+				logger.info("getHistoryAll, end " + new Date());
+
+				// 如果没有 error，就完成了
+				if (urls.size() == 0)
+					break;
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -204,7 +250,7 @@ public class StockSourceImpl1 implements StockSource {
 		try {
 			stockService.freshAllcode();
 
-			sina_codes = stockService.getCodes(0);
+			sina_codes = stockService.getAllAvailableCodes(0, "r");
 			int size = sina_codes.size();
 			int each = 200;
 			int start = 0;
@@ -251,7 +297,7 @@ public class StockSourceImpl1 implements StockSource {
 		List<StockDay> list = null;
 
 		try {
-			sina_codes = stockService.getCodes(0);
+			sina_codes = stockService.getAllAvailableCodes(0, "r");
 			int size = sina_codes.size();
 			int each = 200;
 			int start = 0;
@@ -328,6 +374,14 @@ public class StockSourceImpl1 implements StockSource {
 
 	public void setSina(SinaSourceService sina) {
 		this.sina = sina;
+	}
+
+	public YahooSourceService getYahoo() {
+		return yahoo;
+	}
+
+	public void setYahoo(YahooSourceService yahoo) {
+		this.yahoo = yahoo;
 	}
 
 }

@@ -44,7 +44,7 @@ public class StockServiceTest {
 	@Test
 	public void getCodes_forsina() {
 		try {
-			List<String> strs = service.getCodes(10);
+			List<String> strs = service.getAllAvailableCodes(10, "r");
 			for (String str : strs) {
 				System.out.println(str);
 			}
@@ -61,7 +61,7 @@ public class StockServiceTest {
 			List<String> codes = new ArrayList<String>();
 			codes.add("600151");
 			codes.add("000830");
-			List<String> strs = service.getCodes(codes);
+			List<String> strs = service.getCodes(codes, "r");
 			Assert.assertTrue(strs.contains("sh600151"));
 			Assert.assertTrue(strs.contains("sz000830"));
 		} catch (SQLException e) {

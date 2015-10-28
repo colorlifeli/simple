@@ -4,7 +4,10 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import net.model.RealTime;
 import net.model.StockDay;
@@ -42,6 +45,14 @@ public class StockService {
 		sqlrunner.execute(sql);
 		sql = "update sto_code set type_='1',code_sina='s_sz399001' where code='399001' and market='sz'";
 		sqlrunner.execute(sql);
+
+		// yahoo code 处理
+		sql = "update sto_code t set code_yahoo=(select code||'.ss' "
+				+ "from sto_code where code=t.code and market=t.market) where t.market='sh'";
+		sqlrunner.execute(sql);
+		sql = "update sto_code t set code_yahoo=(select code||'.sz' "
+				+ "from sto_code where code=t.code and market=t.market) where t.market='sz'";
+		sqlrunner.execute(sql);
 	}
 
 	/**
@@ -67,23 +78,69 @@ public class StockService {
 	}
 
 	/**
-	 * 查询所有或部分code出来，结果是 sina code的形式
-	 * sina的 code是 market + code
+	 * 查询所有或部分code出来，都是非 stop 的 stock
+	 * 
 	 * @param num 查询出来的数量 0:all 
+	 * @param code_type o:origin 正式code， r: 用于实时获取的code  h:用于历史获取的code
 	 * @return
 	 * @throws SQLException
 	 */
-	public List<String> getCodes(int num) throws SQLException {
+	public List<String> getAllAvailableCodes(int num, String code_type) throws SQLException {
 		if (num < 0)
 			return null;
+		String codeName = "code";
 		String sql = null;
 		Object[] params = null;
+
+		if (code_type != null && "r".equals(code_type))
+			codeName = sourceVar.rCodeName;
+		if (code_type != null && "h".equals(code_type))
+			codeName = sourceVar.hCodeName;
+
 		if (num == 0) {
 			sql = "select %s from sto_code where flag is null";
-			sql = String.format(sql, sourceVar.rCodeName);
+			sql = String.format(sql, codeName);
 		} else {
 			sql = "select %s from sto_code where flag is null and rownum<=?";
-			sql = String.format(sql, sourceVar.rCodeName);
+			sql = String.format(sql, codeName);
+			params = new Object[] { num };
+		}
+		List<Object[]> result = sqlrunner.query(sql, new ArrayListHandler(), params);
+
+		List<String> strs = new ArrayList<String>();
+		for (Object[] objs : result) {
+			strs.add((String) objs[0]);
+		}
+
+		return strs;
+	}
+
+	/**
+	 * 查询所有或部分code出来
+	 * 
+	 * @param num 查询出来的数量 0:all 
+	 * @param code_type o:origin 正式code， r: 用于实时获取的code  h:用于历史获取的code
+	 * @return
+	 * @throws SQLException
+	 */
+	public List<String> getCodes(int num, String code_type) throws SQLException {
+		if (num < 0)
+			return null;
+		String codeName = "code";
+		String sql = null;
+		Object[] params = null;
+
+		if (code_type != null && "r".equals(code_type))
+			codeName = sourceVar.rCodeName;
+		if (code_type != null && "h".equals(code_type))
+			codeName = sourceVar.hCodeName;
+
+		if (num == 0) {
+			sql = "select %s from sto_code";
+			sql = String.format(sql, codeName);
+		} else {
+			sql = "select %s from sto_code where rownum<=?";
+			sql = String.format(sql, codeName);
 			params = new Object[] { num };
 		}
 		List<Object[]> result = sqlrunner.query(sql, new ArrayListHandler(), params);
@@ -99,13 +156,21 @@ public class StockService {
 	/**
 	 * 将code转为 sina code
 	 * @param codes
+	 * @param code_type  r: 用于实时获取的code  h:用于历史获取的code
 	 * @return
 	 * @throws SQLException
 	 */
-	public List<String> getCodes(List<String> codes) throws SQLException {
+	public List<String> getCodes(List<String> codes, String code_type) throws SQLException {
 		if (codes == null || codes.size() == 0) {
 			return null;
 		}
+		String codeName = "code";
+
+		if (code_type != null && "r".equals(code_type))
+			codeName = sourceVar.rCodeName;
+		if (code_type != null && "h".equals(code_type))
+			codeName = sourceVar.hCodeName;
+
 		String codestr = "(";
 		for (String code : codes) {
 			codestr += "'" + code + "',";
@@ -114,7 +179,7 @@ public class StockService {
 		String sql = null;
 
 		sql = "select %s from sto_code where code in %s";
-		sql = String.format(sql, sourceVar.rCodeName, codestr);
+		sql = String.format(sql, codeName, codestr);
 
 		List<Object[]> result = sqlrunner.query(sql, new ArrayListHandler());
 
@@ -341,9 +406,45 @@ public class StockService {
 		return sqlrunner.isTableExists(table);
 	}
 
-	public void saveCsvFromUrl() throws SQLException {
-		String sql = "insert into TEST  SELECT * FROM CSVREAD('http://ichart.finance.yahoo.com/table.csv?s=300072.sz&d=7&e=23&f=2010&a=5&b=11&c=2010')";
-		sqlrunner.execute(sql);
+	/**
+	 * 直接使用数据库 api访问网络 csv 文件来获得数据
+	 * 
+	 * 如果失败，则重试一次，仍然失败则记录并返回
+	 * @param map
+	 * @return  失败列表
+	 */
+	public Map<String, String> saveCsvFromUrl(Map<String, String> map) {
+		Map<String, String> errors = new HashMap<String, String>();
+
+		String sql = "insert into sto_day_tmp(code,date_,open_,high,low,close_,volume,source) "
+				+ "SELECT '%s',date,open,high,low,close,volume,'%s' FROM CSVREAD('%s')";
+		String source = "yahoo";
+		for (Entry<String, String> item : map.entrySet()) {
+			String url = item.getValue();
+			String code = item.getKey();
+			try {
+				sqlrunner.execute(String.format(sql, code, source, url));
+			} catch (SQLException e) {
+				logger.error("saveCsvFromUrl, execute failed! code:{}, url:{}, {}", code, url, new Date());
+				e.printStackTrace();
+
+				logger.info("try again...");
+				try {
+					sqlrunner.execute(String.format(sql, code, source, url));
+				} catch (SQLException e1) {
+					logger.error("saveCsvFromUrl, execute failed again! code:{}, url:{}, {}", code, url, new Date());
+					logger.info("record and go next...");
+					errors.put(code, url);
+					e1.printStackTrace();
+				}
+
+				continue;
+			}
+
+			logger.debug("saveCsvFromUrl, code:{}, url:{}, {}", code, url, new Date());
+		}
+
+		return errors;
 	}
 
 	public String getImpl() {
@@ -360,6 +461,7 @@ public class StockService {
 		TypeUtil.StockSource historySource;
 		// 查询实时数据时的code字段名称
 		String rCodeName;
+		String hCodeName;
 
 		public void setVar(String impl) {
 			if (impl == null) {
@@ -370,6 +472,7 @@ public class StockService {
 			case "impl1":
 				realSource = TypeUtil.StockSource.SINA;
 				rCodeName = "code_sina";
+				hCodeName = "code_yahoo";
 				break;
 			default:
 				logger.error("not support impl:" + impl);
