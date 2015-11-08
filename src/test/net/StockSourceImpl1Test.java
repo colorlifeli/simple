@@ -12,7 +12,6 @@ import org.junit.Test;
 
 import common.jdbcutil.SqlRunner;
 import common.jdbcutil.h2.H2Helper;
-import common.util.NetUtil;
 
 public class StockSourceImpl1Test {
 
@@ -31,7 +30,7 @@ public class StockSourceImpl1Test {
 	@BeforeClass
 	public static void before() {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
-		NetUtil.me().setProxy();
+		//NetUtil.me().setProxy();
 	}
 
 	@AfterClass
@@ -41,7 +40,6 @@ public class StockSourceImpl1Test {
 
 	@Test
 	public void getRealTime() {
-		NetUtil.me().setProxy();
 
 		List<String> codes = new ArrayList<String>();
 		codes.add("600151");
@@ -53,7 +51,6 @@ public class StockSourceImpl1Test {
 	// @Ignore
 	@Test
 	public void getRealTimeAll() {
-		NetUtil.me().setProxy();
 
 		long start = System.currentTimeMillis();
 
@@ -66,7 +63,6 @@ public class StockSourceImpl1Test {
 	// @Ignore
 	@Test
 	public void checkStocks() {
-		NetUtil.me().setProxy();
 
 		try {
 

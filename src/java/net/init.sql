@@ -71,6 +71,9 @@ valid varchar(1)
 
 update sto_code t set code_sina=(select market||code from sto_code where code=t.code and market=t.market);
 
+--20151106
+create index on sto_day_tmp (code);
+
 
 truncate table sto_realtime_original;
 truncate table sto_realtime;
