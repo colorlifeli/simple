@@ -3,6 +3,8 @@ package net;
 import java.sql.SQLException;
 import java.util.List;
 
+import net.model.StockDay;
+
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -10,7 +12,6 @@ import org.junit.Test;
 
 import common.jdbcutil.SqlRunner;
 import common.jdbcutil.h2.H2Helper;
-import net.model.StockDay;
 
 public class StockDataServiceTest {
 
@@ -31,7 +32,7 @@ public class StockDataServiceTest {
 		String code = "300072.sz";
 		List<StockDay> list;
 		try {
-			list = service.getDay(code);
+			list = service.getDay(code, null, null);
 
 			Assert.assertEquals(948, list.size());
 		} catch (SQLException e) {
