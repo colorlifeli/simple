@@ -8,6 +8,10 @@
 	<listener>
 		<listener-class>common.ContextLoaderListener</listener-class>
 	</listener>
+	
+	<listener>
+		<listener-class>common.jdbcutil.h2.H2StarterListener</listener-class>
+	</listener>
 
 	<servlet>
 		<servlet-name>controlServlet</servlet-name>

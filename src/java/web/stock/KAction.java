@@ -4,17 +4,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.StockDataService;
-import net.StockService;
-import net.model.StockDay;
-
 import common.ActionIf;
 import common.annotation.ActionAnno.Action;
 import common.annotation.ActionAnno.Pack;
 import common.annotation.ActionAnno.Result;
 import common.annotation.IocAnno.Ioc;
+import net.StockDataService;
+import net.StockService;
+import net.model.StockDay;
 
-@Pack(path = "hello")
+@Pack(path = "stock")
 public class KAction extends ActionIf {
 
 	@Ioc
@@ -22,15 +21,16 @@ public class KAction extends ActionIf {
 	@Ioc
 	private StockService stockService;
 
-	@Action(path = "show", targets = { @Result(name = "success", value = "k.jsp") })
+	@Action(path = "k", targets = { @Result(name = "success", value = "k.jsp") })
 	public String show() {
-		String code = (String) request.getAttribute("code");
+		String code = (String) request.getParameter("code");
 		try {
 			List<String> codes = new ArrayList<String>();
 			codes.add(code);
 			List<String> hCodes = stockService.getCodes(codes, "h");
 			if (hCodes == null || hCodes.size() == 0) {
 				logger.error("cannot find the code:" + code);
+				return null;
 			}
 			String hcode = hCodes.get(0);
 			List<StockDay> list = stockDataService.getDay(hcode, null, null);

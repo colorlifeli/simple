@@ -11,7 +11,8 @@ public class H2Helper {
 		try {
 			org.h2.Driver.load();
 
-			Connection conn = DriverManager.getConnection(Constant.db.url, Constant.db.user, Constant.db.password);
+			Connection conn = DriverManager.getConnection(Constant.db.url_embeded, Constant.db.user,
+					Constant.db.password);
 
 			System.out.println("connect to h2 db in embeded mode...");
 			return conn;

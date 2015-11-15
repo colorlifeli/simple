@@ -29,7 +29,7 @@ public class BeanContext {
 	private final Map<String, Class<?>> beanClazzs = new HashMap<String, Class<?>>();
 	private final Map<String, Object> beans = new HashMap<String, Object>();
 
-	private final String[] packages = { "web.example" };
+	private final String[] packages = { "web", "net" };
 
 	public BeanContext() {
 		readBeans();
@@ -48,6 +48,14 @@ public class BeanContext {
 		for (Class<?> clazz : classList) {
 			// 将 class的名字的首字母改为小写，以此作为 bean 的id
 			if (clazz != null && clazz.getName() != null && !clazz.getName().isEmpty()) {
+				if (clazz.getName().contains("$")) {
+					//内部类由外部类实例化，不在这里实例化
+					continue;
+				}
+				if (clazz.isInterface()) {
+					//接口无法实例化
+					continue;
+				}
 				String id = clazz.getSimpleName();
 				id = id.replaceFirst(id.substring(0, 1), id.substring(0, 1).toLowerCase());
 				try {

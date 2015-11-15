@@ -74,7 +74,7 @@ public class ScanPackage {
 
 	public static void main(String[] args) throws Exception {
 		List<Class<?>> list = new ArrayList<Class<?>>();
-		scan("common.internal", list);
+		scan("net", list);
 		System.out.println(list.size());
 		for (Class<?> cla : list) {
 			System.out.println(cla.getName());

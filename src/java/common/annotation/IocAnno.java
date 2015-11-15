@@ -5,7 +5,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -42,17 +41,28 @@ public class IocAnno {
 					logger.error("注入失败，找不到bean:" + name);
 					return;
 				}
+
+				//直接赋值来进行注入
+				try {
+					field.setAccessible(true);
+					field.set(obj, bean);
+				} catch (IllegalArgumentException | IllegalAccessException e1) {
+					logger.error("注入失败，fieldname：" + fieldName + ",class:" + clazz);
+				}
+
+				/* 使用setter方法进行注入
 				String methodName = "set"
 						+ fieldName.replaceFirst(fieldName.substring(0, 1), fieldName.substring(0, 1).toUpperCase());
 				try {
 					Method set = clazz.getDeclaredMethod(methodName, bean.getClass());
 					set.invoke(obj, bean);
-
+				
 					logger.info(
 							"注入成功。class:" + clazz + ", field:" + fieldName + ", ioc bean's class:" + bean.getClass());
 				} catch (Exception e) {
-					logger.error("注入失败，无法调用setter：" + methodName);
+					logger.error("注入失败，无法调用setter：" + methodName + ",class:" + clazz);					
 				}
+				*/
 
 			}
 		}

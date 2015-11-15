@@ -10,10 +10,15 @@ import javax.servlet.ServletContextListener;
 
 import org.h2.tools.Server;
 import org.h2.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import common.jdbcutil.SqlRunner;
 import common.util.Constant;
 
 public class H2StarterListener implements ServletContextListener {
+
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	private Connection conn;
 	private Server server;
@@ -23,6 +28,7 @@ public class H2StarterListener implements ServletContextListener {
 
 		try {
 			org.h2.Driver.load();
+			logger.info("start h2 db connect");
 
 			// Start the server if configured to do so
 			String serverParams = Constant.db.tcpServer;
@@ -30,12 +36,15 @@ public class H2StarterListener implements ServletContextListener {
 				String[] params = StringUtils.arraySplit(serverParams, ' ', true);
 				server = Server.createTcpServer(params);
 				server.start();
+				logger.info("server mode");
 			}
 
-			conn = DriverManager.getConnection(Constant.db.url, Constant.db.user, Constant.db.password);
+			conn = DriverManager.getConnection(Constant.db.url_server, Constant.db.user, Constant.db.password);
+
+			SqlRunner.me().setConn(conn);
 
 			// 保存在 servlet
-			arg0.getServletContext().setAttribute("connection", conn);
+			//arg0.getServletContext().setAttribute("connection", conn);
 
 		} catch (Exception e) {
 			e.printStackTrace();

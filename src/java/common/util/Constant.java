@@ -6,7 +6,8 @@ public class Constant {
 
 		// ***** db start parameters ******* //
 
-		public final static String url = "jdbc:h2:~/db/simple";
+		public final static String url_server = "jdbc:h2:tcp://localhost/~/db/simple";
+		public final static String url_embeded = "jdbc:h2:~/db/simple";
 		public final static String user = "sa";
 		public final static String password = "sa";
 		// 如使用 embeded模式，则置 为 null
