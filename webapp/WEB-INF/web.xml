@@ -6,16 +6,16 @@
 	<display-name>simple</display-name>
 
 	<listener>
-		<listener-class>common.ContextLoaderListener</listener-class>
+		<listener-class>me.common.ContextLoaderListener</listener-class>
 	</listener>
 	
 	<listener>
-		<listener-class>common.jdbcutil.h2.H2StarterListener</listener-class>
+		<listener-class>me.common.jdbcutil.h2.H2StarterListener</listener-class>
 	</listener>
 
 	<servlet>
 		<servlet-name>controlServlet</servlet-name>
-		<servlet-class>common.ControlServlet</servlet-class>
+		<servlet-class>me.common.ControlServlet</servlet-class>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 	<servlet-mapping>
