@@ -63,6 +63,14 @@ value_desc_cn varchar(30),
 valid varchar(1)
 );
 
+create table sto_day_mid (
+code varchar(10),
+date_ date,open_ varchar(15),high varchar(15),low varchar(15),close_ varchar(15),volume varchar(20),
+source varchar(10),
+flag varchar(2),
+step int
+);
+
 --20151022
 --alter table sto_code add code_sina varchar(15);
 

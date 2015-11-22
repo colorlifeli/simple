@@ -10,6 +10,7 @@ import me.common.annotation.ActionAnno.Pack;
 import me.common.annotation.ActionAnno.Result;
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.TypeUtil;
+import me.net.Handler;
 import me.net.StockDataService;
 import me.net.StockService;
 import me.net.model.StockDay;
@@ -21,13 +22,21 @@ public class KAction extends ActionIf {
 	private StockDataService stockDataService;
 	@Ioc
 	private StockService stockService;
+	@Ioc
+	private Handler handler;
 
 	@Action(path = "k", targets = { @Result(name = "success", value = "k.jsp") })
 	public String show() {
 
 		// test code is 603997 002061
 		String code = request.getParameter("code");
+		String step = request.getParameter("step");
 		try {
+			if (code == null)
+				code = "002061"; //默认
+			if (step == null)
+				step = "0";
+
 			List<String> codes = new ArrayList<String>();
 			codes.add(code);
 			List<String> hCodes = stockService.getCodes(codes, TypeUtil.StockSource.YAHOO);
@@ -36,27 +45,48 @@ public class KAction extends ActionIf {
 				return null;
 			}
 			String hcode = hCodes.get(0);
-			List<StockDay> list = stockDataService.getDay(hcode, null, null);
-			String stockName = stockDataService.getName(code);
 
-			StringBuffer sb_date = new StringBuffer("");
-			StringBuffer sb_price = new StringBuffer("");
+			List<StockDay> list = null;
 
-			for (StockDay day : list) {
-				sb_date.append("\"" + day.date_ + "\"").append(",");
+			switch (step) {
+			case "1":
+				list = handler.include();
+				break;
 
-				String price = String.format("[%s,%s,%s,%s],", day.open_, day.close_, day.low, day.high);
-				sb_price.append(price);
+			default:
+				list = stockDataService.getDay(hcode, null, null);
 			}
 
-			request.setAttribute("dates", sb_date.toString().substring(0, sb_date.length() - 1));
-			request.setAttribute("prices", sb_price.toString().substring(0, sb_price.length() - 1));
-			request.setAttribute("name", stockName);
+			showK(list, code);
 
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 
 		return "success";
+	}
+
+	private void showK(List<StockDay> list, String code) {
+		String stockName = "";
+		try {
+			stockName = stockDataService.getName(code);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		StringBuffer sb_date = new StringBuffer(" ");
+		StringBuffer sb_price = new StringBuffer(" ");
+
+		for (StockDay day : list) {
+			sb_date.append("\"" + day.date_ + "\"").append(",");
+
+			String price = String.format("[%s,%s,%s,%s],", day.open_, day.close_, day.low, day.high);
+			sb_price.append(price);
+		}
+
+		request.setAttribute("dates", sb_date.toString().substring(0, sb_date.length() - 1));
+		request.setAttribute("prices", sb_price.toString().substring(0, sb_price.length() - 1));
+		request.setAttribute("name", stockName);
+
 	}
 }
