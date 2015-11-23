@@ -33,7 +33,7 @@ public class KAction extends ActionIf {
 		String step = request.getParameter("step");
 		try {
 			if (code == null)
-				code = "002061"; //默认
+				code = "002061"; // 默认
 			if (step == null)
 				step = "0";
 
@@ -50,7 +50,10 @@ public class KAction extends ActionIf {
 
 			switch (step) {
 			case "1":
-				list = handler.include();
+				list = stockDataService.getDay(hcode, null, null);
+				list = handler.include(list);
+
+				list = handler.recognizeType(list);
 				break;
 
 			default:

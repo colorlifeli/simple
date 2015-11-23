@@ -88,6 +88,21 @@ public class TypeUtil {
 		private String value;
 	}
 
+	public enum StockDayFlag {
+		TOP("01"), BOTTOM("02");
+
+		private StockDayFlag(String value) {
+			this.value = value;
+		}
+
+		@Override
+		public String toString() {
+			return value;
+		}
+
+		private String value;
+	}
+
 	// ************************ stock type end **********************
 
 	// 返回一个空对象，而不是 null

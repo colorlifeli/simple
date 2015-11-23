@@ -12,6 +12,11 @@ public class StockDay {
 	public String close_;
 	public String volume;
 	public String source;
+	public String flag;
+
+	public void setFlag(String flag) {
+		this.flag = flag;
+	}
 
 	@Override
 	public String toString() {
