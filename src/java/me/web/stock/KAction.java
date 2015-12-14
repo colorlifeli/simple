@@ -10,9 +10,9 @@ import me.common.annotation.ActionAnno.Pack;
 import me.common.annotation.ActionAnno.Result;
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.TypeUtil;
-import me.net.Handler;
 import me.net.StockDataService;
 import me.net.StockService;
+import me.net.dayHandler.Analyzer;
 import me.net.model.StockDay;
 
 @Pack(path = "stock")
@@ -23,7 +23,7 @@ public class KAction extends ActionIf {
 	@Ioc
 	private StockService stockService;
 	@Ioc
-	private Handler handler;
+	private Analyzer handler;
 
 	@Action(path = "k", targets = { @Result(name = "success", value = "k.jsp") })
 	public String show() {

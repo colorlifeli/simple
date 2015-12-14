@@ -177,6 +177,18 @@ public class StockService {
 		return strs;
 	}
 
+	public String getCode(String code, TypeUtil.StockSource source) throws SQLException {
+		List<String> codes = new ArrayList<String>();
+		codes.add(code);
+		List<String> result = this.getCodes(codes, source);
+		if (result == null || result.size() == 0) {
+			logger.error("cannot find the code:" + code);
+			return null;
+		} else {
+			return result.get(0);
+		}
+	}
+
 	/**
 	 * 根据code查出所有实时数据
 	 * @param codes

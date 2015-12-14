@@ -1,4 +1,4 @@
-package me.net;
+package me.net.dayHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,12 +6,20 @@ import java.util.List;
 import me.common.annotation.IocAnno.Ioc;
 import me.common.jdbcutil.SqlRunner;
 import me.common.util.TypeUtil;
+import me.net.StockDataService;
 import me.net.model.StockDay;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Handler {
+/**
+ * 用于分析历史数据，对历史数据进行处理
+ * 
+ * @author James
+ *
+ */
+
+public class Analyzer {
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
