@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.common.annotation.IocAnno.Ioc;
-import me.common.util.TypeUtil;
+import me.net.NetType.eStockOper;
+import me.net.NetType.eStockSource;
 import me.net.dayHandler.Analyzer;
 import me.net.dayHandler.Simulator;
 import me.net.model.StockDay;
@@ -22,37 +23,48 @@ public class ComputeSimulation {
 	@Ioc
 	private StockService stockService;
 	@Ioc
-	private Analyzer handler;
+	private Analyzer analyzer;
+
+	private final eStrategy strategy = eStrategy.One;
+	private final int one = 1;
 
 	public void compute() throws SQLException {
 		String code = "002061";
-		List<String> codes = new ArrayList<String>();
-		codes.add(code);
-		List<String> hCodes = stockService.getCodes(codes, TypeUtil.StockSource.YAHOO);
-		if (hCodes == null || hCodes.size() == 0) {
-			logger.error("cannot find the code:" + code);
-		}
 
-		String hcode = hCodes.get(0);
+		String hcode = stockService.getCode(code, eStockSource.YAHOO);
 
 		List<StockDay> all = null;
-		List<StockDay> his = null;
+		List<StockDay> his = new ArrayList<StockDay>();// 已进行分析过的历史数据
+		List<OperRecord> operList = new ArrayList<OperRecord>();
 
 		all = stockDataService.getDay(hcode, null, null);
+
 		int has = 0;
 
-		int start = 50; // 有部分历史数据才开始计算
+		// int start = 50; // 有部分历史数据才开始计算
 
 		Simulator simulator = new Simulator();
 
-		for (int i = start; i < all.size(); i++) {
+		for (int i = 0; i < all.size(); i++) {
 			StockDay someDay = all.get(i);
 
-			int result = simulator.handle(someDay, his, has);
+			eStockOper result = simulator.handle(someDay, his);
 
-			if (result != 0) {
-				has = has + result;
-				// record();
+			if (result == eStockOper.None)
+				continue;
+
+			if (operList.size() == 0) {
+				has = one;
+				operList.add(new OperRecord(result, one, has));
+			}
+
+			switch (strategy) {
+			case One:
+				break;
+			case OneBuyOneSell:
+				break;
+			case Double:
+				break;
 			}
 
 		}
@@ -61,5 +73,23 @@ public class ComputeSimulation {
 
 	public static void main(String[] args) {
 
+	}
+
+	enum eStrategy {
+		One, // 每次按推荐操作一单位
+		OneBuyOneSell, // 严格按照：买一单位后必然卖一单位
+		Double;// 符合某些条件则买入（或卖出）更多
+	}
+
+	class OperRecord {
+		protected eStockOper oper;
+		protected int num;
+		protected int total;
+
+		public OperRecord(eStockOper oper, int num, int total) {
+			this.oper = oper;
+			this.num = num;
+			this.total = total;
+		}
 	}
 }

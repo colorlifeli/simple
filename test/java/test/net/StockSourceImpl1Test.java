@@ -14,7 +14,7 @@ import java.util.List;
 import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
 import me.common.util.NetUtil;
-import me.common.util.TypeUtil;
+import me.net.NetType.eStockSource;
 import me.net.SinaSourceService;
 import me.net.StockService;
 import me.net.StockSourceImpl1;
@@ -113,7 +113,7 @@ public class StockSourceImpl1Test {
 			long end = System.currentTimeMillis();
 			System.out.println("time:" + (end - start));
 
-			List<String> list = service.getAllAvailableCodes(0, TypeUtil.StockSource.SINA);
+			List<String> list = service.getAllAvailableCodes(0, eStockSource.SINA);
 			Assert.assertTrue(list.size() < 2600); // 必然有一些停牌
 		} catch (SQLException e) {
 			Assert.fail();

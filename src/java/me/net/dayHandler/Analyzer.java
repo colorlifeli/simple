@@ -5,7 +5,7 @@ import java.util.List;
 
 import me.common.annotation.IocAnno.Ioc;
 import me.common.jdbcutil.SqlRunner;
-import me.common.util.TypeUtil;
+import me.net.NetType.eStockDayFlag;
 import me.net.StockDataService;
 import me.net.model.StockDay;
 
@@ -43,64 +43,10 @@ public class Analyzer {
 		logger.info("origin size: " + days.size());
 
 		int i = 1;
-		int j = 1;
 		days2.add(days.get(0));
 		days2.add(days.get(1));
 		while (i++ < days.size() - 1) {
-
-			StockDay day_pre = days2.get(j - 1);
-			StockDay day = days2.get(j);
-			StockDay day_next = days.get(i);
-
-			// 4种情况
-			// 包含关系时，days2是不动的，因为不断地包含了另一个
-			if (isInclude(day, day_next)) {
-
-				logger.debug("include find，front include back");
-				logger.debug("day:" + day);
-				logger.debug("day next:" + day_next);
-
-				day.date_ = day.date_;
-				if (Double.parseDouble(day.high) >= Double.parseDouble(day_pre.high)) {
-					// 1.前包含后，且向上处理
-					day.high = day.high;
-					day.low = day_next.low;
-				} else {
-					// 2.前包含后，且向下处理
-					day.high = day_next.high;
-					day.low = day.low;
-				}
-
-				logger.debug("new day:" + day);
-			} else if (isInclude(day_next, day)) {
-
-				logger.debug("include find，back include front ");
-				logger.debug("day:" + day);
-				logger.debug("day next:" + day_next);
-
-				day.date_ = day_next.date_;
-				if (Double.parseDouble(day.high) >= Double.parseDouble(day_pre.high)) {
-					// 3.后包含前，且向上处理
-					day.high = day_next.high;
-					day.low = day.low;
-				} else {
-					// 4.后包含前，且向下处理
-					day.high = day.high;
-					day.low = day_next.low;
-				}
-
-				logger.debug("new day:" + day);
-			} else {
-				// 非包含时，复制一个到新的数组 days2
-				StockDay day2 = new StockDay();
-				day2.code = code;
-				day2.date_ = day_next.date_;
-				day2.high = day_next.high;
-				day2.low = day_next.low;
-				days2.add(day2);
-				j++;
-
-			}
+			includeOne(days2, days.get(i));
 		}
 
 		logger.info("after include handle, size: " + days2.size());
@@ -137,14 +83,14 @@ public class Analyzer {
 
 			if (Double.parseDouble(day2.high) > Double.parseDouble(day1.high)
 					&& Double.parseDouble(day2.high) > Double.parseDouble(day3.high)) {
-				day2.flag = TypeUtil.StockDayFlag.TOP.toString();
+				day2.flag = eStockDayFlag.TOP.toString();
 				i += 4;
 				if (!needK) {
 					i += 3;
 				}
 			} else if (Double.parseDouble(day2.low) < Double.parseDouble(day1.low)
 					&& Double.parseDouble(day2.low) < Double.parseDouble(day3.low)) {
-				day2.flag = TypeUtil.StockDayFlag.BOTTOM.toString();
+				day2.flag = eStockDayFlag.BOTTOM.toString();
 				i += 4;
 				if (!needK) {
 					i += 3;
@@ -189,6 +135,73 @@ public class Analyzer {
 			return true;
 
 		return false;
+	}
+
+	/**
+	 * 对下一天进行包含处理
+	 * 
+	 * @param includedList：已经过包含处理的列表
+	 * @param day_next：要处理的数据
+	 */
+	public void includeOne(List<StockDay> includedList, StockDay day_next) {
+		StockDay day = includedList.get(includedList.size() - 1); // 最后一个
+		StockDay day_pre = includedList.get(includedList.size() - 2);// 倒数第二个
+		if (isInclude(day, day_next)) {
+
+			logger.debug("include find，front include back");
+			logger.debug("day:" + day);
+			logger.debug("day next:" + day_next);
+
+			day.date_ = day.date_;
+			if (Double.parseDouble(day.high) >= Double.parseDouble(day_pre.high)) {
+				// 1.前包含后，且向上处理
+				day.high = day.high;
+				day.low = day_next.low;
+			} else {
+				// 2.前包含后，且向下处理
+				day.high = day_next.high;
+				day.low = day.low;
+			}
+
+			logger.debug("new day:" + day);
+		} else if (isInclude(day_next, day)) {
+
+			logger.debug("include find，back include front ");
+			logger.debug("day:" + day);
+			logger.debug("day next:" + day_next);
+
+			day.date_ = day_next.date_;
+			if (Double.parseDouble(day.high) >= Double.parseDouble(day_pre.high)) {
+				// 3.后包含前，且向上处理
+				day.high = day_next.high;
+				day.low = day.low;
+			} else {
+				// 4.后包含前，且向下处理
+				day.high = day.high;
+				day.low = day_next.low;
+			}
+
+			logger.debug("new day:" + day);
+		} else {
+			// 非包含时，复制一个到新的数组 days2
+			StockDay day2 = new StockDay();
+			day2.code = code;
+			day2.date_ = day_next.date_;
+			day2.high = day_next.high;
+			day2.low = day_next.low;
+			includedList.add(day2);
+		}
+	}
+
+	/**
+	 * 新的一条数据是否对历史构成分型形成分型
+	 * @param his
+	 * @param day
+	 * @return
+	 */
+	public boolean recognizeTypeOne(List<StockDay> his, StockDay day) {
+
+		return true;
 	}
 
 	public static void main(String[] args) {

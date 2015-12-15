@@ -2,6 +2,8 @@ package me.net.dayHandler;
 
 import java.util.List;
 
+import me.common.annotation.IocAnno.Ioc;
+import me.net.NetType.eStockOper;
 import me.net.model.StockDay;
 
 /**
@@ -14,9 +16,14 @@ import me.net.model.StockDay;
  */
 public class Simulator {
 
-	public int handle(StockDay day, List<StockDay> his, int has) {
+	@Ioc
+	private Analyzer analyzer;
 
-		return has;
+	public eStockOper handle(StockDay day, List<StockDay> his) {
+
+		analyzer.includeOne(his, day);
+		analyzer.recognizeType(his);
+		return eStockOper.Buy;
 	}
 
 }

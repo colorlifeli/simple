@@ -38,11 +38,11 @@ public class IocAnno {
 				}
 				Object bean = beans.get(name);
 				if (bean == null) {
-					logger.error("注入失败，找不到bean:" + name);
+					logger.error("注入失败，找不到bean:" + name + ",class:" + clazz);
 					return;
 				}
 
-				//直接赋值来进行注入
+				// 直接赋值来进行注入
 				try {
 					field.setAccessible(true);
 					field.set(obj, bean);
@@ -50,19 +50,18 @@ public class IocAnno {
 					logger.error("注入失败，fieldname：" + fieldName + ",class:" + clazz);
 				}
 
-				/* 使用setter方法进行注入
-				String methodName = "set"
-						+ fieldName.replaceFirst(fieldName.substring(0, 1), fieldName.substring(0, 1).toUpperCase());
-				try {
-					Method set = clazz.getDeclaredMethod(methodName, bean.getClass());
-					set.invoke(obj, bean);
-				
-					logger.info(
-							"注入成功。class:" + clazz + ", field:" + fieldName + ", ioc bean's class:" + bean.getClass());
-				} catch (Exception e) {
-					logger.error("注入失败，无法调用setter：" + methodName + ",class:" + clazz);					
-				}
-				*/
+				/*
+				 * 使用setter方法进行注入 String methodName = "set" +
+				 * fieldName.replaceFirst(fieldName.substring(0, 1),
+				 * fieldName.substring(0, 1).toUpperCase()); try { Method set =
+				 * clazz.getDeclaredMethod(methodName, bean.getClass());
+				 * set.invoke(obj, bean);
+				 * 
+				 * logger.info( "注入成功。class:" + clazz + ", field:" + fieldName +
+				 * ", ioc bean's class:" + bean.getClass()); } catch (Exception
+				 * e) { logger.error("注入失败，无法调用setter：" + methodName + ",class:"
+				 * + clazz); }
+				 */
 
 			}
 		}

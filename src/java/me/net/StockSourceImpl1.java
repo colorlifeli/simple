@@ -8,6 +8,8 @@ import java.util.List;
 
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.TypeUtil;
+import me.net.NetType.eStockCodeFlag;
+import me.net.NetType.eStockSource;
 import me.net.model.Item;
 import me.net.model.RealTime;
 import me.net.model.StockDay;
@@ -34,8 +36,8 @@ public class StockSourceImpl1 implements StockSource {
 
 	private final String historyStartDate = "20140101";
 
-	private TypeUtil.StockSource realtime = TypeUtil.StockSource.SINA;
-	private TypeUtil.StockSource history = TypeUtil.StockSource.YAHOO;
+	private eStockSource realtime = eStockSource.SINA;
+	private eStockSource history = eStockSource.YAHOO;
 
 	@Override
 	public void getRealTime(List<String> codes) {
@@ -357,12 +359,12 @@ public class StockSourceImpl1 implements StockSource {
 	private void dealAbnormal(Object[][] result) throws SQLException {
 		if (result[0].length > 0) {
 			// 表示停牌的
-			stockService.setCodeFlag(TypeUtil.oneToTwo(result[0]), TypeUtil.StockCodeFlag.STOP.toString());
+			stockService.setCodeFlag(TypeUtil.oneToTwo(result[0]), eStockCodeFlag.STOP.toString());
 			logger.info("dealAbnormal, stop size:" + result[0].length);
 		}
 		if (result[1].length > 0) {
 			// 表示异常的
-			stockService.setCodeFlag(TypeUtil.oneToTwo(result[1]), TypeUtil.StockCodeFlag.ERROR.toString());
+			stockService.setCodeFlag(TypeUtil.oneToTwo(result[1]), eStockCodeFlag.ERROR.toString());
 			logger.info("dealAbnormal, error size:" + result[1].length);
 		}
 	}

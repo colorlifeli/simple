@@ -11,7 +11,7 @@ import me.common.jdbcutil.ArrayListHandler;
 import me.common.jdbcutil.BeanListHandler;
 import me.common.jdbcutil.SqlRunner;
 import me.common.util.Constant;
-import me.common.util.TypeUtil;
+import me.net.NetType.eStockSource;
 import me.net.model.Item;
 import me.net.model.RealTime;
 import me.net.model.StockDay;
@@ -82,7 +82,7 @@ public class StockService {
 	 * @return
 	 * @throws SQLException
 	 */
-	public List<String> getAllAvailableCodes(int num, TypeUtil.StockSource source) throws SQLException {
+	public List<String> getAllAvailableCodes(int num, eStockSource source) throws SQLException {
 		String fieldName = "code";
 		if (num < 0)
 			return null;
@@ -116,7 +116,7 @@ public class StockService {
 	 * @return
 	 * @throws SQLException
 	 */
-	public List<String> getCodes(int num, TypeUtil.StockSource source) throws SQLException {
+	public List<String> getCodes(int num, eStockSource source) throws SQLException {
 		String fieldName = "code";
 		if (num < 0)
 			return null;
@@ -149,7 +149,7 @@ public class StockService {
 	 * @return
 	 * @throws SQLException
 	 */
-	public List<String> getCodes(List<String> codes, TypeUtil.StockSource source) throws SQLException {
+	public List<String> getCodes(List<String> codes, eStockSource source) throws SQLException {
 		if (codes == null || codes.size() == 0) {
 			return null;
 		}
@@ -177,7 +177,7 @@ public class StockService {
 		return strs;
 	}
 
-	public String getCode(String code, TypeUtil.StockSource source) throws SQLException {
+	public String getCode(String code, eStockSource source) throws SQLException {
 		List<String> codes = new ArrayList<String>();
 		codes.add(code);
 		List<String> result = this.getCodes(codes, source);
@@ -275,7 +275,7 @@ public class StockService {
 	public String getAvailableCode() throws SQLException {
 		// 约定没有flag的是正常code
 		String sql = "select top 1 %s from sto_code where flag is null and type_ is null";
-		sql = String.format(sql, TypeUtil.StockSource.SINA.fieldName());
+		sql = String.format(sql, eStockSource.SINA.fieldName());
 		return (String) sqlrunner.query(sql, new ArrayHandler())[0];
 	}
 

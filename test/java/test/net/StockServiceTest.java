@@ -9,7 +9,7 @@ import java.util.List;
 
 import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
-import me.common.util.TypeUtil;
+import me.net.NetType.eStockSource;
 import me.net.StockService;
 
 import org.junit.AfterClass;
@@ -78,7 +78,7 @@ public class StockServiceTest {
 	@Test
 	public void getCodes_forsina() {
 		try {
-			List<String> codes = service.getAllAvailableCodes(10, TypeUtil.StockSource.SINA);
+			List<String> codes = service.getAllAvailableCodes(10, eStockSource.SINA);
 
 			assertEquals(10, codes.size());
 
@@ -105,7 +105,7 @@ public class StockServiceTest {
 			List<String> codes = new ArrayList<String>();
 			codes.add("300489");
 			codes.add("600004");
-			List<String> strs = service.getCodes(codes, TypeUtil.StockSource.YAHOO);
+			List<String> strs = service.getCodes(codes, eStockSource.YAHOO);
 			Assert.assertTrue(strs.contains("300489.sz"));
 			Assert.assertTrue(strs.contains("600004.ss"));
 		} catch (SQLException e) {

@@ -9,7 +9,7 @@ import me.common.annotation.ActionAnno.Action;
 import me.common.annotation.ActionAnno.Pack;
 import me.common.annotation.ActionAnno.Result;
 import me.common.annotation.IocAnno.Ioc;
-import me.common.util.TypeUtil;
+import me.net.NetType.eStockSource;
 import me.net.StockDataService;
 import me.net.StockService;
 import me.net.dayHandler.Analyzer;
@@ -23,7 +23,7 @@ public class KAction extends ActionIf {
 	@Ioc
 	private StockService stockService;
 	@Ioc
-	private Analyzer handler;
+	private Analyzer analyzer;
 
 	@Action(path = "k", targets = { @Result(name = "success", value = "k.jsp") })
 	public String show() {
@@ -39,7 +39,7 @@ public class KAction extends ActionIf {
 
 			List<String> codes = new ArrayList<String>();
 			codes.add(code);
-			List<String> hCodes = stockService.getCodes(codes, TypeUtil.StockSource.YAHOO);
+			List<String> hCodes = stockService.getCodes(codes, eStockSource.YAHOO);
 			if (hCodes == null || hCodes.size() == 0) {
 				logger.error("cannot find the code:" + code);
 				return null;
@@ -51,9 +51,9 @@ public class KAction extends ActionIf {
 			switch (step) {
 			case "1":
 				list = stockDataService.getDay(hcode, null, null);
-				list = handler.include(list);
+				list = analyzer.include(list);
 
-				list = handler.recognizeType(list);
+				list = analyzer.recognizeType(list);
 				break;
 
 			default:
