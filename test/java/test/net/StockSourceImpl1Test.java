@@ -47,7 +47,7 @@ public class StockSourceImpl1Test {
 
 	@BeforeClass
 	public static void before() throws UnknownHostException {
-		SqlRunner.me().setConn(H2Helper.connEmbededDb());
+		SqlRunner.me().setConn(H2Helper.connEmbededDbTest());
 		String ip = InetAddress.getLocalHost().getHostAddress();
 		System.out.println(ip);
 		if ("10.132.8.78".equals(ip)) {

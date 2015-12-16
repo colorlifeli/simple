@@ -15,11 +15,27 @@ public class H2Helper {
 
 	private static Logger logger = LoggerFactory.getLogger(H2Helper.class);
 
-	public static Connection connEmbededDb() {
+	public static Connection connEmbededDbTest() {
 		try {
 			org.h2.Driver.load();
 
 			Connection conn = DriverManager.getConnection(Constant.db.url_test_embeded, Constant.db.user,
+					Constant.db.password);
+
+			System.out.println("connect to h2 db in embeded mode...");
+			return conn;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static Connection connEmbededDb() {
+		try {
+			org.h2.Driver.load();
+
+			Connection conn = DriverManager.getConnection(Constant.db.url_embeded, Constant.db.user,
 					Constant.db.password);
 
 			System.out.println("connect to h2 db in embeded mode...");

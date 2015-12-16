@@ -16,7 +16,7 @@ public class H2HelperTest {
 
 	@BeforeClass
 	public static void before() {
-		SqlRunner.me().setConn(H2Helper.connEmbededDb());
+		SqlRunner.me().setConn(H2Helper.connEmbededDbTest());
 	}
 
 	@AfterClass

@@ -1,12 +1,16 @@
 package me.net.dayHandler;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import me.common.annotation.IocAnno.Ioc;
 import me.common.jdbcutil.SqlRunner;
+import me.common.jdbcutil.h2.H2Helper;
 import me.net.NetType.eStockDayFlag;
+import me.net.NetType.eStockSource;
 import me.net.StockDataService;
+import me.net.StockService;
 import me.net.model.StockDay;
 
 import org.slf4j.Logger;
@@ -70,10 +74,18 @@ public class Analyzer {
 		// 是否需要独立k线
 		boolean needK = true;
 
-		// List<StockDay> days2 = new ArrayList<StockDay>();
-
 		logger.info("origin size: " + days.size());
 
+		List<StockDay> days2 = new ArrayList<StockDay>();
+		int i = 0;
+		while (i < days.size()) {
+			StockDay day = days.get(i);
+			this.recognizeTypeOne(days2, day, needK);
+			days2.add(days.get(i));
+			i++;
+		}
+
+		/*
 		int i = 0;
 		while (i + 2 < days.size()) {
 
@@ -98,10 +110,9 @@ public class Analyzer {
 			} else {
 				i++;
 			}
+		}*/
 
-		}
-
-		for (StockDay day : days) {
+		for (StockDay day : days2) {
 			System.out.println(day);
 		}
 
@@ -144,6 +155,10 @@ public class Analyzer {
 	 * @param day_next：要处理的数据
 	 */
 	public void includeOne(List<StockDay> includedList, StockDay day_next) {
+		if (includedList.size() < 2) {
+			logger.error("至少要有2天的历史数据");
+			return;
+		}
 		StockDay day = includedList.get(includedList.size() - 1); // 最后一个
 		StockDay day_pre = includedList.get(includedList.size() - 2);// 倒数第二个
 		if (isInclude(day, day_next)) {
@@ -197,15 +212,61 @@ public class Analyzer {
 	 * 新的一条数据是否对历史构成分型形成分型
 	 * @param his
 	 * @param day
+	 * @param isNeedK:2个分型之间是否需要独立k线
 	 * @return
 	 */
-	public boolean recognizeTypeOne(List<StockDay> his, StockDay day) {
+	public boolean recognizeTypeOne(List<StockDay> his, StockDay day, boolean isNeedK) {
 
-		return true;
+		if (his.size() < 2)
+			return false;
+
+		StockDay last1 = his.get(his.size() - 1);
+		StockDay last2 = his.get(his.size() - 2);
+
+		String top = eStockDayFlag.TOP.toString();
+		String bottom = eStockDayFlag.BOTTOM.toString();
+
+		// 要超过一定间隔才能再次设置分型
+		if ((last2 != null && (top.equals(last2.flag) || bottom.equals(last2.flag)))) {
+			return false;
+		}
+		if (his.size() > 2) {
+			StockDay last3 = his.get(his.size() - 3);
+			if (last3 != null && (top.equals(last3.flag) || bottom.equals(last3.flag)))
+				return false;
+		}
+		if (isNeedK && his.size() > 3) {
+			StockDay last4 = his.get(his.size() - 4);
+			if (top.equals(last4.flag) || bottom.equals(last4.flag))
+				return false;
+		}
+
+		// 判断是分型
+		if (Double.parseDouble(last1.high) > Double.parseDouble(last2.high)
+				&& Double.parseDouble(last1.high) > Double.parseDouble(day.high)) {
+			last1.flag = top;
+			return true;
+		} else if (Double.parseDouble(last1.low) < Double.parseDouble(last2.low)
+				&& Double.parseDouble(last1.low) < Double.parseDouble(day.low)) {
+			last1.flag = bottom;
+			return true;
+		}
+
+		return false;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws SQLException {
 
+		SqlRunner.me().setConn(H2Helper.connEmbededDb());
+		Analyzer anlyzer = new Analyzer();
+		String hcode = new StockService().getCode("002061", eStockSource.YAHOO);
+		List<StockDay> list = new StockDataService().getDay(hcode, null, null);
+
+		list = anlyzer.include(list);
+
+		System.out.println("\n************************************************\n");
+
+		list = anlyzer.recognizeType(list);
 	}
 
 }
