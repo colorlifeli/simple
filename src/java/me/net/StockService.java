@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.jdbcutil.ArrayHandler;
 import me.common.jdbcutil.ArrayListHandler;
 import me.common.jdbcutil.BeanListHandler;
@@ -15,9 +18,6 @@ import me.net.NetType.eStockSource;
 import me.net.model.Item;
 import me.net.model.RealTime;
 import me.net.model.StockDay;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class StockService {
 
@@ -93,9 +93,10 @@ public class StockService {
 		Object[] params = null;
 
 		if (num == 0) {
-			sql = String.format("select %s from sto_code where flag is null", fieldName);
+			sql = String.format("select %s from sto_code where flag is null and type_ is null", fieldName);
 		} else {
-			sql = String.format("select %s from sto_code where flag is null and rownum<=?", fieldName);
+			sql = String.format("select %s from sto_code where flag is null and type_ is null and rownum<=?",
+					fieldName);
 			params = new Object[] { num };
 		}
 		List<Object[]> result = sqlrunner.query(sql, new ArrayListHandler(), params);
@@ -309,7 +310,8 @@ public class StockService {
 		String now = format.format(date);
 
 		if ((now.compareTo(Constant.stock.morningStart) > 0 && now.compareTo(Constant.stock.morningEnd) <= 0)
-				|| (now.compareTo(Constant.stock.afternoonStart) > 0 && now.compareTo(Constant.stock.afternoonEnd) <= 0)) {
+				|| (now.compareTo(Constant.stock.afternoonStart) > 0
+						&& now.compareTo(Constant.stock.afternoonEnd) <= 0)) {
 			return true;
 		}
 

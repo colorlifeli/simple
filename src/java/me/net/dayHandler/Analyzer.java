@@ -4,6 +4,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.annotation.IocAnno.Ioc;
 import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
@@ -12,9 +15,6 @@ import me.net.NetType.eStockSource;
 import me.net.StockDataService;
 import me.net.StockService;
 import me.net.model.StockDay;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 用于分析历史数据，对历史数据进行处理
@@ -32,7 +32,7 @@ public class Analyzer {
 	@Ioc
 	private StockDataService stockDataService;
 
-	private String code = "002061";
+	//private String code = "002061";
 
 	/**
 	 *  包含处理
@@ -46,11 +46,12 @@ public class Analyzer {
 
 		logger.info("origin size: " + days.size());
 
-		int i = 1;
-		days2.add(days.get(0));
-		days2.add(days.get(1));
-		while (i++ < days.size() - 1) {
-			includeOne(days2, days.get(i));
+		int i = 0;
+		while (i < days.size()) {
+			if (!includeOne(days2, days.get(i))) {
+				days2.add(days.get(i));
+			}
+			i++;
 		}
 
 		logger.info("after include handle, size: " + days2.size());
@@ -79,8 +80,7 @@ public class Analyzer {
 		List<StockDay> days2 = new ArrayList<StockDay>();
 		int i = 0;
 		while (i < days.size()) {
-			StockDay day = days.get(i);
-			this.recognizeTypeOne(days2, day, needK);
+			this.recognizeTypeOne(days2, days.get(i), needK);
 			days2.add(days.get(i));
 			i++;
 		}
@@ -88,11 +88,11 @@ public class Analyzer {
 		/*
 		int i = 0;
 		while (i + 2 < days.size()) {
-
+		
 			StockDay day1 = days.get(i);
 			StockDay day2 = days.get(i + 1);
 			StockDay day3 = days.get(i + 2);
-
+		
 			if (Double.parseDouble(day2.high) > Double.parseDouble(day1.high)
 					&& Double.parseDouble(day2.high) > Double.parseDouble(day3.high)) {
 				day2.flag = eStockDayFlag.TOP.toString();
@@ -140,7 +140,6 @@ public class Analyzer {
 	 * @return
 	 */
 	private boolean isInclude(StockDay day1, StockDay day2) {
-		// logger.debug("day1:{}, day2:{}", day1, day2);
 		if (Double.parseDouble(day1.high) >= Double.parseDouble(day2.high)
 				&& Double.parseDouble(day1.low) <= Double.parseDouble(day2.low))
 			return true;
@@ -153,20 +152,15 @@ public class Analyzer {
 	 * 
 	 * @param includedList：已经过包含处理的列表
 	 * @param day_next：要处理的数据
+	 * @return 返回是否包含。true：做了包含处理 
 	 */
-	public void includeOne(List<StockDay> includedList, StockDay day_next) {
+	public boolean includeOne(List<StockDay> includedList, StockDay day_next) {
 		if (includedList.size() < 2) {
-			logger.error("至少要有2天的历史数据");
-			return;
+			return false;
 		}
 		StockDay day = includedList.get(includedList.size() - 1); // 最后一个
 		StockDay day_pre = includedList.get(includedList.size() - 2);// 倒数第二个
 		if (isInclude(day, day_next)) {
-
-			logger.debug("include find，front include back");
-			logger.debug("day:" + day);
-			logger.debug("day next:" + day_next);
-
 			day.date_ = day.date_;
 			if (Double.parseDouble(day.high) >= Double.parseDouble(day_pre.high)) {
 				// 1.前包含后，且向上处理
@@ -178,12 +172,7 @@ public class Analyzer {
 				day.low = day.low;
 			}
 
-			logger.debug("new day:" + day);
 		} else if (isInclude(day_next, day)) {
-
-			logger.debug("include find，back include front ");
-			logger.debug("day:" + day);
-			logger.debug("day next:" + day_next);
 
 			day.date_ = day_next.date_;
 			if (Double.parseDouble(day.high) >= Double.parseDouble(day_pre.high)) {
@@ -196,16 +185,11 @@ public class Analyzer {
 				day.low = day_next.low;
 			}
 
-			logger.debug("new day:" + day);
 		} else {
-			// 非包含时，复制一个到新的数组 days2
-			StockDay day2 = new StockDay();
-			day2.code = code;
-			day2.date_ = day_next.date_;
-			day2.high = day_next.high;
-			day2.low = day_next.low;
-			includedList.add(day2);
+			return false;
 		}
+
+		return true;
 	}
 
 	/**
@@ -213,12 +197,12 @@ public class Analyzer {
 	 * @param his
 	 * @param day
 	 * @param isNeedK:2个分型之间是否需要独立k线
-	 * @return
+	 * @return eStockDayFlag.toString 或者 null
 	 */
-	public boolean recognizeTypeOne(List<StockDay> his, StockDay day, boolean isNeedK) {
+	public String recognizeTypeOne(List<StockDay> his, StockDay day, boolean isNeedK) {
 
 		if (his.size() < 2)
-			return false;
+			return null;
 
 		StockDay last1 = his.get(his.size() - 1);
 		StockDay last2 = his.get(his.size() - 2);
@@ -228,31 +212,31 @@ public class Analyzer {
 
 		// 要超过一定间隔才能再次设置分型
 		if ((last2 != null && (top.equals(last2.flag) || bottom.equals(last2.flag)))) {
-			return false;
+			return null;
 		}
 		if (his.size() > 2) {
 			StockDay last3 = his.get(his.size() - 3);
 			if (last3 != null && (top.equals(last3.flag) || bottom.equals(last3.flag)))
-				return false;
+				return null;
 		}
 		if (isNeedK && his.size() > 3) {
 			StockDay last4 = his.get(his.size() - 4);
 			if (top.equals(last4.flag) || bottom.equals(last4.flag))
-				return false;
+				return null;
 		}
 
 		// 判断是分型
 		if (Double.parseDouble(last1.high) > Double.parseDouble(last2.high)
 				&& Double.parseDouble(last1.high) > Double.parseDouble(day.high)) {
 			last1.flag = top;
-			return true;
+			return top;
 		} else if (Double.parseDouble(last1.low) < Double.parseDouble(last2.low)
 				&& Double.parseDouble(last1.low) < Double.parseDouble(day.low)) {
 			last1.flag = bottom;
-			return true;
+			return bottom;
 		}
 
-		return false;
+		return null;
 	}
 
 	public static void main(String[] args) throws SQLException {
@@ -267,6 +251,18 @@ public class Analyzer {
 		System.out.println("\n************************************************\n");
 
 		list = anlyzer.recognizeType(list);
+
+		//		List<StockDay> his = new ArrayList<StockDay>();
+		//		for (StockDay day : list) {
+		//			//没做包含处理才需判断分型
+		//			if (!anlyzer.includeOne(his, day)) {
+		//				anlyzer.recognizeTypeOne(his, day, true);
+		//				his.add(day);
+		//			}
+		//		}
+		//		for (StockDay day : his) {
+		//			System.out.println(day);
+		//		}
 	}
 
 }

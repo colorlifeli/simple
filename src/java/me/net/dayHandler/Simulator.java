@@ -3,6 +3,7 @@ package me.net.dayHandler;
 import java.util.List;
 
 import me.common.annotation.IocAnno.Ioc;
+import me.net.NetType.eStockDayFlag;
 import me.net.NetType.eStockOper;
 import me.net.model.StockDay;
 
@@ -21,9 +22,19 @@ public class Simulator {
 
 	public eStockOper handle(StockDay day, List<StockDay> his) {
 
-		analyzer.includeOne(his, day);
-		analyzer.recognizeType(his);
-		return eStockOper.Buy;
+		if (!analyzer.includeOne(his, day)) {
+			String type = analyzer.recognizeTypeOne(his, day, true);
+			his.add(day);
+
+			if (type == null)
+				return eStockOper.None;
+			if (type.equals(eStockDayFlag.TOP.toString()))
+				return eStockOper.Sell;
+			if (type.equals(eStockDayFlag.BOTTOM.toString()))
+				return eStockOper.Buy;
+
+		}
+		return eStockOper.None;
 	}
 
 }

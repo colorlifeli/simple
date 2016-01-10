@@ -46,6 +46,8 @@ public class IocAnno {
 				try {
 					field.setAccessible(true);
 					field.set(obj, bean);
+
+					//logger.debug("注入成功，fieldname：" + fieldName + ",class:" + clazz);
 				} catch (IllegalArgumentException | IllegalAccessException e1) {
 					logger.error("注入失败，fieldname：" + fieldName + ",class:" + clazz);
 				}
