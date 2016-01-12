@@ -12,8 +12,8 @@ import me.common.annotation.IocAnno.Ioc;
 import me.common.internal.BeanContext;
 import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
+import me.common.util.Constant;
 import me.net.NetType.eStockOper;
-import me.net.NetType.eStockSource;
 import me.net.dayHandler.Simulator;
 import me.net.model.StockDay;
 
@@ -29,23 +29,22 @@ public class ComputeSimulation {
 	Simulator simulator;
 
 	/****  用于统计   *****/
-	int totalRecords = 0;
-	int win = 0;
-	int lose = 0;
-	double allRecordsSum = 0;
+	int g_totalRecords = 0;
+	int g_win = 0;
+	int g_lose = 0;
+	double g_allRecordsSum = 0;
+	double g_investment = 0;
 
 	private final eStrategy strategy = eStrategy.One;
 	private final int one = 1;
 
-	public void compute(String code) throws SQLException {
-
-		String hcode = stockService.getCode(code, eStockSource.YAHOO);
+	public void compute(String hcode) throws SQLException {
 
 		List<StockDay> all = null;
 		List<StockDay> his = new ArrayList<StockDay>();// 已进行分析过的历史数据
 		List<OperRecord> operList = new ArrayList<OperRecord>();
 
-		all = stockDataService.getDay(hcode, null, null);
+		all = stockDataService.getDay(hcode, Constant.simulate.startDate, null);
 
 		if (all.size() < 50) {
 			logger.error("数据太少，只有：" + all.size());
@@ -73,11 +72,14 @@ public class ComputeSimulation {
 				continue;
 			}
 
+			//如果能在第二天以中间价处理，结果会理想很多
 			if (result == eStockOper.Buy) {
 				price = Double.parseDouble(nextDay.high);
+				//price = (Double.parseDouble(nextDay.high) + Double.parseDouble(nextDay.low)) / 2;
 				symbol = 1;
 			} else if (result == eStockOper.Sell) {
 				price = Double.parseDouble(nextDay.low);
+				//price = (Double.parseDouble(nextDay.high) + Double.parseDouble(nextDay.low)) / 2;
 				symbol = -1;
 			}
 
@@ -88,7 +90,9 @@ public class ComputeSimulation {
 				break;
 			case OneBuyOneSell:
 				//严格执行一买一卖，不然放弃
-				break;
+				if (operList.size() != 0 && result == operList.get(operList.size() - 1).oper)
+					continue;
+				num = one;
 			case Double:
 				//第二次出现相同操作（如连续第二次买），则执行2倍的量
 				break;
@@ -104,9 +108,9 @@ public class ComputeSimulation {
 			operList.add(new OperRecord(result, one, price, sum, total, remain));
 		}
 
-		//		for (OperRecord record : operList) {
-		//			System.out.println(record);
-		//		}
+		for (OperRecord record : operList) {
+			System.out.println(record);
+		}
 		//		for (OperRecord record : operList) {
 		//			//只需要卖光后的情况
 		//			if (record.total == 0)
@@ -117,17 +121,44 @@ public class ComputeSimulation {
 			//最后一次卖光时的情况
 			OperRecord record = operList.get(i);
 			if (record.total == 0) {
-				logger.info("code:" + code + "," + record.toString());
-				totalRecords++;
+				logger.info("code:" + hcode + "," + record.toString());
+				g_totalRecords++;
 				if (record.remain > 0)
-					win++;
+					g_win++;
 				else
-					lose++;
-				allRecordsSum += record.remain;
+					g_lose++;
+
+				if (record.remain > 200) {
+					System.out.println("too large");
+					break; //去除结果过好数据
+				}
+				if (record.remain < -200) {
+					System.out.println("too low");
+					break;
+				}
+
+				g_allRecordsSum += record.remain;
 
 				break;
 			}
 		}
+
+		double minRemain = 0; //余额最小时，即最大的投资额度
+		int buys = 0, sells = 0, times = 0;
+		for (int i = operList.size() - 1; i >= 0; i--) {
+			OperRecord record = operList.get(i);
+			if (record.remain < minRemain)
+				minRemain = record.remain;
+			if (record.total == 0)
+				times++;
+			if (record.oper == eStockOper.Buy)
+				buys++;
+			if (record.oper == eStockOper.Sell)
+				sells++;
+		}
+		g_investment -= minRemain;
+
+		logger.info("*********   buys:{}, sells:{}, total=0 times:{}", buys, sells, times);
 
 	}
 
@@ -139,14 +170,17 @@ public class ComputeSimulation {
 		ComputeSimulation simulation = (ComputeSimulation) bc.getBean("computeSimulation");
 
 		try {
-			//String code = "002061";
-			List<String> codes = new StockService().getAllAvailableCodes(0, null);
-			for (String code : codes) {
-				simulation.compute(code);
-			}
-			System.out.println("\n\n************************************************************\n\n");
-			System.out.println(String.format("total:%s, win:%s, lose:%s, remain:%s", simulation.totalRecords,
-					simulation.win, simulation.lose, simulation.allRecordsSum));
+			String code = "002061.sz";
+			simulation.compute(code);
+			//			List<String> codes = new StockService().getAllAvailableCodes(0, eStockSource.YAHOO);
+			//			System.out.println(codes.size());
+			//			for (String code : codes) {
+			//				simulation.compute(code);
+			//			}
+			//			System.out.println("\n\n************************************************************\n\n");
+			//			System.out.println(
+			//					String.format("total:%s, win:%s, lose:%s, remain:%s, investment:%s", simulation.g_totalRecords,
+			//							simulation.g_win, simulation.g_lose, simulation.g_allRecordsSum, simulation.g_investment));
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

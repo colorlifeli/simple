@@ -3,6 +3,7 @@ package me.net.dayHandler;
 import java.util.List;
 
 import me.common.annotation.IocAnno.Ioc;
+import me.common.util.Constant;
 import me.net.NetType.eStockDayFlag;
 import me.net.NetType.eStockOper;
 import me.net.model.StockDay;
@@ -23,7 +24,8 @@ public class Simulator {
 	public eStockOper handle(StockDay day, List<StockDay> his) {
 
 		if (!analyzer.includeOne(his, day)) {
-			String type = analyzer.recognizeTypeOne(his, day, true);
+			//不需要独立k线，似乎结果更好
+			String type = analyzer.recognizeTypeOne(his, day, Constant.simulate.isNeedK);
 			his.add(day);
 
 			if (type == null)

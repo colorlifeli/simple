@@ -244,7 +244,7 @@ public class Analyzer {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 		Analyzer anlyzer = new Analyzer();
 		String hcode = new StockService().getCode("002061", eStockSource.YAHOO);
-		List<StockDay> list = new StockDataService().getDay(hcode, null, null);
+		List<StockDay> list = new StockDataService().getDay(hcode, "2015-06-01", null);
 
 		list = anlyzer.include(list);
 

@@ -11,6 +11,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
 import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
 import me.common.util.NetUtil;
@@ -20,15 +29,6 @@ import me.net.StockService;
 import me.net.StockSourceImpl1;
 import me.net.YahooSourceService;
 import me.net.model.RealTime;
-
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class StockSourceImpl1Test {
@@ -158,7 +158,7 @@ public class StockSourceImpl1Test {
 			String sql = "delete from sto_day where date_='" + now + "'";
 			SqlRunner.me().execute(sql);
 
-			impl.dayFinalDo();
+			impl.dayFinalDo(true);
 
 			int count = H2Helper.getCount("sto_day", "date_", now);
 			assertEquals(10, count);

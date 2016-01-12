@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.TypeUtil;
 import me.net.NetType.eStockCodeFlag;
@@ -13,9 +16,6 @@ import me.net.NetType.eStockSource;
 import me.net.model.Item;
 import me.net.model.RealTime;
 import me.net.model.StockDay;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 本实现类，
@@ -140,7 +140,7 @@ public class StockSourceImpl1 implements StockSource {
 							// 当获取的时间和上次一样时，证明上次已是最后一次
 							if (this.isSameAsPrevious()) {
 								// 保存到历史表,并重命名今日的实时数据表
-								this.dayFinalDo();
+								this.dayFinalDo(true);
 
 								// 收市了
 								isOpen = false;
@@ -211,6 +211,42 @@ public class StockSourceImpl1 implements StockSource {
 				logger.info("getHistoryAll, number of urls:" + urls.size() + ", " + new Date());
 				urls = stockService.saveCsvFromUrl(urls);
 				logger.info("getHistoryAll, 第 " + (5 - i) + " 次 END. " + new Date());
+
+				// 如果没有 error，就完成了
+				if (urls.size() == 0)
+					break;
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 还没下载历史数据的
+	 * @param startDate
+	 * @param endDate
+	 */
+	public void getHistoryRemain(String startDate, String endDate) {
+		try {
+			if (startDate == null)
+				startDate = this.historyStartDate;
+			if (endDate == null) {
+				SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
+				Date date = new Date();
+				endDate = format.format(date);
+			}
+
+			List<String> codes = stockService.getNoHisCode(history);
+			@SuppressWarnings("unchecked")
+			List<Item> urls = (List<Item>) history_supplier.getData(codes, startDate, endDate);
+
+			int i = 5; // 最大重做次数
+			while (i-- > 0) {
+				// 因为网络可能超时，或服务器一时没有反应，所以尝试多次重做
+				logger.info("getHistoryRemain, number of urls:" + urls.size() + ", " + new Date());
+				urls = stockService.saveCsvFromUrl(urls);
+				logger.info("getHistoryRemain, 第 " + (5 - i) + " 次 END. " + new Date());
 
 				// 如果没有 error，就完成了
 				if (urls.size() == 0)
@@ -297,10 +333,11 @@ public class StockSourceImpl1 implements StockSource {
 	 * 
 	 * 1. 实时数据转为 day 数据
 	 * 2. 由于分时数据只对当日有意义，没必要一个表存储所有分时数据，也担心性能问题，所以每日一个实时表
-	 * 		
+	 * 	
+	 * @param 	isCreateTable 是否需要创建一个新的实时表
 	 */
 	@SuppressWarnings("unchecked")
-	public void dayFinalDo() {
+	public void dayFinalDo(boolean isCreateTable) {
 		// TODO 有时并不会整日去获取实时数据，实时数据就会很少，这时存在一个表也会有浪费，以后考虑怎么处理
 		List<String> realtime_codes;
 		List<String> part = new ArrayList<String>();
@@ -338,7 +375,7 @@ public class StockSourceImpl1 implements StockSource {
 			}
 
 			// 2. 对实时表改名，以今日日期为标识
-			if (!stockService.isRealtimeDayTableExists())
+			if (isCreateTable && !stockService.isRealtimeDayTableExists())
 				stockService.dealRealTimeTable();
 
 		} catch (Exception e) {

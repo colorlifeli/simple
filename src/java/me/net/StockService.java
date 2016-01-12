@@ -419,6 +419,7 @@ public class StockService {
 		String sql = "insert into sto_day_tmp(code,date_,open_,high,low,close_,volume,source) "
 				+ "SELECT '%s',date,open,high,low,close,volume,'%s' FROM CSVREAD('%s')";
 		String source = "yahoo";
+		int i = 0;
 		for (Item item : items) {
 			String url = item.getValue();
 			String code = item.getKey();
@@ -444,9 +445,39 @@ public class StockService {
 			}
 
 			logger.debug("saveCsvFromUrl, code:{}, url:{}, {}", code, url, new Date());
+			if (++i % 200 == 0)
+				try {
+					Thread.sleep(30 * 1000); //每连接200次进行休眠，免得过度频繁
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 		}
 
 		return errors;
+	}
+
+	/**
+	 * 查找还没有下载历史数据的 code
+	 * @return
+	 * @throws SQLException 
+	 */
+	public List<String> getNoHisCode(eStockSource source) throws SQLException {
+		String fieldName = "code";
+		if (source != null) {
+			fieldName = source.fieldName();
+		}
+		String sql = String.format(
+				"select %s from sto_code where CODE_yahoo not in (select distinct code from STO_DAY_TMP ) and flag is null and type_ is null",
+				fieldName);
+
+		List<Object[]> result = sqlrunner.query(sql, new ArrayListHandler());
+
+		List<String> strs = new ArrayList<String>();
+		for (Object[] objs : result) {
+			strs.add((String) objs[0]);
+		}
+
+		return strs;
 	}
 
 	// class SourceVar {

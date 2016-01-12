@@ -39,4 +39,10 @@ public class Constant {
 		public final static String afternoonEnd = "15:00";
 	}
 
+	//控制模拟计算的各种参数
+	public class simulate {
+		public final static boolean isNeedK = true; //是否需要独立k
+		public final static String startDate = "2015-06-01"; //选择一个比较差的时间段，希望能有一个好一点的结果
+	}
+
 }
