@@ -5,6 +5,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.Constant;
 import me.net.NetType.eStockOper;
@@ -14,9 +17,6 @@ import me.net.StockService;
 import me.net.dayHandler.Simulator;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AnalysisService {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -35,13 +35,18 @@ public class AnalysisService {
 	BigDecimal g_allRecordsSum = BigDecimal.ZERO;
 	BigDecimal g_investment = BigDecimal.ZERO;
 
-	private final eStrategy strategy = eStrategy.One;
+	/**   配置参数   *****/
+	private eStrategy strategy = eStrategy.One; //策略
+	private double abnormal = 200; //绝对值超过这个值视为异常值
+
 	private final int one = 1;
 
 	private void compute(String hcode) throws SQLException {
 		List<StockDay> all = null;
 		List<StockDay> his = new ArrayList<StockDay>();// 已进行分析过的历史数据
 		List<OperRecord> operList = new ArrayList<OperRecord>();
+
+		OperRecord operSum = new OperRecord();
 
 		all = stockDataService.getDay(hcode, Constant.simulate.startDate, null);
 
@@ -128,7 +133,7 @@ public class AnalysisService {
 				else
 					g_lose++;
 
-				if (record.getRemain().doubleValue() > 200) {
+				if (Math.abs(record.getRemain().doubleValue()) > 200) {
 					System.out.println("too large");
 					break; //去除结果过好数据
 				}

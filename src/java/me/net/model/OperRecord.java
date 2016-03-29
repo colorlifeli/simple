@@ -6,12 +6,17 @@ import me.common.util.Util;
 import me.net.NetType.eStockOper;
 
 public class OperRecord {
+	private String code;
 	private eStockOper oper; //操作
 	private int num; //数量
 	private BigDecimal price; //单价
 	private BigDecimal sum; //总价
 	private int total; //当前拥有数量
 	private BigDecimal remain; //余额，为了方便知道当前余额
+	private String flag;
+
+	public OperRecord() {
+	};
 
 	public OperRecord(eStockOper oper, int num, BigDecimal price, BigDecimal sum, int total, BigDecimal remain) {
 		this.oper = oper;
@@ -73,6 +78,22 @@ public class OperRecord {
 
 	public void setRemain(BigDecimal remain) {
 		this.remain = remain;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	public String getFlag() {
+		return flag;
+	}
+
+	public void setFlag(String flag) {
+		this.flag = flag;
 	}
 
 }

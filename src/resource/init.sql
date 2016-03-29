@@ -72,6 +72,7 @@ step int
 );
 
 create table sto_operation (
+sn int,
 code varchar(10),
 oper varchar(2), --操作，买(1) or 卖(2), 0表示不操作
 num int, --操作数量
