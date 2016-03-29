@@ -1,4 +1,4 @@
-package me.net;
+package me.service.stock;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -6,12 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.common.annotation.IocAnno.Ioc;
-import me.common.internal.BeanContext;
-import me.common.jdbcutil.SqlRunner;
-import me.common.jdbcutil.h2.H2Helper;
 import me.common.util.Constant;
 import me.net.NetType.eStockOper;
 import me.net.NetType.eStrategy;
+import me.net.StockDataService;
+import me.net.StockService;
 import me.net.dayHandler.Simulator;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
@@ -19,8 +18,7 @@ import me.net.model.StockDay;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ComputeSimulation {
-
+public class AnalysisService {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Ioc
@@ -40,8 +38,7 @@ public class ComputeSimulation {
 	private final eStrategy strategy = eStrategy.One;
 	private final int one = 1;
 
-	public void compute(String hcode) throws SQLException {
-
+	private void compute(String hcode) throws SQLException {
 		List<StockDay> all = null;
 		List<StockDay> his = new ArrayList<StockDay>();// 已进行分析过的历史数据
 		List<OperRecord> operList = new ArrayList<OperRecord>();
@@ -162,48 +159,6 @@ public class ComputeSimulation {
 		g_investment = g_investment.subtract(minRemain); //g_investment -= minRemain;
 
 		logger.info("*********   buys:{}, sells:{}, total=0 times:{}", buys, sells, times);
-
 	}
 
-	public static void main(String[] args) {
-
-		SqlRunner.me().setConn(H2Helper.connEmbededDb());
-
-		BeanContext bc = new BeanContext();
-		ComputeSimulation simulation = (ComputeSimulation) bc.getBean("computeSimulation");
-
-		try {
-			String code = "002061.sz";
-			simulation.compute(code);
-			//			List<String> codes = new StockService().getAllAvailableCodes(0, eStockSource.YAHOO);
-			//			System.out.println(codes.size());
-			//			for (String code : codes) {
-			//				simulation.compute(code);
-			//			}
-			//			System.out.println("\n\n************************************************************\n\n");
-			//			System.out.println(
-			//					String.format("total:%s, win:%s, lose:%s, remain:%s, investment:%s", simulation.g_totalRecords,
-			//							simulation.g_win, simulation.g_lose, simulation.g_allRecordsSum, simulation.g_investment));
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-	}
-
-	public StockDataService getStockDataService() {
-		return stockDataService;
-	}
-
-	public void setStockDataService(StockDataService stockDataService) {
-		this.stockDataService = stockDataService;
-	}
-
-	public StockService getStockService() {
-		return stockService;
-	}
-
-	public void setStockService(StockService stockService) {
-		this.stockService = stockService;
-	}
 }

@@ -71,6 +71,29 @@ flag varchar(2),
 step int
 );
 
+create table sto_operation (
+code varchar(10),
+oper varchar(2), --操作，买(1) or 卖(2), 0表示不操作
+num int, --操作数量
+price decimal, --单价
+total int, --当前拥有数量
+sum decimal, --当前总价值
+remain decimal, --余额
+flag varchar(2)
+);
+
+create table sto_oper_sum (
+code varchar(10),
+name varchar(50),
+oper varchar(2), --操作，买(1) or 卖(2), 0表示不操作
+num int, --操作数量
+price decimal, --单价
+total int, --当前拥有数量
+sum decimal, --当前总价值
+remain decimal, --余额
+flag varchar(2)
+);
+
 --20151022
 --alter table sto_code add code_sina varchar(15);
 
@@ -89,9 +112,13 @@ truncate table sto_day;
 truncate table sto_code;
 truncate table dd_code;
 truncate table dd_value;
+truncate table sto_operation;
+truncate table sto_oper_sum;
 drop table sto_realtime_original;
 drop table sto_realtime;
 drop table sto_day;
 drop table sto_code;
 drop table dd_code;
 drop table dd_value;
+drop table sto_operation;
+drop table sto_oper_sum;
