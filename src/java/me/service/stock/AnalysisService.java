@@ -5,35 +5,26 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.Constant;
 import me.net.NetType.eStockOper;
 import me.net.NetType.eStrategy;
-import me.net.StockDataService;
-import me.net.StockService;
+import me.net.dao.StockAnalysisDao;
 import me.net.dayHandler.Simulator;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
+import me.net.model.StockOperSum;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AnalysisService {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Ioc
-	private StockDataService stockDataService;
-	@Ioc
-	private StockService stockService;
+	private StockAnalysisDao stockAnalysisDao;
 	@Ioc
 	Simulator simulator;
-
-	/****  用于统计   *****/
-	int g_totalRecords = 0;
-	int g_win = 0;
-	int g_lose = 0;
-	BigDecimal g_allRecordsSum = BigDecimal.ZERO;
-	BigDecimal g_investment = BigDecimal.ZERO;
 
 	/**   配置参数   *****/
 	private eStrategy strategy = eStrategy.One; //策略
@@ -41,14 +32,17 @@ public class AnalysisService {
 
 	private final int one = 1;
 
-	private void compute(String hcode) throws SQLException {
+	/**
+	 * 生成此 code 的所有操作数据
+	 * @param hcode
+	 * @throws SQLException
+	 */
+	public void compute(String hcode) throws SQLException {
 		List<StockDay> all = null;
 		List<StockDay> his = new ArrayList<StockDay>();// 已进行分析过的历史数据
 		List<OperRecord> operList = new ArrayList<OperRecord>();
 
-		OperRecord operSum = new OperRecord();
-
-		all = stockDataService.getDay(hcode, Constant.simulate.startDate, null);
+		all = stockAnalysisDao.getDay(hcode, Constant.simulate.startDate, null);
 
 		if (all.size() < 50) {
 			logger.error("数据太少，只有：" + all.size());
@@ -61,6 +55,7 @@ public class AnalysisService {
 		int total = 0;
 		BigDecimal remain = BigDecimal.ZERO;
 		int symbol = 1; //表示正负
+		int sn = 0;
 
 		for (int i = 0; i < all.size() - 1; i++) {
 			StockDay someDay = all.get(i);
@@ -76,6 +71,8 @@ public class AnalysisService {
 				continue;
 			}
 
+			sn++;
+
 			//如果能在第二天以中间价处理，结果会理想很多
 			if (result == eStockOper.Buy) {
 				price = new BigDecimal(nextDay.high);
@@ -89,7 +86,7 @@ public class AnalysisService {
 
 			switch (strategy) {
 			case One:
-				//每次按结果操作一单位
+				//每次操作一单位
 				num = one;
 				break;
 			case OneBuyOneSell:
@@ -110,60 +107,88 @@ public class AnalysisService {
 				continue;
 			}
 			remain = remain.subtract(sum);//remain += -sum; //买是付钱，用负表示
-			operList.add(new OperRecord(result, one, price, sum, total, remain));
+			operList.add(new OperRecord(sn, hcode, result, one, price, sum, total, remain));
+
 		}
 
-		for (OperRecord record : operList) {
-			System.out.println(record);
-		}
-		//		for (OperRecord record : operList) {
-		//			//只需要卖光后的情况
-		//			if (record.total == 0)
-		//				logger.info(record.toString());
-		//			System.out.println(record);
-		//		}
+		// 保存至数据库
+		stockAnalysisDao.saveOperList(operList);
+
+		/*******************   下面是对操作数据的分析与汇总   *********************/
+
+		BigDecimal lastRemain = BigDecimal.ZERO;
+		String lastFlag = "00";
+
+		//最后一次卖光时的情况
 		for (int i = operList.size() - 1; i >= 0; i--) {
-			//最后一次卖光时的情况
 			OperRecord record = operList.get(i);
 			if (record.getTotal() == 0) {
-				logger.info("code:" + hcode + "," + record.toString());
-				g_totalRecords++;
-				if (record.getRemain().doubleValue() > 0)
-					g_win++;
-				else
-					g_lose++;
+				lastRemain = record.getRemain();
 
-				if (Math.abs(record.getRemain().doubleValue()) > 200) {
-					System.out.println("too large");
-					break; //去除结果过好数据
+				//去除结果过好过坏数据
+				if (Math.abs(record.getRemain().doubleValue()) > abnormal) {
+					lastFlag = "01";
 				}
-				if (record.getRemain().doubleValue() < -200) {
-					System.out.println("too low");
-					break;
-				}
-
-				g_allRecordsSum = g_allRecordsSum.add(record.getRemain()); //g_allRecordsSum += record.remain;
 
 				break;
 			}
 		}
 
 		BigDecimal minRemain = BigDecimal.ZERO; //余额最小时，即最大的投资额度
-		int buys = 0, sells = 0, times = 0;
+		int buys = 0, sells = 0, times = 0, winTimes = 0, loseTimes = 0;
 		for (int i = operList.size() - 1; i >= 0; i--) {
 			OperRecord record = operList.get(i);
 			if (record.getRemain().compareTo(minRemain) == -1) //record.remain < minRemain
 				minRemain = record.getRemain();
-			if (record.getTotal() == 0)
+			if (record.getTotal() == 0) {
 				times++;
+				if (record.getRemain().doubleValue() > 0)
+					winTimes++;
+				else
+					loseTimes++;
+			}
 			if (record.getOper() == eStockOper.Buy)
 				buys++;
 			if (record.getOper() == eStockOper.Sell)
 				sells++;
 		}
-		g_investment = g_investment.subtract(minRemain); //g_investment -= minRemain;
 
-		logger.info("*********   buys:{}, sells:{}, total=0 times:{}", buys, sells, times);
+		StockOperSum operSum = new StockOperSum(buys, sells, times, winTimes, loseTimes, lastRemain, minRemain,
+				lastFlag);
+		operSum.setCode(hcode);
+		operSum.setName(stockAnalysisDao.getName(hcode.substring(0, hcode.length() - 3)));
+		stockAnalysisDao.saveOperSum(operSum);
+
+		logger.info(operSum.toString());
+	}
+
+	/**
+	 * 对所有 code 的汇总数据再次汇总
+	 * @return
+	 * @throws SQLException
+	 */
+	public String summary() throws SQLException {
+
+		int win = 0;
+		int lose = 0;
+		BigDecimal allRecordsSum = BigDecimal.ZERO;
+		BigDecimal investment = BigDecimal.ZERO;
+
+		List<StockOperSum> operSumList = stockAnalysisDao.getAllCodeSum(false);
+
+		for (StockOperSum record : operSumList) {
+			if (record.getLastRemain().doubleValue() > 0)
+				win++;
+			else
+				lose++;
+
+			allRecordsSum = allRecordsSum.add(record.getLastRemain()); //allRecordsSum += record.remain;
+			investment = investment.subtract(record.getMinRemain()); //investment -= minRemain;
+
+		}
+
+		return String.format("total:%s, win:%s, lose:%s, remain:%s, investment:%s", operSumList.size(), win, lose,
+				allRecordsSum, investment);
 	}
 
 }

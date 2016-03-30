@@ -12,6 +12,7 @@ import me.common.jdbcutil.h2.H2Helper;
 import me.common.util.Constant;
 import me.net.NetType.eStockOper;
 import me.net.NetType.eStrategy;
+import me.net.dao.StockAnalysisDao;
 import me.net.dayHandler.Simulator;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
@@ -24,9 +25,7 @@ public class ComputeSimulation {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Ioc
-	private StockDataService stockDataService;
-	@Ioc
-	private StockService stockService;
+	private StockAnalysisDao stockAnalysisDao;
 	@Ioc
 	Simulator simulator;
 
@@ -46,7 +45,7 @@ public class ComputeSimulation {
 		List<StockDay> his = new ArrayList<StockDay>();// 已进行分析过的历史数据
 		List<OperRecord> operList = new ArrayList<OperRecord>();
 
-		all = stockDataService.getDay(hcode, Constant.simulate.startDate, null);
+		all = stockAnalysisDao.getDay(hcode, Constant.simulate.startDate, null);
 
 		if (all.size() < 50) {
 			logger.error("数据太少，只有：" + all.size());
@@ -191,19 +190,12 @@ public class ComputeSimulation {
 
 	}
 
-	public StockDataService getStockDataService() {
-		return stockDataService;
+	public StockAnalysisDao getStockAnalysisDao() {
+		return stockAnalysisDao;
 	}
 
-	public void setStockDataService(StockDataService stockDataService) {
-		this.stockDataService = stockDataService;
+	public void setStockAnalysisDao(StockAnalysisDao stockAnalysisDao) {
+		this.stockAnalysisDao = stockAnalysisDao;
 	}
 
-	public StockService getStockService() {
-		return stockService;
-	}
-
-	public void setStockService(StockService stockService) {
-		this.stockService = stockService;
-	}
 }

@@ -5,7 +5,7 @@ import java.util.List;
 
 import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
-import me.net.StockDataService;
+import me.net.dao.StockAnalysisDao;
 import me.net.model.StockDay;
 
 import org.junit.AfterClass;
@@ -13,9 +13,9 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class StockDataServiceTest {
+public class StockAnalysisDaoTest {
 
-	private StockDataService service = new StockDataService();
+	private StockAnalysisDao service = new StockAnalysisDao();
 
 	@BeforeClass
 	public static void before() {
@@ -29,12 +29,12 @@ public class StockDataServiceTest {
 
 	@Test
 	public void getDay() {
-		String code = "300072.sz";
+		String code = "000001.sz";
 		List<StockDay> list;
 		try {
 			list = service.getDay(code, null, null);
 
-			Assert.assertEquals(948, list.size());
+			Assert.assertTrue(list.size() > 100);
 		} catch (SQLException e) {
 			e.printStackTrace();
 			Assert.fail();
@@ -44,11 +44,11 @@ public class StockDataServiceTest {
 
 	@Test
 	public void getName() {
-		String code = "300072";
+		String code = "600004";
 		String name;
 		try {
 			name = service.getName(code);
-			Assert.assertEquals("三聚环保", name);
+			Assert.assertEquals("白云机场", name);
 
 		} catch (SQLException e) {
 			e.printStackTrace();

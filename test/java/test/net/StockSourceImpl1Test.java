@@ -11,6 +11,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import me.common.jdbcutil.SqlRunner;
+import me.common.jdbcutil.h2.H2Helper;
+import me.common.util.NetUtil;
+import me.net.NetType.eStockSource;
+import me.net.SinaSourceService;
+import me.net.StockSourceImpl1;
+import me.net.YahooSourceService;
+import me.net.dao.StockSourceDao;
+import me.net.model.RealTime;
+
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
@@ -20,27 +30,17 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import me.common.jdbcutil.SqlRunner;
-import me.common.jdbcutil.h2.H2Helper;
-import me.common.util.NetUtil;
-import me.net.NetType.eStockSource;
-import me.net.SinaSourceService;
-import me.net.StockService;
-import me.net.StockSourceImpl1;
-import me.net.YahooSourceService;
-import me.net.model.RealTime;
-
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class StockSourceImpl1Test {
 
 	private StockSourceImpl1 impl = new StockSourceImpl1();
 	private SinaSourceService sina = new SinaSourceService();
 	private YahooSourceService yahoo = new YahooSourceService();
-	private StockService service = new StockService();
+	private StockSourceDao sourceDao = new StockSourceDao();
 
 	@Before
 	public void init() {
-		impl.setStockService(service);
+		impl.setStockSourceDao(sourceDao);
 		impl.setRealtime_supplier(sina);
 		impl.setHistory_supplier(yahoo);
 	}
@@ -65,15 +65,21 @@ public class StockSourceImpl1Test {
 
 		List<String> codes = new ArrayList<String>();
 		codes.add("300489");
+		codes.add("300488");
+		codes.add("000002");
+		codes.add("000001");
+		codes.add("603998");
 		codes.add("603997");
+		codes.add("600004");
+		codes.add("600000");
 
 		try {
 			impl.getRealTime(codes);
 
 			List<RealTime> strs;
-			strs = service.findRealtimeLast(codes);
+			strs = sourceDao.findRealtimeLast(codes);
 
-			assertEquals(2, strs.size());
+			assertEquals(8, strs.size());
 
 			// date没有记录，默认都是今天
 			// Date date = new Date();
@@ -113,7 +119,7 @@ public class StockSourceImpl1Test {
 			long end = System.currentTimeMillis();
 			System.out.println("time:" + (end - start));
 
-			List<String> list = service.getAllAvailableCodes(0, eStockSource.SINA);
+			List<String> list = sourceDao.getAllAvailableCodes(0, eStockSource.SINA);
 			Assert.assertTrue(list.size() < 2600); // 必然有一些停牌
 		} catch (SQLException e) {
 			Assert.fail();
@@ -122,6 +128,8 @@ public class StockSourceImpl1Test {
 
 	}
 
+	//时间较长
+	@Ignore
 	@Test(timeout = 65 * 1000)
 	public void getRealTimeAllByInterval() {
 
@@ -138,7 +146,7 @@ public class StockSourceImpl1Test {
 	public void a_isSameAsPrevious() {
 		try {
 			boolean result = impl.isSameAsPrevious();
-			if (service.isStockTime()) {
+			if (sourceDao.isStockTime()) {
 				Assert.assertFalse(result);
 			} else {
 				Assert.assertTrue(result);
@@ -161,7 +169,7 @@ public class StockSourceImpl1Test {
 			impl.dayFinalDo(true);
 
 			int count = H2Helper.getCount("sto_day", "date_", now);
-			assertEquals(10, count);
+			assertEquals(8, count);
 
 		} catch (SQLException e) {
 			fail();
@@ -172,8 +180,22 @@ public class StockSourceImpl1Test {
 	@Test
 	public void getHistory() {
 
+		String sql = "truncate table sto_day_tmp";
+		try {
+			SqlRunner.me().execute(sql);
+		} catch (SQLException e) {
+			fail();
+		}
+
 		List<String> codes = new ArrayList<String>();
+		codes.add("300489");
+		codes.add("300488");
+		codes.add("000002");
+		codes.add("000001");
+		codes.add("603998");
 		codes.add("603997");
+		codes.add("600004");
+		codes.add("600000");
 
 		long start = System.currentTimeMillis();
 
@@ -183,6 +205,8 @@ public class StockSourceImpl1Test {
 		System.out.println("use time:" + (end - start));
 	}
 
+	//时间较长
+	@Ignore
 	@Test
 	public void getHistoryAll() {
 		long start = System.currentTimeMillis();

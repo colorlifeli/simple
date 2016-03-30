@@ -6,6 +6,7 @@ import me.common.util.Util;
 import me.net.NetType.eStockOper;
 
 public class OperRecord {
+	private int sn;
 	private String code;
 	private eStockOper oper; //操作
 	private int num; //数量
@@ -27,9 +28,26 @@ public class OperRecord {
 		this.remain = remain;
 	}
 
+	public OperRecord(int sn, String code, eStockOper oper, int num, BigDecimal price, BigDecimal sum, int total,
+			BigDecimal remain) {
+		this.sn = sn;
+		this.code = code;
+		this.oper = oper;
+		this.num = num;
+		this.total = total;
+		this.price = price;
+		this.sum = sum;
+		this.remain = remain;
+	}
+
 	@Override
 	public String toString() {
 		return Util.printFields(this.getClass(), this);
+	}
+
+	public Object[] toObjectArray() {
+		return new Object[] { this.sn, this.code, this.oper.toString(), this.num, this.price, this.sum, this.total,
+				this.remain, this.flag };
 	}
 
 	public eStockOper getOper() {
@@ -94,6 +112,14 @@ public class OperRecord {
 
 	public void setFlag(String flag) {
 		this.flag = flag;
+	}
+
+	public int getSn() {
+		return sn;
+	}
+
+	public void setSn(int sn) {
+		this.sn = sn;
 	}
 
 }

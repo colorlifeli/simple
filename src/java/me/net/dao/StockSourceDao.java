@@ -1,4 +1,4 @@
-package me.net;
+package me.net.dao;
 
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -14,12 +14,13 @@ import me.common.jdbcutil.ArrayListHandler;
 import me.common.jdbcutil.BeanListHandler;
 import me.common.jdbcutil.SqlRunner;
 import me.common.util.Constant;
+import me.net.NetType;
 import me.net.NetType.eStockSource;
 import me.net.model.Item;
 import me.net.model.RealTime;
 import me.net.model.StockDay;
 
-public class StockService {
+public class StockSourceDao {
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 

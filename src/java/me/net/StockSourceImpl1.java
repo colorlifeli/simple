@@ -6,16 +6,17 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.TypeUtil;
 import me.net.NetType.eStockCodeFlag;
 import me.net.NetType.eStockSource;
+import me.net.dao.StockSourceDao;
 import me.net.model.Item;
 import me.net.model.RealTime;
 import me.net.model.StockDay;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 本实现类，
@@ -32,7 +33,7 @@ public class StockSourceImpl1 implements StockSource {
 	@Ioc(name = "yahooSourceService")
 	private StockSupplier history_supplier;
 	@Ioc
-	private StockService stockService;
+	private StockSourceDao stockSourceDao;
 
 	private final String historyStartDate = "20140101";
 
@@ -43,7 +44,7 @@ public class StockSourceImpl1 implements StockSource {
 	public void getRealTime(List<String> codes) {
 		List<String> realtime_codes = null;
 		try {
-			realtime_codes = stockService.getCodes(codes, realtime);
+			realtime_codes = stockSourceDao.getCodes(codes, realtime);
 		} catch (SQLException e) {
 			logger.error("将code转为 realtime code失败, source:" + realtime);
 			e.printStackTrace();
@@ -51,7 +52,7 @@ public class StockSourceImpl1 implements StockSource {
 		}
 		@SuppressWarnings("unchecked")
 		List<RealTime> list = (List<RealTime>) realtime_supplier.getData(realtime_codes);
-		stockService.saveRealTimeData(list);
+		stockSourceDao.saveRealTimeData(list);
 	}
 
 	@Override
@@ -78,7 +79,7 @@ public class StockSourceImpl1 implements StockSource {
 		List<?> list = null;
 
 		try {
-			realtime_codes = stockService.getAllAvailableCodes(0, realtime);
+			realtime_codes = stockSourceDao.getAllAvailableCodes(0, realtime);
 			int size = realtime_codes.size();
 			int each = 200;
 			int start = 0;
@@ -90,7 +91,7 @@ public class StockSourceImpl1 implements StockSource {
 						part.add(realtime_codes.get(i));
 					}
 					list = realtime_supplier.getData(part);
-					stockService.saveRealTimeData((List<RealTime>) list);
+					stockSourceDao.saveRealTimeData((List<RealTime>) list);
 
 					break;
 				} else {
@@ -99,7 +100,7 @@ public class StockSourceImpl1 implements StockSource {
 					}
 
 					list = realtime_supplier.getData(part);
-					stockService.saveRealTimeData((List<RealTime>) list);
+					stockSourceDao.saveRealTimeData((List<RealTime>) list);
 
 					start += each;
 					part.clear();
@@ -123,7 +124,7 @@ public class StockSourceImpl1 implements StockSource {
 		// 由于是循环获取，需要进行限制
 		while (true) {
 			try {
-				if (stockService.isStockTime()) {
+				if (stockSourceDao.isStockTime()) {
 					if (isOpen)
 						getRealTimeAll();
 					else {
@@ -133,9 +134,9 @@ public class StockSourceImpl1 implements StockSource {
 						}
 					}
 				} else {
-					if (stockService.isAfterStockTime()) {
+					if (stockSourceDao.isAfterStockTime()) {
 						// 防止程序是否多次重启进入
-						if (!stockService.isRealtimeDayTableExists()) {
+						if (!stockSourceDao.isRealtimeDayTableExists()) {
 
 							// 当获取的时间和上次一样时，证明上次已是最后一次
 							if (this.isSameAsPrevious()) {
@@ -178,12 +179,12 @@ public class StockSourceImpl1 implements StockSource {
 				Date date = new Date();
 				endDate = format.format(date);
 			}
-			List<String> hcodes = stockService.getCodes(codes, history);
+			List<String> hcodes = stockSourceDao.getCodes(codes, history);
 			@SuppressWarnings("unchecked")
 			List<Item> urls = (List<Item>) history_supplier.getData(hcodes, startDate, endDate);
 
 			logger.info("getHistory, number of urls:" + urls.size() + ", " + new Date());
-			stockService.saveCsvFromUrl(urls);
+			stockSourceDao.saveCsvFromUrl(urls);
 			logger.info("getHistory, END. " + new Date());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -202,14 +203,14 @@ public class StockSourceImpl1 implements StockSource {
 				endDate = format.format(date);
 			}
 
-			List<String> codes = stockService.getCodes(0, history);
+			List<String> codes = stockSourceDao.getCodes(0, history);
 			List<Item> urls = (List<Item>) history_supplier.getData(codes, startDate, endDate);
 
 			int i = 5; // 最大重做次数
 			while (i-- > 0) {
 				// 因为网络可能超时，或服务器一时没有反应，所以尝试多次重做
 				logger.info("getHistoryAll, number of urls:" + urls.size() + ", " + new Date());
-				urls = stockService.saveCsvFromUrl(urls);
+				urls = stockSourceDao.saveCsvFromUrl(urls);
 				logger.info("getHistoryAll, 第 " + (5 - i) + " 次 END. " + new Date());
 
 				// 如果没有 error，就完成了
@@ -237,7 +238,7 @@ public class StockSourceImpl1 implements StockSource {
 				endDate = format.format(date);
 			}
 
-			List<String> codes = stockService.getNoHisCode(history);
+			List<String> codes = stockSourceDao.getNoHisCode(history);
 			@SuppressWarnings("unchecked")
 			List<Item> urls = (List<Item>) history_supplier.getData(codes, startDate, endDate);
 
@@ -245,7 +246,7 @@ public class StockSourceImpl1 implements StockSource {
 			while (i-- > 0) {
 				// 因为网络可能超时，或服务器一时没有反应，所以尝试多次重做
 				logger.info("getHistoryRemain, number of urls:" + urls.size() + ", " + new Date());
-				urls = stockService.saveCsvFromUrl(urls);
+				urls = stockSourceDao.saveCsvFromUrl(urls);
 				logger.info("getHistoryRemain, 第 " + (5 - i) + " 次 END. " + new Date());
 
 				// 如果没有 error，就完成了
@@ -265,7 +266,7 @@ public class StockSourceImpl1 implements StockSource {
 	 */
 	public boolean isSameAsPrevious() throws SQLException {
 
-		String code = stockService.getAvailableCode();
+		String code = stockSourceDao.getAvailableCode();
 		List<String> list = new ArrayList<String>();
 		list.add(code);
 		@SuppressWarnings("unchecked")
@@ -275,7 +276,7 @@ public class StockSourceImpl1 implements StockSource {
 			return false;
 		}
 
-		boolean result = stockService.checkSameTime(datas.get(0).code, datas.get(0));
+		boolean result = stockSourceDao.checkSameTime(datas.get(0).code, datas.get(0));
 
 		logger.info("isSameAsPrevious, code:" + code + ", same:" + result);
 		return result;
@@ -293,9 +294,9 @@ public class StockSourceImpl1 implements StockSource {
 		List<String> part = new ArrayList<String>();
 
 		try {
-			stockService.freshAllcode();
+			stockSourceDao.freshAllcode();
 
-			realtime_codes = stockService.getAllAvailableCodes(0, realtime);
+			realtime_codes = stockSourceDao.getAllAvailableCodes(0, realtime);
 			int size = realtime_codes.size();
 			int each = 200;
 			int start = 0;
@@ -344,7 +345,7 @@ public class StockSourceImpl1 implements StockSource {
 		List<StockDay> list = null;
 
 		try {
-			realtime_codes = stockService.getAllAvailableCodes(0, realtime);
+			realtime_codes = stockSourceDao.getAllAvailableCodes(0, realtime);
 			int size = realtime_codes.size();
 			int each = 200;
 			int start = 0;
@@ -357,8 +358,8 @@ public class StockSourceImpl1 implements StockSource {
 					for (int i = start; i < size; i++) {
 						part.add(realtime_codes.get(i));
 					}
-					list = stockService.realtimeToDay((List<RealTime>) realtime_supplier.getData(part));
-					stockService.saveDayData(list);
+					list = stockSourceDao.realtimeToDay((List<RealTime>) realtime_supplier.getData(part));
+					stockSourceDao.saveDayData(list);
 
 					break;
 				} else {
@@ -366,8 +367,8 @@ public class StockSourceImpl1 implements StockSource {
 						part.add(realtime_codes.get(i));
 					}
 
-					list = stockService.realtimeToDay((List<RealTime>) realtime_supplier.getData(part));
-					stockService.saveDayData(list);
+					list = stockSourceDao.realtimeToDay((List<RealTime>) realtime_supplier.getData(part));
+					stockSourceDao.saveDayData(list);
 
 					start += each;
 					part.clear();
@@ -375,8 +376,8 @@ public class StockSourceImpl1 implements StockSource {
 			}
 
 			// 2. 对实时表改名，以今日日期为标识
-			if (isCreateTable && !stockService.isRealtimeDayTableExists())
-				stockService.dealRealTimeTable();
+			if (isCreateTable && !stockSourceDao.isRealtimeDayTableExists())
+				stockSourceDao.dealRealTimeTable();
 
 		} catch (Exception e) {
 			logger.error("everydayFinalDealing failed");
@@ -396,12 +397,12 @@ public class StockSourceImpl1 implements StockSource {
 	private void dealAbnormal(Object[][] result) throws SQLException {
 		if (result[0].length > 0) {
 			// 表示停牌的
-			stockService.setCodeFlag(TypeUtil.oneToTwo(result[0]), eStockCodeFlag.STOP.toString());
+			stockSourceDao.setCodeFlag(TypeUtil.oneToTwo(result[0]), eStockCodeFlag.STOP.toString());
 			logger.info("dealAbnormal, stop size:" + result[0].length);
 		}
 		if (result[1].length > 0) {
 			// 表示异常的
-			stockService.setCodeFlag(TypeUtil.oneToTwo(result[1]), eStockCodeFlag.ERROR.toString());
+			stockSourceDao.setCodeFlag(TypeUtil.oneToTwo(result[1]), eStockCodeFlag.ERROR.toString());
 			logger.info("dealAbnormal, error size:" + result[1].length);
 		}
 	}
@@ -422,12 +423,12 @@ public class StockSourceImpl1 implements StockSource {
 		this.history_supplier = history_supplier;
 	}
 
-	public StockService getStockService() {
-		return stockService;
+	public StockSourceDao getStockSourceDao() {
+		return stockSourceDao;
 	}
 
-	public void setStockService(StockService stockService) {
-		this.stockService = stockService;
+	public void setStockSourceDao(StockSourceDao stockSourceDao) {
+		this.stockSourceDao = stockSourceDao;
 	}
 
 }

@@ -10,8 +10,8 @@ import me.common.annotation.ActionAnno.Pack;
 import me.common.annotation.ActionAnno.Result;
 import me.common.annotation.IocAnno.Ioc;
 import me.net.NetType.eStockSource;
-import me.net.StockDataService;
-import me.net.StockService;
+import me.net.dao.StockAnalysisDao;
+import me.net.dao.StockSourceDao;
 import me.net.dayHandler.Analyzer;
 import me.net.model.StockDay;
 
@@ -19,9 +19,9 @@ import me.net.model.StockDay;
 public class KAction extends ActionIf {
 
 	@Ioc
-	private StockDataService stockDataService;
+	private StockAnalysisDao stockAnalysisDao;
 	@Ioc
-	private StockService stockService;
+	private StockSourceDao stockSourceDao;
 	@Ioc
 	private Analyzer analyzer;
 
@@ -39,7 +39,7 @@ public class KAction extends ActionIf {
 
 			List<String> codes = new ArrayList<String>();
 			codes.add(code);
-			List<String> hCodes = stockService.getCodes(codes, eStockSource.YAHOO);
+			List<String> hCodes = stockSourceDao.getCodes(codes, eStockSource.YAHOO);
 			if (hCodes == null || hCodes.size() == 0) {
 				logger.error("cannot find the code:" + code);
 				return null;
@@ -50,14 +50,14 @@ public class KAction extends ActionIf {
 
 			switch (step) {
 			case "1":
-				list = stockDataService.getDay(hcode, null, null);
+				list = stockAnalysisDao.getDay(hcode, null, null);
 				list = analyzer.include(list);
 
 				list = analyzer.recognizeType(list);
 				break;
 
 			default:
-				list = stockDataService.getDay(hcode, null, null);
+				list = stockAnalysisDao.getDay(hcode, null, null);
 			}
 
 			showK(list, code);
@@ -72,7 +72,7 @@ public class KAction extends ActionIf {
 	private void showK(List<StockDay> list, String code) {
 		String stockName = "";
 		try {
-			stockName = stockDataService.getName(code);
+			stockName = stockAnalysisDao.getName(code);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

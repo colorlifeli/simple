@@ -4,17 +4,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import me.common.annotation.IocAnno.Ioc;
 import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
 import me.net.NetType.eStockDayFlag;
 import me.net.NetType.eStockSource;
-import me.net.StockDataService;
-import me.net.StockService;
+import me.net.dao.StockAnalysisDao;
+import me.net.dao.StockSourceDao;
 import me.net.model.StockDay;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 用于分析历史数据，对历史数据进行处理
@@ -29,9 +28,6 @@ public class Analyzer {
 
 	SqlRunner sqlrunner = SqlRunner.me();
 
-	@Ioc
-	private StockDataService stockDataService;
-
 	//private String code = "002061";
 
 	/**
@@ -41,8 +37,6 @@ public class Analyzer {
 	public List<StockDay> include(List<StockDay> days) {
 		// int step = 1;
 		List<StockDay> days2 = new ArrayList<StockDay>();
-
-		// List<StockDay> days = stockDataService.getDay(code, null, null);
 
 		logger.info("origin size: " + days.size());
 
@@ -243,8 +237,8 @@ public class Analyzer {
 
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 		Analyzer anlyzer = new Analyzer();
-		String hcode = new StockService().getCode("002061", eStockSource.YAHOO);
-		List<StockDay> list = new StockDataService().getDay(hcode, "2015-06-01", null);
+		String hcode = new StockSourceDao().getCode("002061", eStockSource.YAHOO);
+		List<StockDay> list = new StockAnalysisDao().getDay(hcode, "2015-06-01", null);
 
 		list = anlyzer.include(list);
 

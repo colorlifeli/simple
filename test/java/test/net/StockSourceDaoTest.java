@@ -7,6 +7,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.common.jdbcutil.SqlRunner;
+import me.common.jdbcutil.h2.H2Helper;
+import me.net.NetType.eStockSource;
+import me.net.dao.StockSourceDao;
+
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -14,20 +19,15 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import me.common.jdbcutil.SqlRunner;
-import me.common.jdbcutil.h2.H2Helper;
-import me.net.NetType.eStockSource;
-import me.net.StockService;
-
 /**
  * 为了按顺序执行 test case，方法名前加了前缀
  * @author James
  *
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class StockServiceTest {
+public class StockSourceDaoTest {
 
-	private StockService service = new StockService();
+	private StockSourceDao service = new StockSourceDao();
 
 	@BeforeClass
 	public static void before() {
@@ -78,12 +78,12 @@ public class StockServiceTest {
 	@Test
 	public void getCodes_forsina() {
 		try {
-			List<String> codes = service.getAllAvailableCodes(10, eStockSource.SINA);
+			List<String> codes = service.getAllAvailableCodes(8, eStockSource.SINA);
 
-			assertEquals(10, codes.size());
+			assertEquals(8, codes.size());
 
-			assertTrue(codes.contains("s_sh000001"));
-			assertTrue(codes.contains("s_sz399001"));
+			//assertTrue(codes.contains("s_sh000001"));  //大盘指数不属于可用 code
+			//assertTrue(codes.contains("s_sz399001"));
 			assertTrue(codes.contains("sz300489"));
 			assertTrue(codes.contains("sz300488"));
 			assertTrue(codes.contains("sz000002"));

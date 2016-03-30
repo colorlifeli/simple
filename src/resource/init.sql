@@ -80,18 +80,19 @@ price decimal, --单价
 total int, --当前拥有数量
 sum decimal, --当前总价值
 remain decimal, --余额
+minRemain decimal,  --最小余额，即最大的投入资金
 flag varchar(2)
 );
 
 create table sto_oper_sum (
 code varchar(10),
 name varchar(50),
-oper varchar(2), --操作，买(1) or 卖(2), 0表示不操作
-num int, --操作数量
-price decimal, --单价
-total int, --当前拥有数量
-sum decimal, --当前总价值
-remain decimal, --余额
+buys int, --买入次数
+sells int, --卖出次数
+times int, --total 为0的次数（即卖光了）
+winTimes int, --赢利次数
+loseTimes int, --亏损次数
+lastRemain decimal, --最后一次卖光时的余额
 flag varchar(2)
 );
 
