@@ -3,7 +3,12 @@ package me.service.stock;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.Constant;
@@ -14,9 +19,6 @@ import me.net.dayHandler.Simulator;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AnalysisService {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -29,8 +31,12 @@ public class AnalysisService {
 	/**   配置参数   *****/
 	private eStrategy strategy = eStrategy.One; //策略
 	private double abnormal = 200; //绝对值超过这个值视为异常值
+	private boolean isPersistent = false;
 
 	private final int one = 1;
+
+	private Map<String, List<OperRecord>> g_operListMap = new HashMap<String, List<OperRecord>>();
+	private List<StockOperSum> g_operSumList = new ArrayList<StockOperSum>();
 
 	/**
 	 * 生成此 code 的所有操作数据
@@ -111,9 +117,6 @@ public class AnalysisService {
 
 		}
 
-		// 保存至数据库
-		stockAnalysisDao.saveOperList(operList);
-
 		/*******************   下面是对操作数据的分析与汇总   *********************/
 
 		BigDecimal lastRemain = BigDecimal.ZERO;
@@ -157,7 +160,15 @@ public class AnalysisService {
 				lastFlag);
 		operSum.setCode(hcode);
 		operSum.setName(stockAnalysisDao.getName(hcode.substring(0, hcode.length() - 3)));
-		stockAnalysisDao.saveOperSum(operSum);
+
+		if (isPersistent) {
+			// 保存至数据库
+			stockAnalysisDao.saveOperList(operList);
+			stockAnalysisDao.saveOperSum(operSum);
+		} else {
+			g_operListMap.put(hcode, operList);
+			g_operSumList.add(operSum);
+		}
 
 		logger.info(operSum.toString());
 	}

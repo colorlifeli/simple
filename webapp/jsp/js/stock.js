@@ -5,33 +5,14 @@ var dg_toolBar_all = [
 	align: 'left',
 	iconCls: 'icon-up',
 	handler: function() {
-		var page = $("form[name='fmTaskfinish'] input[name='page']");
-		var currentPage = parseInt(page.val());
-		if (currentPage < 2) {
-			$.messager.alert("提示", "已经是第一页", "info");
-			return;
-		}
-		page.val(currentPage - 1);
-		queryTaskFinish();
+		return null;
 	}
 }, {
 	text: '打包',
 	align: 'left',
 	iconCls: 'icon-down',
 	handler: function() {
-		// 判断是否还有更多结果。如果当前结果列表的数量小于结果列表容量，则认为已经没有更多结果。
-		var taskQuery2Rows = $("#taskFinishTable").datagrid("getRows");
-		var currentRows = taskQuery2Rows.length;
-		var rows = $("form[name='fmTaskfinish'] input[name='rows']").val();
-		if (currentRows < parseInt(rows)) {
-			$.messager.alert("提示", "已经没有更多结果", "info");
-			return;
-		}
-
-		var page = $("form[name='fmTaskfinish'] input[name='page']");
-		var currentPage = parseInt(page.val());
-		page.val(currentPage + 1);
-		queryTaskFinish();
+		return null;
 	}
 }];
 
@@ -44,7 +25,7 @@ var dg_columns_all = [ [
 	title : '代码',
 	align : 'center',
 	sortable : true,
-	sorter : commonSortor
+	//sorter : commonSortor
 }, {
 	field : 'name',
 	title : '名称',
@@ -54,8 +35,7 @@ var dg_columns_all = [ [
 		return a.localeCompare(b);
 	},
 	formatter : function(value, row, index) {
-		return '<a style="cursor:pointer;text-decoration: underline;" onclick="javascript:showFinishTaskInfo(\''
-				+ row["piid"] + '\')">'+value+'</a>';
+			
 		return value;
 	}
 }]];
@@ -63,13 +43,47 @@ var dg_columns_all = [ [
 
 
 $(function(){
-	$("allTable").datagrid({
-		url : 'abc',
+//	$('#allTable').datagrid({  
+//        width: 'auto',  
+//        height:300,               
+//        striped: true,  
+//        singleSelect : true,  
+//        url:basePath + "stock/computeAll",  
+//        //queryParams:{},  
+//        loadMsg:'数据加载中请稍后……',  
+//        pagination: true,  
+//        rownumbers: true,     
+//        columns:dg_columns_all,
+//        toolbar: dg_toolBar_all
+//    });
+	
+//	$("#allTable").datagrid({
+//		url : basePath + "stock/computeAll",
+//		width: 'auto',
+//		height:300,
+//		striped: true,
+//		title : 'abc',
+//        pagination : true,
+//        pageSize : 10,
+//        pageList : [ 10, 20, 30, 40 ],
+//        columns: dg_columns_all,
+//		toolbar: dg_toolBar_all
+//	});
+	
+});
+
+
+function compute(){
+	var url = basePath + "stock/computeAll";
+	alert(url);
+	
+	$("#allTable").datagrid({
+		url : basePath + "stock/computeAll",
 		title : 'abc',
         pagination : true,
         pageSize : 10,
         pageList : [ 10, 20, 30, 40 ],
-        columns: page_contentColumnHeaders,
-		toolbar: page_toolBar_taskFinish,	
+        columns: dg_columns_all,
+		toolbar: dg_toolBar_all
 	});
-});
+}

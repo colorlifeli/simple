@@ -17,6 +17,9 @@ public class StockOperSum {
 	private BigDecimal minRemain;
 	private String flag;
 
+	public StockOperSum() {
+	};
+
 	public StockOperSum(int buys, int sells, int times, int winTimes, int loseTimes, BigDecimal lastRemain,
 			BigDecimal minRemain, String flag) {
 		this.buys = buys;

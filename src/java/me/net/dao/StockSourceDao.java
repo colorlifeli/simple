@@ -14,7 +14,6 @@ import me.common.jdbcutil.ArrayListHandler;
 import me.common.jdbcutil.BeanListHandler;
 import me.common.jdbcutil.SqlRunner;
 import me.common.util.Constant;
-import me.net.NetType;
 import me.net.NetType.eStockSource;
 import me.net.model.Item;
 import me.net.model.RealTime;
