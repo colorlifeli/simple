@@ -13,8 +13,10 @@ import org.slf4j.LoggerFactory;
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.Constant;
 import me.net.NetType.eStockOper;
+import me.net.NetType.eStockSource;
 import me.net.NetType.eStrategy;
 import me.net.dao.StockAnalysisDao;
+import me.net.dao.StockSourceDao;
 import me.net.dayHandler.Simulator;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
@@ -27,6 +29,8 @@ public class AnalysisService {
 	private StockAnalysisDao stockAnalysisDao;
 	@Ioc
 	Simulator simulator;
+	@Ioc
+	private StockSourceDao stockSourceDao;
 
 	/**   配置参数   *****/
 	private eStrategy strategy = eStrategy.One; //策略
@@ -159,16 +163,16 @@ public class AnalysisService {
 		StockOperSum operSum = new StockOperSum(buys, sells, times, winTimes, loseTimes, lastRemain, minRemain,
 				lastFlag);
 		operSum.setCode(hcode);
-		operSum.setName(stockAnalysisDao.getName(hcode.substring(0, hcode.length() - 3)));
+		//operSum.setName(stockAnalysisDao.getName(hcode.substring(0, hcode.length() - 3)));
 
-		if (isPersistent) {
-			// 保存至数据库
-			stockAnalysisDao.saveOperList(operList);
-			stockAnalysisDao.saveOperSum(operSum);
-		} else {
-			g_operListMap.put(hcode, operList);
-			g_operSumList.add(operSum);
-		}
+		//		if (isPersistent) {
+		//			// 保存至数据库
+		//			stockAnalysisDao.saveOperList(operList);
+		//			stockAnalysisDao.saveOperSum(operSum);
+		//		} else {
+		g_operListMap.put(hcode, operList);
+		g_operSumList.add(operSum);
+		//		}
 
 		logger.info(operSum.toString());
 	}
@@ -200,6 +204,80 @@ public class AnalysisService {
 
 		return String.format("total:%s, win:%s, lose:%s, remain:%s, investment:%s", operSumList.size(), win, lose,
 				allRecordsSum, investment);
+	}
+
+	/**
+	 * 计算所有 code
+	 */
+	public void computeAll() {
+
+		try {
+			List<String> codes = stockSourceDao.getAllAvailableCodes(0, eStockSource.YAHOO);
+			for (String code : codes) {
+				this.compute(code);
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 返回所有code的汇总数据
+	 * @return
+	 */
+	public List<StockOperSum> getOperSumList() {
+
+		return g_operSumList;
+	}
+
+	/**
+	 * 返回所有code的汇总数据，从数据库读取
+	 * @return
+	 * @throws SQLException 
+	 */
+	public List<StockOperSum> getOperSumListDB() throws SQLException {
+
+		return stockAnalysisDao.getAllCodeSum(false);
+	}
+
+	/**
+	 * 获取某个 code 的详细操作
+	 * @param code
+	 * @return
+	 */
+	public List<OperRecord> getOperList(String code) {
+		//假设 code 是 hcode 形式
+		return g_operListMap.get(code);
+	}
+
+	/**
+	 * 获取某个 code 的详细操作，从数据库读取
+	 * @param code
+	 * @return
+	 */
+	public List<OperRecord> getOperListDB(String code) {
+		//假设 code 是 hcode 形式
+		return g_operListMap.get(code);
+	}
+
+	/**
+	 * 将计算结果数据保存到数据库
+	 */
+	public void saveToDb() {
+
+		if (g_operListMap == null || g_operListMap.size() == 0 || g_operSumList == null || g_operSumList.size() == 0) {
+			logger.info("没有数据，请先进行计算.");
+			return;
+		}
+
+		//将所有code的操作放在一个list，一次性保存
+		List<OperRecord> all = new ArrayList<OperRecord>();
+		for (List<OperRecord> list : g_operListMap.values())
+			all.addAll(list);
+
+		stockAnalysisDao.saveOperList(all);
+		stockAnalysisDao.saveOperSums(g_operSumList);
 	}
 
 }

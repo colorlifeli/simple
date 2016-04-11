@@ -24,25 +24,26 @@ var dg_columns_all = [ [
 	field : 'code',
 	title : '代码',
 	align : 'center',
-	sortable : true,
+//	sortable : true,
 	//sorter : commonSortor
 }, {
 	field : 'name',
 	title : '名称',
 	align : 'center',
-	sortable : true,
-	sorter : function(a, b) {
-		return a.localeCompare(b);
-	},
-	formatter : function(value, row, index) {
-			
-		return value;
-	}
+//	sortable : true,
+//	sorter : function(a, b) {
+//		return a.localeCompare(b);
+//	},
+//	formatter : function(value, row, index) {
+//			
+//		return value;
+//	}
 }]];
 
 
 
 $(function(){
+	$('#bar').dialog('close');
 //	$('#allTable').datagrid({  
 //        width: 'auto',  
 //        height:300,               
@@ -74,15 +75,33 @@ $(function(){
 
 
 function compute(){
-	var url = basePath + "stock/computeAll";
-	alert(url);
 	
+	var url = basePath + "stock/computeAll";
+	
+	$('#bar').dialog('open');
+	$.ajax({
+		async: "false",
+		tyep : "POST",
+		url : url,
+		context : document.body,
+		success : function(data) {
+			$('#bar').dialog('close');
+			var result = eval("("+data+")");
+			$.messager.alert('提示',result.msg,'info');
+		}
+	});
+}
+
+function getOperSum(){
+
+	var url = basePath + "stock/getOperSumAll";
+
 	$("#allTable").datagrid({
-		url : basePath + "stock/computeAll",
-		title : 'abc',
+		url : url,
+		title : '结果',
         pagination : true,
-        pageSize : 10,
-        pageList : [ 10, 20, 30, 40 ],
+        pageSize : 10000,
+        pageList : [ 10000 ],
         columns: dg_columns_all,
 		toolbar: dg_toolBar_all
 	});

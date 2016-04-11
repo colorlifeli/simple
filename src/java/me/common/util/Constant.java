@@ -27,7 +27,7 @@ public class Constant {
 		public final static String jspPrefix = "/WEB-INF/jsp/";
 
 		// bean 扫描目录
-		public final static String[] packages = { "me.web", "me.net" };
+		public final static String[] packages = { "me.web", "me.net", "me.service" };
 	}
 
 	// stock 相关

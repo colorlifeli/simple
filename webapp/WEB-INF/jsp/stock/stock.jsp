@@ -13,12 +13,20 @@
 
 	<div id="westDiv" style="width: 500px;" region="west">
 	
-	<input type="button" value="compute" onclick="compute();"/>
+		<input type="button" value="compute" onclick="compute();"/>
+		<br/>
+		
+		<input type="button" value="查询" onclick="getOperSum();"/>
+		
 		<table id="allTable"></table>
 	</div>
 
 	<div id="eastDiv" style="width: 500px;" region="east" border="true">
 	
+	</div>
+	
+	<div id="bar" class="easyui-dialog" title="处理中">
+		<img src="<%=ctx%>/image/progressbar.gif"/>
 	</div>
 
 </body>
