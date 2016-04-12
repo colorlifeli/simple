@@ -20,6 +20,9 @@ public class StocksAnalysis extends ActionIf {
 	@Ioc
 	private AnalysisService analysisService;
 
+	private int page;
+	private int rows;
+
 	@Action(path = "enter", targets = { @Result(name = "success", value = "stock/stock.jsp") })
 	public String enter() {
 
@@ -47,7 +50,9 @@ public class StocksAnalysis extends ActionIf {
 	public String getOperSumAll() {
 
 		JsonUtil util = new JsonUtil();
-		List<StockOperSum> list = analysisService.getOperSumList();
+		List<StockOperSum> list = analysisService.getOperSumList(page, rows);
+
+		System.out.println(page + "  " + rows);
 
 		util.put("total", list.size());
 		util.put("rows", list);

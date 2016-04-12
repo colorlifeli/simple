@@ -12,12 +12,12 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import me.common.ActionIf;
 import me.common.util.Constant;
 import me.common.util.TypeUtil;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * action 注解，并且包含了注解处理方法
@@ -71,7 +71,7 @@ public class ActionAnno {
 	public static @interface Action {
 		String path(); // 不能为空
 
-		Result[]targets(); // 不能为空
+		Result[] targets(); // 不能为空
 	}
 
 	/**
@@ -170,13 +170,13 @@ public class ActionAnno {
 		private void setParameter(HttpServletRequest request) {
 
 			Map<String, String[]> params = request.getParameterMap();
-
-			Object obj = action;
 			String actionName = action.getClass().getName();
 
 			for (String key : params.keySet()) {
 
-				//参数名字是否包含 .
+				String[] values = params.get(key);
+
+				//参数名字是否包含 . 包含则认为是对象（如vo),而不是基本数据类型
 				String[] namePart = key.split(".");
 				if (namePart.length > 1) {
 					Field field = null;
@@ -185,45 +185,24 @@ public class ActionAnno {
 						field.setAccessible(true);
 
 						Object fieldObj = field.get(action);
-						TypeUtil.setField(fieldObj, namePart[1], fieldObj);
+						TypeUtil.setField(fieldObj, namePart[1], values);
 
 					} catch (Exception e) {
-						logger.error(String.format("赋值失败. field %s, action:%s ", namePart[0], actionName));
+						logger.error(String.format("赋值失败. field %s . %s, action:%s ", key, actionName));
 						continue;
 					}
 
+				} else {
+					//基本数据类型，包括 list 类型
+					try {
+						TypeUtil.setField(action, key, values);
+					} catch (Exception e) {
+						logger.error(String.format("赋值失败. field %s, action:%s ", key, actionName));
+					}
 				}
 
-				String[] values = params.get(key);
-
-				Field field = action.getClass().getDeclaredField(key);
-				field.setAccessible(true);
-				String classname = field.getType().getName();
-
-				if (values == null || values.length == 0 || values[0] == null) {
-					//这里可能有问题，因为 value为数据的话，第一个可以是 null的。
-					logger.info("value is null, parameter name:" + key);
-				}
-				switch (classname) {
-				case "int":
-					field.set(action, value);
-
-				}
 			}
 
-			//			Field[] fields = action.getClass().getDeclaredFields();
-			//			for (Field field : fields) {
-			//					String fieldName = field.getName();
-			//
-			//					// 直接赋值来进行注入
-			//					try {
-			//						field.setAccessible(true);
-			//						field.set(obj, bean);
-			//
-			//						//logger.debug("注入成功，fieldname：" + fieldName + ",class:" + clazz);
-			//					} catch (IllegalArgumentException | IllegalAccessException e1) {
-			//						logger.error("注入失败，fieldname：" + fieldName + ",class:" + clazz);
-			//					}
 		}
 
 		@Override
@@ -234,8 +213,8 @@ public class ActionAnno {
 				str = str + key + ":" + results.get(key) + " ";
 			}
 
-			return String.format("action info:%s, %s, %s, %s", path, action.getClass().getName(), method.getName(),
-					str);
+			return String
+					.format("action info:%s, %s, %s, %s", path, action.getClass().getName(), method.getName(), str);
 		}
 
 	}

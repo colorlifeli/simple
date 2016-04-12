@@ -38,7 +38,13 @@ var dg_columns_all = [ [
 //			
 //		return value;
 //	}
-}]];
+}, {
+	field : 'name',
+	title : '名称',
+	align : 'center',
+}
+
+]];
 
 
 
@@ -100,8 +106,8 @@ function getOperSum(){
 		url : url,
 		title : '结果',
         pagination : true,
-        pageSize : 10000,
-        pageList : [ 10000 ],
+        pageSize : 2,
+        pageList : [ 2,20,30,50,100 ],
         columns: dg_columns_all,
 		toolbar: dg_toolBar_all
 	});

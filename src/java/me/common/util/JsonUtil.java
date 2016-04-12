@@ -15,12 +15,16 @@ import java.util.Set;
 
 /** 
  * 用来输出JSON字符串，交给Javascript在页面上进行处理。支持JSON对象的嵌套，支持数组
- * 版本：V1.0
+ * 
+ * jquery easyui 的datagrid，必须要使用双引号
+ * 
  */
 public class JsonUtil {
 	//private Map<String, Object> jsonMap = new HashMap<String, Object>();  // 无序
 	private Map<String, Object> jsonMap = new LinkedHashMap<String, Object>(); //有顺序
 	private static SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+
+	private final String qStr = "\"";
 
 	public void clear() {
 		jsonMap.clear();
@@ -62,17 +66,17 @@ public class JsonUtil {
 			if (value == null) {
 				continue;// 对于null值，不进行处理，页面上的js取不到值时也是null  
 			}
-			sb.append("'").append(entry.getKey()).append("':");
+			sb.append(qStr).append(entry.getKey()).append(qStr).append(":");
 			if (value instanceof JsonUtil) {
 				sb.append(value.toString());
 			} else if (isNoQuote(value)) {
 				sb.append(value);
 			} else if (value instanceof Date) {
-				sb.append("'").append(formatter.format(value)).append("'");
+				sb.append(qStr).append(formatter.format(value)).append(qStr);
 			} else if (isQuote(value)) {
-				sb.append("'").append(value).append("'");
+				sb.append(qStr).append(value).append(qStr);
 			} else if (value.getClass().isArray()) {
-				sb.append(ArrayToStr((int[]) value));
+				sb.append(ArrayToStr(value));
 			} else if (value instanceof Map) {
 				sb.append(fromObject((Map<String, Object>) value).toString());
 			} else if (value instanceof List) {
@@ -90,7 +94,7 @@ public class JsonUtil {
 		return sb.toString();
 	}
 
-	public static String ArrayToStr(Object array) {
+	public String ArrayToStr(Object array) {
 		if (!array.getClass().isArray())
 			return "[]";
 		StringBuffer sb = new StringBuffer();
@@ -100,9 +104,9 @@ public class JsonUtil {
 		for (int i = 0; i < len; i++) {
 			v = Array.get(array, i);
 			if (v instanceof Date) {
-				sb.append("'").append(formatter.format(v)).append("'").append(",");
+				sb.append(qStr).append(formatter.format(v)).append(qStr).append(",");
 			} else if (isQuote(v)) {
-				sb.append("'").append(v).append("'").append(",");
+				sb.append(qStr).append(v).append(qStr).append(",");
 			} else if (isNoQuote(v)) {
 				sb.append(i).append(",");
 			} else {
@@ -117,7 +121,7 @@ public class JsonUtil {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static String ListToStr(List<Object> list) {
+	public String ListToStr(List<Object> list) {
 		if (list == null)
 			return null;
 		StringBuffer sb = new StringBuffer();
@@ -130,7 +134,7 @@ public class JsonUtil {
 			} else if (isNoQuote(value)) {
 				sb.append(value).append(",");
 			} else if (isQuote(value)) {
-				sb.append("'").append(value).append("'").append(",");
+				sb.append(qStr).append(value).append(qStr).append(",");
 			} else {
 				sb.append(fromObject(value).toString()).append(",");
 			}

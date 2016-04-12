@@ -7,9 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.Constant;
 import me.net.NetType.eStockOper;
@@ -21,6 +18,9 @@ import me.net.dayHandler.Simulator;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AnalysisService {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -35,7 +35,7 @@ public class AnalysisService {
 	/**   配置参数   *****/
 	private eStrategy strategy = eStrategy.One; //策略
 	private double abnormal = 200; //绝对值超过这个值视为异常值
-	private boolean isPersistent = false;
+	//private boolean isPersistent = false;
 
 	private final int one = 1;
 
@@ -163,7 +163,7 @@ public class AnalysisService {
 		StockOperSum operSum = new StockOperSum(buys, sells, times, winTimes, loseTimes, lastRemain, minRemain,
 				lastFlag);
 		operSum.setCode(hcode);
-		//operSum.setName(stockAnalysisDao.getName(hcode.substring(0, hcode.length() - 3)));
+		operSum.setName(stockAnalysisDao.getName(hcode.substring(0, hcode.length() - 3)));
 
 		//		if (isPersistent) {
 		//			// 保存至数据库
@@ -212,6 +212,8 @@ public class AnalysisService {
 	public void computeAll() {
 
 		try {
+			g_operSumList.clear();
+			g_operListMap.clear();
 			List<String> codes = stockSourceDao.getAllAvailableCodes(0, eStockSource.YAHOO);
 			for (String code : codes) {
 				this.compute(code);
@@ -229,6 +231,15 @@ public class AnalysisService {
 	public List<StockOperSum> getOperSumList() {
 
 		return g_operSumList;
+	}
+
+	/**
+	 * 分页返回汇总数据
+	 * @return
+	 */
+	public List<StockOperSum> getOperSumList(int page, int rows) {
+
+		return g_operSumList.subList((page - 1) * rows, page * rows);
 	}
 
 	/**
