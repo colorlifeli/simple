@@ -3,6 +3,7 @@ package me.common.util;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -42,12 +43,14 @@ public class JsonUtil {
 		return jsonMap;
 	}
 
-	// 判断是否要加引号  
+	// 不需要加引号的类型  
+	//20160413: 加上 bigdecimal类型
 	private static boolean isNoQuote(Object value) {
 		return (value instanceof Integer || value instanceof Boolean || value instanceof Double
-				|| value instanceof Float || value instanceof Short || value instanceof Long || value instanceof Byte);
+				|| value instanceof Float || value instanceof Short || value instanceof Long || value instanceof Byte || value instanceof BigDecimal);
 	}
 
+	// 需要加引号类型
 	private static boolean isQuote(Object value) {
 		return (value instanceof String || value instanceof Character);
 	}

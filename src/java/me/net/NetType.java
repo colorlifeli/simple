@@ -74,6 +74,13 @@ public class NetType {
 			return value;
 		}
 
+		public static eStockOper from(String value) {
+			for (eStockOper v : values())
+				if (v.value.equalsIgnoreCase(value))
+					return v;
+			throw new IllegalArgumentException();
+		}
+
 		private String value;
 	}
 

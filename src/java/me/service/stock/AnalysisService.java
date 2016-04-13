@@ -3,6 +3,7 @@ package me.service.stock;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,7 +102,7 @@ public class AnalysisService {
 				break;
 			case OneBuyOneSell:
 				//严格执行一买一卖，不然放弃
-				if (operList.size() != 0 && result == operList.get(operList.size() - 1).getOper())
+				if (operList.size() != 0 && result.toString() == operList.get(operList.size() - 1).getOper())
 					continue;
 				num = one;
 			case Double:
@@ -117,7 +118,7 @@ public class AnalysisService {
 				continue;
 			}
 			remain = remain.subtract(sum);//remain += -sum; //买是付钱，用负表示
-			operList.add(new OperRecord(sn, hcode, result, one, price, sum, total, remain));
+			operList.add(new OperRecord(sn, hcode, result.toString(), one, price, sum, total, remain));
 
 		}
 
@@ -154,9 +155,9 @@ public class AnalysisService {
 				else
 					loseTimes++;
 			}
-			if (record.getOper() == eStockOper.Buy)
+			if (record.getOper() == eStockOper.Buy.toString())
 				buys++;
-			if (record.getOper() == eStockOper.Sell)
+			if (record.getOper() == eStockOper.Sell.toString())
 				sells++;
 		}
 
@@ -239,6 +240,11 @@ public class AnalysisService {
 	 */
 	public List<StockOperSum> getOperSumList(int page, int rows) {
 
+		int size = g_operSumList.size();
+		if ((page - 1) * rows < size && size < page * rows)
+			return g_operSumList.subList((page - 1) * rows, size);
+		else if (size <= (page - 1) * rows)
+			return Collections.emptyList();
 		return g_operSumList.subList((page - 1) * rows, page * rows);
 	}
 
@@ -249,7 +255,8 @@ public class AnalysisService {
 	 */
 	public List<StockOperSum> getOperSumListDB() throws SQLException {
 
-		return stockAnalysisDao.getAllCodeSum(false);
+		g_operSumList = stockAnalysisDao.getAllCodeSum(false);
+		return g_operSumList;
 	}
 
 	/**
@@ -266,16 +273,21 @@ public class AnalysisService {
 	 * 获取某个 code 的详细操作，从数据库读取
 	 * @param code
 	 * @return
+	 * @throws SQLException 
 	 */
-	public List<OperRecord> getOperListDB(String code) {
+	public List<OperRecord> getOperListDB(String code) throws SQLException {
 		//假设 code 是 hcode 形式
-		return g_operListMap.get(code);
+		return stockAnalysisDao.getOperList(code);
 	}
 
 	/**
 	 * 将计算结果数据保存到数据库
 	 */
 	public void saveToDb() {
+
+		//保存前先清空
+		stockAnalysisDao.clearOperation();
+		stockAnalysisDao.clearOperSum();
 
 		if (g_operListMap == null || g_operListMap.size() == 0 || g_operSumList == null || g_operSumList.size() == 0) {
 			logger.info("没有数据，请先进行计算.");

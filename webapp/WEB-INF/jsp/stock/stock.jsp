@@ -11,19 +11,22 @@
 </head>
 <body class="easyui-layout">
 
-	<div id="westDiv" style="width: 500px;" region="west">
+	<div id="westDiv" style="width: 600px;" region="west">
 	
-		<input type="button" value="compute" onclick="compute();"/>
+		<input type="button" value="实时计算" onclick="compute();"/>
+		<input type="button" value="写入数据库" onclick="writeToDB();"/>
 		<br/>
-		
+		<input type="checkbox" id="isFromDB" >从数据库
 		<input type="button" value="查询" onclick="getOperSum();"/>
 		
 		<table id="allTable"></table>
 	</div>
-
-	<div id="eastDiv" style="width: 500px;" region="east" border="true">
 	
+	<div id="center_div" region="center" >
+		<table id="codeOperTable"></table>
 	</div>
+
+	
 	
 	<div id="bar" class="easyui-dialog" title="处理中">
 		<img src="<%=ctx%>/image/progressbar.gif"/>

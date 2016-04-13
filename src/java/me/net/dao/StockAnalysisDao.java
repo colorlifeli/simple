@@ -4,15 +4,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import me.common.SimpleException;
 import me.common.jdbcutil.ArrayHandler;
 import me.common.jdbcutil.BeanListHandler;
 import me.common.jdbcutil.SqlRunner;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StockAnalysisDao {
 
@@ -73,7 +74,7 @@ public class StockAnalysisDao {
 			logger.info("saveOperList: list is empty");
 			return;
 		}
-		String sql = "insert into sto_operation (sn,code,oper,num,price,total,sum,remain,falg) values (?,?,?,?,?,?,?,?,?)";
+		String sql = "insert into sto_operation (sn,code,oper,num,price,total,sum,remain,flag) values (?,?,?,?,?,?,?,?,?)";
 		Object[][] params = new Object[list.size()][];
 		for (int i = 0; i < list.size(); i++) {
 			params[i] = list.get(i).toObjectArray();
@@ -83,6 +84,7 @@ public class StockAnalysisDao {
 		} catch (SQLException e) {
 			logger.error("批量插入操作数据失败.");
 			e.printStackTrace();
+			throw new SimpleException("批量保存操作数据失败");
 		}
 	}
 
@@ -117,8 +119,8 @@ public class StockAnalysisDao {
 			logger.info("saveOperSums: list is empty");
 			return;
 		}
-		String sql = "insert into sto_oper_sum (code,name,buys,sells,times,winTimes,loseTimes,lastRemain,minRemain,falg) values (?,?,?,?,?,?,?,?,?,?)";
-		Object[][] params = new Object[1][];
+		String sql = "insert into sto_oper_sum (code,name,buys,sells,times,winTimes,loseTimes,lastRemain,minRemain,flag) values (?,?,?,?,?,?,?,?,?,?)";
+		Object[][] params = new Object[list.size()][];
 
 		for (int i = 0; i < list.size(); i++) {
 			params[i] = list.get(i).toObjectArray();
@@ -129,6 +131,7 @@ public class StockAnalysisDao {
 		} catch (SQLException e) {
 			logger.error("保存多个code操作汇总数据失败.");
 			e.printStackTrace();
+			throw new SimpleException("保存操作汇总数据失败");
 		}
 	}
 
@@ -159,6 +162,28 @@ public class StockAnalysisDao {
 		Object[] params = { hcode };
 
 		return sqlrunner.query(sql, new BeanListHandler<OperRecord>(OperRecord.class), params);
+	}
+
+	public void clearOperation() {
+		String sql = "truncate table sto_operation";
+
+		try {
+			sqlrunner.execute(sql);
+		} catch (SQLException e) {
+			logger.error("truncate table sto_operation fail!");
+			e.printStackTrace();
+		}
+	}
+
+	public void clearOperSum() {
+		String sql = "truncate table sto_oper_sum";
+
+		try {
+			sqlrunner.execute(sql);
+		} catch (SQLException e) {
+			logger.error("truncate table sto_oper_sum fail!");
+			e.printStackTrace();
+		}
 	}
 
 }

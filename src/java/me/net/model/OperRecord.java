@@ -3,12 +3,11 @@ package me.net.model;
 import java.math.BigDecimal;
 
 import me.common.util.Util;
-import me.net.NetType.eStockOper;
 
 public class OperRecord {
 	private int sn;
 	private String code;
-	private eStockOper oper; //操作
+	private String oper; //操作
 	private int num; //数量
 	private BigDecimal price; //单价
 	private BigDecimal sum; //总价
@@ -19,7 +18,7 @@ public class OperRecord {
 	public OperRecord() {
 	};
 
-	public OperRecord(eStockOper oper, int num, BigDecimal price, BigDecimal sum, int total, BigDecimal remain) {
+	public OperRecord(String oper, int num, BigDecimal price, BigDecimal sum, int total, BigDecimal remain) {
 		this.oper = oper;
 		this.num = num;
 		this.total = total;
@@ -28,7 +27,7 @@ public class OperRecord {
 		this.remain = remain;
 	}
 
-	public OperRecord(int sn, String code, eStockOper oper, int num, BigDecimal price, BigDecimal sum, int total,
+	public OperRecord(int sn, String code, String oper, int num, BigDecimal price, BigDecimal sum, int total,
 			BigDecimal remain) {
 		this.sn = sn;
 		this.code = code;
@@ -46,15 +45,15 @@ public class OperRecord {
 	}
 
 	public Object[] toObjectArray() {
-		return new Object[] { this.sn, this.code, this.oper.toString(), this.num, this.price, this.sum, this.total,
+		return new Object[] { this.sn, this.code, this.oper.toString(), this.num, this.price, this.total, this.sum,
 				this.remain, this.flag };
 	}
 
-	public eStockOper getOper() {
+	public String getOper() {
 		return oper;
 	}
 
-	public void setOper(eStockOper oper) {
+	public void setOper(String oper) {
 		this.oper = oper;
 	}
 

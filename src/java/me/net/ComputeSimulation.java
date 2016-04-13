@@ -91,7 +91,7 @@ public class ComputeSimulation {
 				break;
 			case OneBuyOneSell:
 				//严格执行一买一卖，不然放弃
-				if (operList.size() != 0 && result == operList.get(operList.size() - 1).getOper())
+				if (operList.size() != 0 && result.toString() == operList.get(operList.size() - 1).getOper())
 					continue;
 				num = one;
 			case Double:
@@ -107,7 +107,7 @@ public class ComputeSimulation {
 				continue;
 			}
 			remain = remain.subtract(sum);//remain += -sum; //买是付钱，用负表示
-			operList.add(new OperRecord(result, one, price, sum, total, remain));
+			operList.add(new OperRecord(result.toString(), one, price, sum, total, remain));
 		}
 
 		for (OperRecord record : operList) {
@@ -153,9 +153,9 @@ public class ComputeSimulation {
 				minRemain = record.getRemain();
 			if (record.getTotal() == 0)
 				times++;
-			if (record.getOper() == eStockOper.Buy)
+			if (record.getOper() == eStockOper.Buy.toString())
 				buys++;
-			if (record.getOper() == eStockOper.Sell)
+			if (record.getOper() == eStockOper.Sell.toString())
 				sells++;
 		}
 		g_investment = g_investment.subtract(minRemain); //g_investment -= minRemain;

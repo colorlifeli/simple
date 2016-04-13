@@ -93,7 +93,8 @@ times int, --total 为0的次数（即卖光了）
 winTimes int, --赢利次数
 loseTimes int, --亏损次数
 lastRemain decimal, --最后一次卖光时的余额
-flag varchar(2)
+minRemain decimal, --最小余额,即最大投资
+flag varchar(2)  --最后一次卖过时情况，01 表示数据过好还过坏，即认为是异常数据
 );
 
 --20151022
