@@ -1,12 +1,17 @@
 package me.common.jdbcutil.h2;
 
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Map;
 
 import me.common.jdbcutil.ArrayHandler;
+import me.common.jdbcutil.QueryRule;
 import me.common.jdbcutil.SqlRunner;
 import me.common.util.Constant;
+import me.common.util.TypeUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,5 +88,99 @@ public class H2Helper {
 		}
 
 		return ((Long) SqlRunner.me().query(sql, new ArrayHandler(), params)[0]).intValue();
+	}
+
+	public static void genCondition(Class<?> clazz, Map<String, String> voMap, String prefix, QueryRule queryRule)
+			throws Exception {
+		Field[] ff = clazz.getDeclaredFields();
+		//对数据模型的每个字段，增加查询条件
+		//对于不同类型的字段，判断条件、查询规则都可能不同，分开处理
+		//对于复合主键，主键本身也是对象
+		for (Field f : ff) {
+			f.setAccessible(true);
+			String type = f.getType().getName().substring(f.getType().getName().lastIndexOf(".") + 1);
+			String value = voMap.get(f.getName());
+			if (TypeUtil.isEmpty(value))
+				continue;
+			String propertyName = prefix + f.getName();
+			logger.debug("name:" + f.getName() + ", type:" + f.getType().getName() + "(" + type + "), value:" + value);
+
+			switch (Type.toType(type.toUpperCase())) {
+			case STRING:
+				value.replace("*", "%");
+				queryRule.andLike(propertyName, value);
+				break;
+
+			case INT:
+				value = value.trim();
+				if (value.startsWith("<")) {// example: <10
+					value = value.split("<")[1].trim();
+					logger.debug("int value:" + value);
+					queryRule.andLessThan(propertyName, Integer.parseInt(value));
+				} else {
+					if (value.startsWith(">")) { // >10
+						value = value.split(">")[1].trim();
+						logger.debug("int value:" + value);
+						queryRule.andGreaterThan(propertyName, Integer.parseInt(value));
+					} else {
+						if (value.startsWith("[") && value.endsWith("]")) { // [1,10]
+							value = value.substring(1, value.length() - 1);
+							logger.debug("int value:" + value);
+							String start = value.split(",")[0].trim();
+							String end = value.split(",")[1].trim();
+							queryRule.andBetween(propertyName, Integer.parseInt(start), Integer.parseInt(end));
+						} else {//just a number
+							queryRule.andEqual(propertyName, Integer.parseInt(value));
+						}
+					}
+				}
+
+				break;
+			case BIGDECIMAL:
+				value = value.trim();
+				if (value.startsWith("<")) {// example: <10
+					value = value.split("<")[1].trim();
+					logger.debug("int value:" + value);
+					queryRule.andLessThan(propertyName, new BigDecimal(value));
+				} else {
+					if (value.startsWith(">")) { // >10
+						value = value.split(">")[1].trim();
+						logger.debug("int value:" + value);
+						queryRule.andGreaterThan(propertyName, new BigDecimal(value));
+					} else {
+						if (value.startsWith("[") && value.endsWith("]")) { // [1,10]
+							value = value.substring(1, value.length() - 1);
+							logger.debug("int value:" + value);
+							String start = value.split(",")[0].trim();
+							String end = value.split(",")[1].trim();
+							queryRule.andBetween(propertyName, new BigDecimal(start), new BigDecimal(end));
+						} else {//just a number
+							queryRule.andEqual(propertyName, new BigDecimal(value));
+						}
+					}
+				}
+				break;
+
+			case NOVALUE:
+				//复合主键
+				if (f.getName().equals("id")) {
+					genCondition(f.getType(), voMap, "id.", queryRule);
+				}
+				break;
+			}
+
+		}
+	}
+
+	public enum Type {
+		STRING, INT, BIGDECIMAL, NOVALUE;
+
+		public static Type toType(String str) {
+			try {
+				return valueOf(str);
+			} catch (Exception e) {
+				return NOVALUE;
+			}
+		}
 	}
 }

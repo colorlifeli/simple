@@ -1,7 +1,9 @@
 package me.web.stock;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import me.common.ActionIf;
 import me.common.SimpleException;
@@ -9,6 +11,7 @@ import me.common.annotation.ActionAnno.Action;
 import me.common.annotation.ActionAnno.Pack;
 import me.common.annotation.ActionAnno.Result;
 import me.common.annotation.IocAnno.Ioc;
+import me.common.jdbcutil.Page;
 import me.common.util.JsonUtil;
 import me.net.dao.StockAnalysisDao;
 import me.net.model.OperRecord;
@@ -23,8 +26,12 @@ public class StocksAnalysis extends ActionIf {
 	@Ioc
 	private AnalysisService analysisService;
 
+	// jquery easyui datagrid 相关
 	private int page;
 	private int rows;
+	private String sort;
+	private String order;
+
 	private boolean isFromDB;
 	private String code;
 
@@ -65,21 +72,26 @@ public class StocksAnalysis extends ActionIf {
 	public String getOperSumAll() {
 
 		JsonUtil util = new JsonUtil();
-		List<StockOperSum> list;
-		try {
-			list = analysisService.getOperSumList(page, rows);
 
-			if (isFromDB && list.size() == 0) {
-				analysisService.getOperSumListDB();
-				list = analysisService.getOperSumList(page, rows);
+		Map<String, String> voMap = new HashMap<String, String>();
+		this.getVoMapFromJsp(StockOperSum.class, voMap);
+
+		Page p = new Page();
+		try {
+			if (isFromDB) {
+				analysisService.getOperSumListDB(voMap);
+				p = analysisService.getOperSumList(page, rows, sort, order);
+			} else {
+				p = analysisService.getOperSumList(page, rows, sort, order);
 			}
 		} catch (Exception e) {
 			logger.error("getOperSumAll 获取操作汇总数据失败！");
-			list = Collections.emptyList();
+			e.printStackTrace();
+			p.list = Collections.emptyList();
 		}
 
-		util.put("total", list.size());
-		util.put("rows", list);
+		util.put("total", p.total);
+		util.put("rows", p.list);
 
 		return util.toString();
 	}
@@ -105,6 +117,23 @@ public class StocksAnalysis extends ActionIf {
 
 		util.put("total", list.size());
 		util.put("rows", list);
+
+		return util.toString();
+	}
+
+	@Action(path = "summary", targets = { @Result(name = "json", value = "json") })
+	public String summary() {
+
+		String msg = "";
+		try {
+			msg = analysisService.summary();
+		} catch (Exception e) {
+			e.printStackTrace();
+			msg = "操作失败";
+		}
+
+		JsonUtil util = new JsonUtil();
+		util.put("msg", msg);
 
 		return util.toString();
 	}

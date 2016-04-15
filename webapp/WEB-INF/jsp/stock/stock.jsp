@@ -16,14 +16,56 @@
 		<input type="button" value="实时计算" onclick="compute();"/>
 		<input type="button" value="写入数据库" onclick="writeToDB();"/>
 		<br/>
-		<input type="checkbox" id="isFromDB" >从数据库
-		<input type="button" value="查询" onclick="getOperSum();"/>
-		
+		<input type="checkbox" id="isFromDB" name="isFromDB">从数据库
+
+		<form name="fm1" id="fm1">
+
+			<table class="fix_table">
+				<tr>
+					<td class="bgc_tt short">名称</td>
+					<td class="long"><input name="name" id="name" type="text" size="10">
+					</td>
+					<td class="bgc_tt short">0次数</td>
+					<td class="long"><input name="times" id="times" type="text" size="10">
+					</td>
+					<td class="bgc_tt short">win次数</td>
+					<td class="long"><input name="winTimes" id="winTimes" type="text" size="10">
+					</td>
+				</tr>
+				<tr>
+					<td class="bgc_tt short">lose次数</td>
+					<td class="long"><input name="loseTimes" id="loseTimes" type="text" size="10">
+					</td>
+					<td class="bgc_tt short">last余额</td>
+					<td class="long"><input name="lastRemain" id="lastRemain" type="text" size="10">
+					</td>
+					<td class="bgc_tt short">min余额</td>
+					<td class="long"><input name="minRemain" id="minRemain" type="text" size="10">
+					</td>
+				</tr>
+
+				<tr>
+					<td colspan="4" align="center"><input type="button" value="查询"
+						onclick="getOperSum();" /> <input type="reset" class="button_ty"
+						value="重置"></td>
+				</tr>
+			</table>
+		</form>
+
 		<table id="allTable"></table>
+		
+		<br/><input type="button" value="所有汇总数据总结" onclick="summary();"/>
+		<br/><span id="summary"></span>
 	</div>
 	
 	<div id="center_div" region="center" >
-		<table id="codeOperTable"></table>
+	
+		<div id="tabs" class="easyui-tabs" >
+			<div id="tab1" title="详情">	
+				<table id="codeOperTable"></table>
+			</div>
+			<div id="tab2" title="k" href="kkk"></div>
+		</div>
 	</div>
 
 	

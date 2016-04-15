@@ -31,36 +31,43 @@ var dg_columns_all = [ [
 	field : 'buys',
 	title : '买入次数',
 	align : 'center',
+	sortable : true,
 	width : 60
 }, {
 	field : 'sells',
 	title : '卖出次数',
 	align : 'center',
+	sortable : true,
 	width : 60
 }, {
 	field : 'times',
 	title : '0次数',
 	align : 'center',
+	sortable : true,
 	width : 40
 }, {
 	field : 'winTimes',
 	title : 'win次数',
 	align : 'center',
+	sortable : true,
 	width : 50
 }, {
 	field : 'loseTimes',
 	title : 'lose次数',
 	align : 'center',
+	sortable : true,
 	width : 50
 }, {
 	field : 'lastRemain',
 	title : '最后余额',
 	align : 'center',
+	sortable : true,
 	width : 60
 }, {
 	field : 'minRemain',
 	title : '最小余额',
 	align : 'center',
+	sortable : true,
 	width : 70
 }, {
 	field : 'operation',
@@ -176,14 +183,16 @@ function writeToDB(){
 
 function getOperSum(){
 
+	var data = $("#fm1").serialize();
 	var isFromDB = $('#isFromDB').is(':checked');
-	var url = basePath + "stock/getOperSumAll?isFromDB=" + isFromDB;
-
+	var url = basePath + "stock/getOperSumAll?" + data + "&isFromDB=" + isFromDB;
+			
 	$("#allTable").datagrid({
 		url : url,
 		title : '结果',
         pagination : true,
         pageSize : 20,
+        pageNumber : 1,  //每次按查询时重置为页面为 1。否则第一次结果有10，正在查看第10页，第二次查询的结果只有1页，但发送到后台的page数值仍为10，会导致出错
         pageList : [ 2,20,30,50,100 ],
         columns: dg_columns_all,
 		toolbar: dg_toolBar_all
@@ -204,4 +213,45 @@ function getOperList(code){
         columns: dg_columns_codeOper,
 		//toolbar: dg_columns_codeOper
 	});
+	
+	//获取 k
+	var tab = $("#tabs").tabs('getTab', "k");
+	url = basePath + "stock/k";
+	//$("#tab2").attr("href", url);
+	
+}
+
+function summary(){
+	
+	var url = basePath + "stock/summary";
+	
+	$('#bar').dialog('open');
+	$.ajax({
+		async: "false",
+		tyep : "POST",
+		url : url,
+		context : document.body,
+		success : function(data) {
+			$('#bar').dialog('close');
+			var result = eval("("+data+")");
+			$("#summary").html(result.msg);
+		}
+	});
+}
+
+
+/**
+ * 刷新tab
+ * 
+ * @cfg example: {tabTitle:'tabTitle',url:'refreshUrl'}
+ *      如果tabTitle为空，则默认刷新当前选中的tab 如果url为空，则默认以原来的url进行reload
+ */  
+function refreshTab(cfg){  
+    var refresh_tab = cfg.tabTitle?$('#tabs').tabs('getTab',cfg.tabTitle):$('#tabs').tabs('getSelected');  
+    if(refresh_tab && refresh_tab.find('iframe').length > 0){  
+    var _refresh_ifram = refresh_tab.find('iframe')[0];  
+    var refresh_url = cfg.url?cfg.url:_refresh_ifram.src;  
+    // _refresh_ifram.src = refresh_url;
+    _refresh_ifram.contentWindow.location.href=refresh_url;  
+    }
 }

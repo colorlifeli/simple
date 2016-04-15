@@ -3,11 +3,14 @@ package me.net.dao;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import me.common.SimpleException;
 import me.common.jdbcutil.ArrayHandler;
 import me.common.jdbcutil.BeanListHandler;
+import me.common.jdbcutil.QueryRule;
 import me.common.jdbcutil.SqlRunner;
+import me.common.jdbcutil.h2.H2Helper;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
@@ -139,16 +142,24 @@ public class StockAnalysisDao {
 	 * 查找所有code的操作汇总数据
 	 * @param isIncludeAbnormal  是否包含异常数据，true:包含
 	 * @return
-	 * @throws SQLException
+	 * @throws Exception 
 	 */
-	public List<StockOperSum> getAllCodeSum(boolean isIncludeAbnormal) throws SQLException {
+	public List<StockOperSum> getAllCodeSum(boolean isIncludeAbnormal, Map<String, String> voMap) throws Exception {
 
 		String sql = "SELECT * FROM sto_oper_sum where flag='00'";
 
 		if (isIncludeAbnormal)
 			sql = "SELECT * FROM sto_oper_sum";
 
-		return sqlrunner.query(sql, new BeanListHandler<StockOperSum>(StockOperSum.class), (Object[]) null);
+		Object[] params = null;
+		if (voMap != null) {
+			QueryRule qr = new QueryRule();
+			H2Helper.genCondition(StockOperSum.class, voMap, "", qr);
+			sql += qr.toString();
+			params = qr.getParams().toArray();
+		}
+
+		return sqlrunner.query(sql, new BeanListHandler<StockOperSum>(StockOperSum.class), params);
 	}
 
 	/**

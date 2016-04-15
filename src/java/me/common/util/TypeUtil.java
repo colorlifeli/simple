@@ -2,6 +2,7 @@ package me.common.util;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -93,6 +94,8 @@ public class TypeUtil {
 			case "java.lang.Boolean":
 				obj = Boolean.parseBoolean(value); // 当值为 "true" (不分大小写）时，表示 true
 				break;
+			case "java.math.BigDecimal":
+				obj = new BigDecimal(value);
 
 			case "java.lang.String":
 				obj = value;

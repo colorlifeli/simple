@@ -9,7 +9,9 @@ import java.util.List;
 import java.util.Map;
 
 import me.common.annotation.IocAnno.Ioc;
+import me.common.jdbcutil.Page;
 import me.common.util.Constant;
+import me.common.util.Util;
 import me.net.NetType.eStockOper;
 import me.net.NetType.eStockSource;
 import me.net.NetType.eStrategy;
@@ -181,16 +183,16 @@ public class AnalysisService {
 	/**
 	 * 对所有 code 的汇总数据再次汇总
 	 * @return
-	 * @throws SQLException
+	 * @throws Exception 
 	 */
-	public String summary() throws SQLException {
+	public String summary() throws Exception {
 
 		int win = 0;
 		int lose = 0;
 		BigDecimal allRecordsSum = BigDecimal.ZERO;
 		BigDecimal investment = BigDecimal.ZERO;
 
-		List<StockOperSum> operSumList = stockAnalysisDao.getAllCodeSum(false);
+		List<StockOperSum> operSumList = stockAnalysisDao.getAllCodeSum(false, null);
 
 		for (StockOperSum record : operSumList) {
 			if (record.getLastRemain().doubleValue() > 0)
@@ -238,24 +240,34 @@ public class AnalysisService {
 	 * 分页返回汇总数据
 	 * @return
 	 */
-	public List<StockOperSum> getOperSumList(int page, int rows) {
+	public Page getOperSumList(int page, int rows, String sort, String order) {
+
+		Page p = new Page();
+
+		if (sort != null) {
+			Util.sort(g_operSumList, StockOperSum.class, sort, order);
+		}
 
 		int size = g_operSumList.size();
 		if ((page - 1) * rows < size && size < page * rows)
-			return g_operSumList.subList((page - 1) * rows, size);
+			p.list = g_operSumList.subList((page - 1) * rows, size);
 		else if (size <= (page - 1) * rows)
-			return Collections.emptyList();
-		return g_operSumList.subList((page - 1) * rows, page * rows);
+			p.list = Collections.emptyList();
+		p.list = g_operSumList.subList((page - 1) * rows, page * rows);
+
+		p.total = g_operSumList.size();
+
+		return p;
 	}
 
 	/**
 	 * 返回所有code的汇总数据，从数据库读取
 	 * @return
-	 * @throws SQLException 
+	 * @throws Exception 
 	 */
-	public List<StockOperSum> getOperSumListDB() throws SQLException {
+	public List<StockOperSum> getOperSumListDB(Map<String, String> voMap) throws Exception {
 
-		g_operSumList = stockAnalysisDao.getAllCodeSum(false);
+		g_operSumList = stockAnalysisDao.getAllCodeSum(false, voMap);
 		return g_operSumList;
 	}
 
