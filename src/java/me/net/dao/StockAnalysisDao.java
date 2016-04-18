@@ -77,7 +77,7 @@ public class StockAnalysisDao {
 			logger.info("saveOperList: list is empty");
 			return;
 		}
-		String sql = "insert into sto_operation (sn,code,oper,num,price,total,sum,remain,flag) values (?,?,?,?,?,?,?,?,?)";
+		String sql = "insert into sto_operation (sn,code,oper,num,price,total,sum,remain,flag,date_) values (?,?,?,?,?,?,?,?,?,?)";
 		Object[][] params = new Object[list.size()][];
 		for (int i = 0; i < list.size(); i++) {
 			params[i] = list.get(i).toObjectArray();

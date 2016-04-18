@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ public class AnalysisService {
 	/**   配置参数   *****/
 	private eStrategy strategy = eStrategy.One; //策略
 	private double abnormal = 200; //绝对值超过这个值视为异常值
+	public int c_priceStrategy = 1; //以什么策略来交易：1:第二天最差价格，2：今天最差价格 3：第二天中间价格
 	//private boolean isPersistent = false;
 
 	private final int one = 1;
@@ -69,6 +71,7 @@ public class AnalysisService {
 		BigDecimal remain = BigDecimal.ZERO;
 		int symbol = 1; //表示正负
 		int sn = 0;
+		Date date = new Date();
 
 		for (int i = 0; i < all.size() - 1; i++) {
 			StockDay someDay = all.get(i);
@@ -88,11 +91,39 @@ public class AnalysisService {
 
 			//如果能在第二天以中间价处理，结果会理想很多
 			if (result == eStockOper.Buy) {
-				price = new BigDecimal(nextDay.high);
+				switch (c_priceStrategy) {
+				case 1: //第二天最差价格交易
+					price = new BigDecimal(nextDay.high);
+					date = nextDay.date_;
+					break;
+				case 2://今天最差价格
+					price = new BigDecimal(someDay.high);
+					date = someDay.date_;
+					break;
+				case 3://第二天中间价格
+					price = new BigDecimal(nextDay.high).add(new BigDecimal(nextDay.low)).divide(new BigDecimal(2));
+					date = nextDay.date_;
+					break;
+				default:
+				}
 				//price = (Double.parseDouble(nextDay.high) + Double.parseDouble(nextDay.low)) / 2;
 				symbol = 1;
 			} else if (result == eStockOper.Sell) {
-				price = new BigDecimal(nextDay.low);
+				switch (c_priceStrategy) {
+				case 1: //第二天最差价格交易
+					price = new BigDecimal(nextDay.low);
+					date = nextDay.date_;
+					break;
+				case 2://今天最差价格
+					price = new BigDecimal(someDay.low);
+					date = someDay.date_;
+					break;
+				case 3://第二天中间价格
+					price = new BigDecimal(nextDay.high).add(new BigDecimal(nextDay.low)).divide(new BigDecimal(2));
+					date = nextDay.date_;
+					break;
+				default:
+				}
 				//price = (Double.parseDouble(nextDay.high) + Double.parseDouble(nextDay.low)) / 2;
 				symbol = -1;
 			}
@@ -120,7 +151,7 @@ public class AnalysisService {
 				continue;
 			}
 			remain = remain.subtract(sum);//remain += -sum; //买是付钱，用负表示
-			operList.add(new OperRecord(sn, hcode, result.toString(), one, price, sum, total, remain));
+			operList.add(new OperRecord(sn, hcode, result.toString(), one, price, sum, total, remain, date));
 
 		}
 
@@ -192,7 +223,7 @@ public class AnalysisService {
 		BigDecimal allRecordsSum = BigDecimal.ZERO;
 		BigDecimal investment = BigDecimal.ZERO;
 
-		List<StockOperSum> operSumList = stockAnalysisDao.getAllCodeSum(false, null);
+		List<StockOperSum> operSumList = stockAnalysisDao.getAllCodeSum(true, null);
 
 		for (StockOperSum record : operSumList) {
 			if (record.getLastRemain().doubleValue() > 0)

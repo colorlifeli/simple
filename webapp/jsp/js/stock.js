@@ -111,6 +111,11 @@ var dg_columns_codeOper = [ [
 			return "卖";
 	}
 }, {
+	field : 'date_',
+	title : '日期',
+	align : 'center',
+	width : 70
+}, {
 	field : 'num',
 	title : '数量',
 	align : 'center',
@@ -121,15 +126,15 @@ var dg_columns_codeOper = [ [
 	align : 'center',
 	width : 40
 }, {
-	field : 'total',
-	title : '总数量',
-	align : 'center',
-	width : 50
-}, {
 	field : 'sum',
 	title : '总价',
 	align : 'center',
 	width : 50
+}, {
+	field : 'total',
+	title : '现有数量',
+	align : 'center',
+	width : 60
 }, {
 	field : 'remain',
 	title : '余额',
@@ -147,7 +152,8 @@ $(function(){
 
 function compute(){
 	
-	var url = basePath + "stock/computeAll";
+	var data = $("#pform").serialize();
+	var url = basePath + "stock/computeAll?" + data;
 	
 	$('#bar').dialog('open');
 	$.ajax({
@@ -159,6 +165,7 @@ function compute(){
 			$('#bar').dialog('close');
 			var result = eval("("+data+")");
 			$.messager.alert('提示',result.msg,'info');
+			closeWin("pwin");
 		}
 	});
 }
@@ -191,11 +198,12 @@ function getOperSum(){
 		url : url,
 		title : '结果',
         pagination : true,
+        singleSelect:true,
         pageSize : 20,
         pageNumber : 1,  //每次按查询时重置为页面为 1。否则第一次结果有10，正在查看第10页，第二次查询的结果只有1页，但发送到后台的page数值仍为10，会导致出错
         pageList : [ 2,20,30,50,100 ],
         columns: dg_columns_all,
-		toolbar: dg_toolBar_all
+		//toolbar: dg_toolBar_all
 	});
 }
 
@@ -215,10 +223,16 @@ function getOperList(code){
 	});
 	
 	//获取 k
+	url = basePath + "stock/k?code=" + code;
 	var tab = $("#tabs").tabs('getTab', "k");
-	url = basePath + "stock/k";
-	//$("#tab2").attr("href", url);
-	
+	$('#tabs').tabs('update', {
+		tab: tab,
+		options: {
+			title: 'k',
+			href: url 
+		}
+	});
+		
 }
 
 function summary(){
@@ -239,19 +253,10 @@ function summary(){
 	});
 }
 
+function openWin(name) {
+	$('#'+name).window('open');
+}
 
-/**
- * 刷新tab
- * 
- * @cfg example: {tabTitle:'tabTitle',url:'refreshUrl'}
- *      如果tabTitle为空，则默认刷新当前选中的tab 如果url为空，则默认以原来的url进行reload
- */  
-function refreshTab(cfg){  
-    var refresh_tab = cfg.tabTitle?$('#tabs').tabs('getTab',cfg.tabTitle):$('#tabs').tabs('getSelected');  
-    if(refresh_tab && refresh_tab.find('iframe').length > 0){  
-    var _refresh_ifram = refresh_tab.find('iframe')[0];  
-    var refresh_url = cfg.url?cfg.url:_refresh_ifram.src;  
-    // _refresh_ifram.src = refresh_url;
-    _refresh_ifram.contentWindow.location.href=refresh_url;  
-    }
+function closeWin(name){
+	$('#'+name).window('close');
 }

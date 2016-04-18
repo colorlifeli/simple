@@ -13,7 +13,7 @@
 
 	<div id="westDiv" style="width: 600px;" region="west">
 	
-		<input type="button" value="实时计算" onclick="compute();"/>
+		<input type="button" value="实时计算" onclick="openWin('pwin');"/>
 		<input type="button" value="写入数据库" onclick="writeToDB();"/>
 		<br/>
 		<input type="checkbox" id="isFromDB" name="isFromDB">从数据库
@@ -58,13 +58,13 @@
 		<br/><span id="summary"></span>
 	</div>
 	
-	<div id="center_div" region="center" >
+	<div id="center_div" region="center" style="width:100%;height:100%;">
 	
 		<div id="tabs" class="easyui-tabs" >
 			<div id="tab1" title="详情">	
 				<table id="codeOperTable"></table>
 			</div>
-			<div id="tab2" title="k" href="kkk"></div>
+			<div id="tab2" title="k"></div> 
 		</div>
 	</div>
 
@@ -73,6 +73,27 @@
 	<div id="bar" class="easyui-dialog" title="处理中">
 		<img src="<%=ctx%>/image/progressbar.gif"/>
 	</div>
+	
+	<!-- 参数配置窗口 -->
+	<div id="pwin" class="easyui-window" title="计算" data-options="iconCls:'icon-save',closed:true"
+			style="width: 370px; height: 200px; left: 380; top: 230;">
+			<form name="pform" id="pform" method="post">
+				<table>
+					<tr>
+						<td>定价策略</td>
+						<td><input name="priceStrategy" id="priceStrategy" type="text" size="10" value="1"></input>
+						</td>
+					</tr>
+					
+					<tr>
+						<td align="right" style="width: 100px"><input type="button" value="开始计算" onclick="compute();">
+						</td>
+						<td><input type="button" class="button_ty" value="取消" onclick="closeWin('pwin');"></td>
+					</tr>
+					
+				</table>
+			</form>
+		</div>
 
 </body>
 </html>

@@ -77,11 +77,11 @@ code varchar(10),
 oper varchar(2), --操作，买(1) or 卖(2), 0表示不操作
 num int, --操作数量
 price decimal, --单价
+sum decimal, --操作总价
 total int, --当前拥有数量
-sum decimal, --当前总价值
 remain decimal, --余额
-minRemain decimal,  --最小余额，即最大的投入资金
-flag varchar(2)
+flag varchar(2),
+date_ date
 );
 
 create table sto_oper_sum (

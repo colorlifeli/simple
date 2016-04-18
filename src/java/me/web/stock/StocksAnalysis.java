@@ -13,6 +13,7 @@ import me.common.annotation.ActionAnno.Result;
 import me.common.annotation.IocAnno.Ioc;
 import me.common.jdbcutil.Page;
 import me.common.util.JsonUtil;
+import me.common.util.TypeUtil;
 import me.net.dao.StockAnalysisDao;
 import me.net.model.OperRecord;
 import me.net.model.StockOperSum;
@@ -34,6 +35,7 @@ public class StocksAnalysis extends ActionIf {
 
 	private boolean isFromDB;
 	private String code;
+	private String priceStrategy;
 
 	@Action(path = "enter", targets = { @Result(name = "success", value = "stock/stock.jsp") })
 	public String enter() {
@@ -43,6 +45,9 @@ public class StocksAnalysis extends ActionIf {
 
 	@Action(path = "computeAll", targets = { @Result(name = "json", value = "json") })
 	public String computeAll() {
+
+		if (!TypeUtil.isEmpty(priceStrategy))
+			analysisService.c_priceStrategy = Integer.parseInt(priceStrategy);
 
 		analysisService.computeAll();
 

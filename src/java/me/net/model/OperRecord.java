@@ -1,6 +1,7 @@
 package me.net.model;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 import me.common.util.Util;
 
@@ -14,6 +15,7 @@ public class OperRecord {
 	private int total; //当前拥有数量
 	private BigDecimal remain; //余额，为了方便知道当前余额
 	private String flag;
+	private Date date_;
 
 	public OperRecord() {
 	};
@@ -28,7 +30,7 @@ public class OperRecord {
 	}
 
 	public OperRecord(int sn, String code, String oper, int num, BigDecimal price, BigDecimal sum, int total,
-			BigDecimal remain) {
+			BigDecimal remain, Date date_) {
 		this.sn = sn;
 		this.code = code;
 		this.oper = oper;
@@ -37,6 +39,7 @@ public class OperRecord {
 		this.price = price;
 		this.sum = sum;
 		this.remain = remain;
+		this.date_ = date_;
 	}
 
 	@Override
@@ -46,7 +49,7 @@ public class OperRecord {
 
 	public Object[] toObjectArray() {
 		return new Object[] { this.sn, this.code, this.oper.toString(), this.num, this.price, this.total, this.sum,
-				this.remain, this.flag };
+				this.remain, this.flag, this.date_ };
 	}
 
 	public String getOper() {
@@ -119,6 +122,14 @@ public class OperRecord {
 
 	public void setSn(int sn) {
 		this.sn = sn;
+	}
+
+	public Date getDate_() {
+		return date_;
+	}
+
+	public void setDate_(Date date_) {
+		this.date_ = date_;
 	}
 
 }

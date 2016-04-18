@@ -1,7 +1,6 @@
 package me.web.stock;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 import me.common.ActionIf;
@@ -9,7 +8,6 @@ import me.common.annotation.ActionAnno.Action;
 import me.common.annotation.ActionAnno.Pack;
 import me.common.annotation.ActionAnno.Result;
 import me.common.annotation.IocAnno.Ioc;
-import me.net.NetType.eStockSource;
 import me.net.dao.StockAnalysisDao;
 import me.net.dao.StockSourceDao;
 import me.net.dayHandler.Analyzer;
@@ -25,26 +23,31 @@ public class KAction extends ActionIf {
 	@Ioc
 	private Analyzer analyzer;
 
+	private String code;
+
 	@Action(path = "k", targets = { @Result(name = "success", value = "k.jsp") })
 	public String show() {
 
 		// test code is 603997 002061
-		String code = request.getParameter("code");
+		//String code = request.getParameter("code");
 		String step = request.getParameter("step");
 		try {
 			if (code == null)
-				code = "002061"; // 默认
+				code = "002061.sz"; // 默认
 			if (step == null)
 				step = "0";
 
-			List<String> codes = new ArrayList<String>();
-			codes.add(code);
-			List<String> hCodes = stockSourceDao.getCodes(codes, eStockSource.YAHOO);
-			if (hCodes == null || hCodes.size() == 0) {
-				logger.error("cannot find the code:" + code);
-				return null;
-			}
-			String hcode = hCodes.get(0);
+			//			List<String> codes = new ArrayList<String>();
+			//			codes.add(code);
+			//			List<String> hCodes = stockSourceDao.getCodes(codes, eStockSource.YAHOO);
+			//			if (hCodes == null || hCodes.size() == 0) {
+			//				logger.error("cannot find the code:" + code);
+			//				return null;
+			//			}
+			//			String hcode = hCodes.get(0);
+
+			//传入的参数 code 本身是 hcode
+			String hcode = code;
 
 			List<StockDay> list = null;
 
@@ -72,7 +75,7 @@ public class KAction extends ActionIf {
 	private void showK(List<StockDay> list, String code) {
 		String stockName = "";
 		try {
-			stockName = stockAnalysisDao.getName(code);
+			stockName = stockAnalysisDao.getName(code.substring(0, code.length() - 3));
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
