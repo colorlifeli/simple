@@ -131,7 +131,7 @@ public class StocksAnalysis extends ActionIf {
 
 		String msg = "";
 		try {
-			msg = analysisService.summary();
+			msg = analysisService.summary(isFromDB);
 		} catch (Exception e) {
 			e.printStackTrace();
 			msg = "操作失败";

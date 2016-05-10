@@ -10,6 +10,8 @@ import me.net.NetType.eStockDayFlag;
 import me.net.NetType.eStockSource;
 import me.net.dao.StockAnalysisDao;
 import me.net.dao.StockSourceDao;
+import me.net.model.Central;
+import me.net.model.CentralInfo;
 import me.net.model.StockDay;
 
 import org.slf4j.Logger;
@@ -204,33 +206,166 @@ public class Analyzer {
 		String top = eStockDayFlag.TOP.toString();
 		String bottom = eStockDayFlag.BOTTOM.toString();
 
+		String result = null;
+
 		// 要超过一定间隔才能再次设置分型
-		if ((last2 != null && (top.equals(last2.flag) || bottom.equals(last2.flag)))) {
-			return null;
-		}
-		if (his.size() > 2) {
-			StockDay last3 = his.get(his.size() - 3);
-			if (last3 != null && (top.equals(last3.flag) || bottom.equals(last3.flag)))
-				return null;
-		}
-		if (isNeedK && his.size() > 3) {
-			StockDay last4 = his.get(his.size() - 4);
-			if (top.equals(last4.flag) || bottom.equals(last4.flag))
-				return null;
-		}
+		//		if ((last2 != null && (top.equals(last2.flag) || bottom.equals(last2.flag)))) {
+		//			return null;
+		//		}
+		//		if (his.size() > 2) {
+		//			StockDay last3 = his.get(his.size() - 3);
+		//			if (last3 != null && (top.equals(last3.flag) || bottom.equals(last3.flag)))
+		//				return null;
+		//		}
+		//		if (isNeedK && his.size() > 3) {
+		//			StockDay last4 = his.get(his.size() - 4);
+		//			if (top.equals(last4.flag) || bottom.equals(last4.flag))
+		//				return null;
+		//		}
+
+		//如果加入上面间隔的判断语句的话，就会出现一个顶分型的下一个分型仍然是顶分型的情况。
+		//去除下面的间隔约束之后，则必定是顶底分型交叉出现，顶分型的下一个必是底分型，反之成立。
 
 		// 判断是分型
 		if (Double.parseDouble(last1.high) > Double.parseDouble(last2.high)
 				&& Double.parseDouble(last1.high) > Double.parseDouble(day.high)) {
-			last1.flag = top;
-			return top;
+			//last1.flag = top;
+			result = top;
 		} else if (Double.parseDouble(last1.low) < Double.parseDouble(last2.low)
 				&& Double.parseDouble(last1.low) < Double.parseDouble(day.low)) {
-			last1.flag = bottom;
-			return bottom;
+			//last1.flag = bottom;
+			result = bottom;
 		}
 
-		return null;
+		if (result != null) {
+
+			//间隔的判断改为：如果最新分型与上一个分弄间隔太小，则同时去除最新分型与上一个分型。这样就可以保证顶底是交叉的。
+			if ((last2 != null && (top.equals(last2.flag) || bottom.equals(last2.flag)))) {
+				last2.flag = null;
+				return "deleteLast";
+			} else if (his.size() > 2) {
+				StockDay last3 = his.get(his.size() - 3);
+				if (last3 != null && (top.equals(last3.flag) || bottom.equals(last3.flag))) {
+					last3.flag = null;
+					return "deleteLast";
+				}
+			} else if (isNeedK && his.size() > 3) {
+				StockDay last4 = his.get(his.size() - 4);
+				if (top.equals(last4.flag) || bottom.equals(last4.flag)) {
+					last4.flag = null;
+					return "deleteLast";
+				}
+			}
+
+			last1.flag = result;
+		}
+
+		return result;
+	}
+
+	/**
+	 * 
+	 * @param his
+	 * @param point ：分型后的顶点。顶分型是day的high，底分型是day的low
+	 * @return 返回是否形成中枢，true:是 false:否
+	 */
+	public boolean makeCentral(CentralInfo info, String point) {
+
+		info.points.add(point);
+
+		if (info.points.size() < 4) {
+			//4个点，构成3笔，才能计算中枢
+			return false;
+		}
+
+		// ****** 开始计算中枢
+
+		//判断第一笔是向上笔还是向下笔
+		String point1 = info.points.get(0);
+		String point2 = info.points.get(1);
+		String point3 = info.points.get(2);
+		String point4 = info.points.get(3);
+
+		logger.debug("{},{},{},{}", point1, point2, point3, point4);
+
+		Central c = new Central();
+		if (Double.parseDouble(point1) < Double.parseDouble(point2)) {
+			//向上笔
+			c.low = max(point1, point2);
+			c.high = min(point2, point4);
+		} else {
+			c.low = max(point2, point4);
+			c.high = min(point1, point3);
+		}
+
+		if (Double.parseDouble(c.low) < Double.parseDouble(c.high)) {
+			//有公共区域，才有中枢
+
+			logger.debug("中枢：({},{})", c.low, c.high);
+
+			//这是第一个中枢
+			boolean result = false;
+			if (info.centrals.size() == 0) {
+				c.position = 0;
+				result = true;
+			} else {
+				//如果前面已经有中枢，则要与最后一个中枢进行比较
+				Central c_pre = info.centrals.get(info.centrals.size() - 1);
+				if (Double.parseDouble(c.low) > Double.parseDouble(c_pre.high)) {
+					//趋势向上。记录第几次向上
+					c.position = c_pre.position > 0 ? c_pre.position + 1 : 1;
+					result = true;
+				} else if (Double.parseDouble(c.high) > Double.parseDouble(c_pre.low)) {
+					//趋势向下
+					c.position = c_pre.position < 0 ? c_pre.position - 1 : -1;
+					result = true;
+				}
+			}
+			if (result) {
+				info.centrals.add(c);
+
+				//保留最后一个中枢的4点
+				info.pointsHis.clear();
+				info.pointsHis.addAll(info.points);
+
+				info.points.clear();
+				//以最后一点作为下一个中枢的起点
+				info.points.add(point4);
+				return true;
+			}
+		} else {
+			//删除第一个点，和后面加入的点再形成中枢
+			info.points.remove(0);
+		}
+
+		return false;
+
+	}
+
+	/**
+	 * 取较大值。针对String 类型的数字
+	 * @param num1
+	 * @param num2
+	 * @return
+	 */
+	private String max(String num1, String num2) {
+		if (Double.parseDouble(num1) > Double.parseDouble(num2))
+			return num1;
+		else
+			return num2;
+	}
+
+	/**
+	 * 取较小值。针对String 类型的数字
+	 * @param num1
+	 * @param num2
+	 * @return
+	 */
+	private String min(String num1, String num2) {
+		if (Double.parseDouble(num1) < Double.parseDouble(num2))
+			return num1;
+		else
+			return num2;
 	}
 
 	public static void main(String[] args) throws SQLException {

@@ -1,0 +1,31 @@
+package test.service.stock;
+
+import java.sql.SQLException;
+
+import me.common.jdbcutil.SqlRunner;
+import me.common.jdbcutil.h2.H2Helper;
+import me.service.stock.AnalysisService;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+public class AnalysisServiceTest {
+
+	AnalysisService service = new AnalysisService();
+
+	@BeforeClass
+	public static void before() {
+		SqlRunner.me().setConn(H2Helper.connEmbededDbTest());
+	}
+
+	@AfterClass
+	public static void after() throws SQLException {
+		H2Helper.close(SqlRunner.me().getConn());
+	}
+
+	@Test
+	public void compute() {
+
+	}
+}

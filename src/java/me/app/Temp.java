@@ -3,17 +3,54 @@ package me.app;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.common.internal.BeanContext;
+import me.common.jdbcutil.SqlRunner;
+import me.common.jdbcutil.h2.H2Helper;
 import me.common.util.TypeUtil;
+import me.net.NetType.eStockSource;
+import me.net.dao.StockSourceDao;
+import me.net.model.OperRecord;
+import me.service.stock.AnalysisService;
 
 public class Temp {
 	public static void main(String[] args) {
 		Temp tmp = new Temp();
 		try {
-			tmp.tmp();
+			tmp.testAnalysisService();
 		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void testAnalysisService() {
+		SqlRunner.me().setConn(H2Helper.connEmbededDb());
+
+		BeanContext bc = new BeanContext();
+		AnalysisService service = (AnalysisService) bc.getBean("analysisService");
+		StockSourceDao stockSourceDao = (StockSourceDao) bc.getBean("stockSourceDao");
+		//service.computeAll();
+
+		try {
+			List<String> codes = stockSourceDao.getAllAvailableCodes(0, eStockSource.YAHOO);
+			for (String code : codes) {
+				service.compute(code);
+				List<OperRecord> operList = service.getOperList(code);
+				if (operList == null)
+					continue;
+				for (int i = 0; i < operList.size(); i++) {
+					OperRecord oper = operList.get(i);
+					if (i > 0) {
+						if (oper.getOper().equals(operList.get(i - 1).getOper()))
+							System.out.println("the same as last");
+					}
+				}
+			}
+
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
