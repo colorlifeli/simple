@@ -15,11 +15,12 @@ public class CentralInfo {
 
 	public List<Central> centrals;
 	public List<String> points;
-	public List<String> pointsHis;
+
+	//public List<String> pointsHis;
 
 	public CentralInfo() {
 		centrals = new ArrayList<Central>();
 		points = new ArrayList<String>();
-		pointsHis = new ArrayList<String>();
+		//pointsHis = new ArrayList<String>();
 	}
 }

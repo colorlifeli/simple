@@ -187,8 +187,11 @@ public class ActionAnno {
 						Object fieldObj = field.get(action);
 						TypeUtil.setField(fieldObj, namePart[1], values);
 
+					} catch (NoSuchFieldException nfe) {
+						logger.debug(String.format("找不到field. field:%s, action:%s ", key, actionName));
+						continue;
 					} catch (Exception e) {
-						logger.error(String.format("赋值失败. field %s . %s, action:%s ", key, actionName));
+						logger.error(String.format("赋值失败. field:%s, action:%s ", key, actionName));
 						continue;
 					}
 
@@ -196,8 +199,10 @@ public class ActionAnno {
 					//基本数据类型，包括 list 类型
 					try {
 						TypeUtil.setField(action, key, values);
+					} catch (NoSuchFieldException nfe) {
+						logger.debug(String.format("找不到field. field:%s, action:%s ", key, actionName));
 					} catch (Exception e) {
-						logger.error(String.format("赋值失败. field %s, action:%s ", key, actionName));
+						logger.error(String.format("赋值失败. field:%s, action:%s ", key, actionName));
 					}
 				}
 

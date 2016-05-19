@@ -1,5 +1,10 @@
 package me.common.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -105,5 +110,31 @@ public class Util {
 				return 0;
 			}
 		});
+	}
+
+	/**
+	 * list 深拷贝
+	 * @param src
+	 * @return
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
+	public static <T> List<T> deepCopy(List<T> src) {
+		ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+		ObjectOutputStream out;
+		try {
+			out = new ObjectOutputStream(byteOut);
+			out.writeObject(src);
+
+			ByteArrayInputStream byteIn = new ByteArrayInputStream(byteOut.toByteArray());
+			ObjectInputStream in = new ObjectInputStream(byteIn);
+			@SuppressWarnings("unchecked")
+			List<T> dest = (List<T>) in.readObject();
+			return dest;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Collections.emptyList();
+		}
+
 	}
 }

@@ -56,6 +56,9 @@
 		
 		<br/><input type="button" value="所有汇总数据总结" onclick="summary();"/>
 		<br/><span id="summary"></span>
+		
+		<br/><input type="button" value="某天全卖" onclick="sellAll();"/>
+		<br/><span id="sellAll"></span>
 	</div>
 	
 	<div id="center_div" region="center" style="width:100%;height:100%;">
@@ -82,6 +85,11 @@
 					<tr>
 						<td>定价策略</td>
 						<td><input name="priceStrategy" id="priceStrategy" type="text" size="10" value="1"></input>
+						</td>
+					</tr>
+					<tr>
+						<td>开始日期</td>
+						<td><input name="startDate" id="startDate" type="text" size="10" value="2014-01-01"></input>
 						</td>
 					</tr>
 					

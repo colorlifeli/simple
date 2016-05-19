@@ -239,23 +239,23 @@ public class Analyzer {
 
 		if (result != null) {
 
-			//间隔的判断改为：如果最新分型与上一个分弄间隔太小，则同时去除最新分型与上一个分型。这样就可以保证顶底是交叉的。
-			if ((last2 != null && (top.equals(last2.flag) || bottom.equals(last2.flag)))) {
-				last2.flag = null;
-				return "deleteLast";
-			} else if (his.size() > 2) {
-				StockDay last3 = his.get(his.size() - 3);
-				if (last3 != null && (top.equals(last3.flag) || bottom.equals(last3.flag))) {
-					last3.flag = null;
-					return "deleteLast";
-				}
-			} else if (isNeedK && his.size() > 3) {
-				StockDay last4 = his.get(his.size() - 4);
-				if (top.equals(last4.flag) || bottom.equals(last4.flag)) {
-					last4.flag = null;
-					return "deleteLast";
-				}
-			}
+			//			//间隔的判断改为：如果最新分型与上一个分弄间隔太小，则同时去除最新分型与上一个分型。这样就可以保证顶底是交叉的。
+			//			if ((last2 != null && (top.equals(last2.flag) || bottom.equals(last2.flag)))) {
+			//				last2.flag = null;
+			//				return "deleteLast";
+			//			} else if (his.size() > 2) {
+			//				StockDay last3 = his.get(his.size() - 3);
+			//				if (last3 != null && (top.equals(last3.flag) || bottom.equals(last3.flag))) {
+			//					last3.flag = null;
+			//					return "noK";
+			//				}
+			//			} else if (isNeedK && his.size() > 3) {
+			//				StockDay last4 = his.get(his.size() - 4);
+			//				if (top.equals(last4.flag) || bottom.equals(last4.flag)) {
+			//					last4.flag = null;
+			//					return "noK";
+			//				}
+			//			}
 
 			last1.flag = result;
 		}
@@ -264,14 +264,18 @@ public class Analyzer {
 	}
 
 	/**
-	 * 
+	 * 笔的唯一性规则：
+	 * 1. 顶和底不共享k线，或者只少有一根独立k线
+	 * 2. 如果项和底之间共享了k线，则这个顶到底（或底到顶）不是笔。选取顶到底这种情况，虽然顶到底不是一笔，但前一个底到顶已构成了一笔，在这里暂称为笔a。
+	 * 	    分3种情况：（1）下一个顶比这个顶要高，则这是笔a的延伸，笔a变成了前一个底到下一个顶。（2）下一个顶比这个顶要低，证明下一个底必然比顶要低，所以顶到下一个底会构成一笔。
+	 * 				(3) 如果下一个是底，且底比顶还高，则舍弃这个底。有可能一直都是底，（因为顶离底没有k线，顶被舍去了），这样就有可能永远都形成不了笔了... 也算是这个理论的一个bug吧...
 	 * @param his
 	 * @param point ：分型后的顶点。顶分型是day的high，底分型是day的low
 	 * @return 返回是否形成中枢，true:是 false:否
 	 */
-	public boolean makeCentral(CentralInfo info, String point) {
+	public boolean makeCentral(CentralInfo info) {
 
-		info.points.add(point);
+		//info.points.add(point);
 
 		if (info.points.size() < 4) {
 			//4个点，构成3笔，才能计算中枢
@@ -286,7 +290,7 @@ public class Analyzer {
 		String point3 = info.points.get(2);
 		String point4 = info.points.get(3);
 
-		logger.debug("{},{},{},{}", point1, point2, point3, point4);
+		//logger.debug("{},{},{},{}", point1, point2, point3, point4);
 
 		Central c = new Central();
 		if (Double.parseDouble(point1) < Double.parseDouble(point2)) {
@@ -301,8 +305,6 @@ public class Analyzer {
 		if (Double.parseDouble(c.low) < Double.parseDouble(c.high)) {
 			//有公共区域，才有中枢
 
-			logger.debug("中枢：({},{})", c.low, c.high);
-
 			//这是第一个中枢
 			boolean result = false;
 			if (info.centrals.size() == 0) {
@@ -315,7 +317,7 @@ public class Analyzer {
 					//趋势向上。记录第几次向上
 					c.position = c_pre.position > 0 ? c_pre.position + 1 : 1;
 					result = true;
-				} else if (Double.parseDouble(c.high) > Double.parseDouble(c_pre.low)) {
+				} else if (Double.parseDouble(c.high) < Double.parseDouble(c_pre.low)) {
 					//趋势向下
 					c.position = c_pre.position < 0 ? c_pre.position - 1 : -1;
 					result = true;
@@ -324,19 +326,22 @@ public class Analyzer {
 			if (result) {
 				info.centrals.add(c);
 
+				//logger.debug("中枢：({},{})", c.low, c.high);
+
 				//保留最后一个中枢的4点
-				info.pointsHis.clear();
-				info.pointsHis.addAll(info.points);
+				//info.pointsHis.clear();
+				//info.pointsHis.addAll(info.points);
 
 				info.points.clear();
 				//以最后一点作为下一个中枢的起点
 				info.points.add(point4);
 				return true;
 			}
-		} else {
-			//删除第一个点，和后面加入的点再形成中枢
-			info.points.remove(0);
+
 		}
+
+		//删除第一个点，和后面加入的点再形成中枢
+		info.points.remove(0);
 
 		return false;
 

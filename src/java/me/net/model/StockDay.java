@@ -1,9 +1,13 @@
 package me.net.model;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Date;
 
-public class StockDay {
+public class StockDay implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+
 	public String code;
 	public Date date_;
 	public String open_;

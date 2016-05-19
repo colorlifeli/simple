@@ -18,7 +18,6 @@ import me.net.NetType.eStrategy;
 import me.net.dao.StockAnalysisDao;
 import me.net.dao.StockSourceDao;
 import me.net.dayHandler.Simulator;
-import me.net.model.CentralInfo;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
@@ -38,9 +37,12 @@ public class AnalysisService {
 
 	/**   配置参数   *****/
 	private eStrategy strategy = eStrategy.One; //策略
-	private double abnormal = 200; //绝对值超过这个值视为异常值
+	private double abnormal = 20000; //绝对值超过这个值视为异常值
 	public int c_priceStrategy = 1; //以什么策略来交易：1:第二天最差价格，2：今天最差价格 3：第二天中间价格
-	public String c_startDate = "2015-01-01";
+	public String c_startDate = "2014-01-01";
+	public String c_endDate = null;
+
+	public String c_sellAllDate = null; //在这一天全部卖出
 	//private boolean isPersistent = false;
 
 	private final int one = 1;
@@ -55,13 +57,12 @@ public class AnalysisService {
 	 */
 	public void compute(String hcode) throws SQLException {
 		List<StockDay> all = null;
-		List<StockDay> his = new ArrayList<StockDay>();// 已进行分析过的历史数据
 		List<OperRecord> operList = new ArrayList<OperRecord>();
 
-		all = stockAnalysisDao.getDay(hcode, c_startDate, null);
+		all = stockAnalysisDao.getDay(hcode, c_startDate, c_endDate);
 
 		if (all.size() < 50) {
-			logger.error("数据太少，只有：" + all.size());
+			//logger.error("数据太少，只有：" + all.size());
 			return;
 		}
 
@@ -74,11 +75,37 @@ public class AnalysisService {
 		int sn = 0;
 		Date date = new Date();
 
+		simulator.reset();
+
 		for (int i = 0; i < all.size() - 1; i++) {
 			StockDay someDay = all.get(i);
 			StockDay nextDay = all.get(i + 1);
 
-			eStockOper result = simulator.handle(someDay, his);
+			if (c_sellAllDate != null && c_sellAllDate.compareTo(nextDay.date_.toString()) < 0)
+				break;
+			if (c_sellAllDate != null && c_sellAllDate.equals(nextDay.date_.toString())) {
+				//如果明天要卖，取消今天的操作。因为今天的操作是以今天的最后结果来决定的。
+				if (operList.size() > 0) {
+					OperRecord rec = operList.get(operList.size() - 1);
+					if (rec.getTotal() > 0) {
+						num = rec.getTotal();
+						total = 0;
+
+						price = new BigDecimal(nextDay.low);
+						symbol = -1;
+						sum = price.multiply(new BigDecimal(symbol * num));
+						remain = remain.subtract(sum);//remain += -sum; //买是付钱，用负表示
+						date = nextDay.date_;
+						operList.add(new OperRecord(sn, hcode, eStockOper.Sell.toString(), num, price, sum, total,
+								remain, date));
+						break;
+					}
+				}
+
+			}
+
+			eStockOper result = simulator.handle(someDay);
+			//eStockOper result = simulator.handle_old(someDay);
 
 			if (result == eStockOper.None)
 				continue;
@@ -154,174 +181,19 @@ public class AnalysisService {
 			remain = remain.subtract(sum);//remain += -sum; //买是付钱，用负表示
 			operList.add(new OperRecord(sn, hcode, result.toString(), one, price, sum, total, remain, date));
 
-		}
-
-		/*******************   下面是对操作数据的分析与汇总   *********************/
-
-		BigDecimal lastRemain = BigDecimal.ZERO;
-		String lastFlag = "00";
-
-		//最后一次卖光时的情况
-		for (int i = operList.size() - 1; i >= 0; i--) {
-			OperRecord record = operList.get(i);
-			if (record.getTotal() == 0) {
-				lastRemain = record.getRemain();
-
-				//去除结果过好过坏数据
-				if (Math.abs(record.getRemain().doubleValue()) > abnormal) {
-					lastFlag = "01";
-				}
-
-				break;
-			}
-		}
-
-		BigDecimal minRemain = BigDecimal.ZERO; //余额最小时，即最大的投资额度
-		int buys = 0, sells = 0, times = 0, winTimes = 0, loseTimes = 0;
-		for (int i = operList.size() - 1; i >= 0; i--) {
-			OperRecord record = operList.get(i);
-			if (record.getRemain().compareTo(minRemain) == -1) //record.remain < minRemain
-				minRemain = record.getRemain();
-			if (record.getTotal() == 0) {
-				times++;
-				if (record.getRemain().doubleValue() > 0)
-					winTimes++;
-				else
-					loseTimes++;
-			}
-			if (record.getOper() == eStockOper.Buy.toString())
-				buys++;
-			if (record.getOper() == eStockOper.Sell.toString())
-				sells++;
-		}
-
-		StockOperSum operSum = new StockOperSum(buys, sells, times, winTimes, loseTimes, lastRemain, minRemain,
-				lastFlag);
-		operSum.setCode(hcode);
-		operSum.setName(stockAnalysisDao.getName(hcode.substring(0, hcode.length() - 3)));
-
-		//		if (isPersistent) {
-		//			// 保存至数据库
-		//			stockAnalysisDao.saveOperList(operList);
-		//			stockAnalysisDao.saveOperSum(operSum);
-		//		} else {
+		} //end for
 		g_operListMap.put(hcode, operList);
-		g_operSumList.add(operSum);
-		//		}
 
-		logger.info(operSum.toString());
+		this.computeOperSum(hcode, operList);
 	}
 
 	/**
-	 * 生成此 code 的所有操作数据
+	 * 对操作数据的分析与汇总
 	 * @param hcode
-	 * @throws SQLException
+	 * @param operList
+	 * @throws SQLException 
 	 */
-	public void compute2(String hcode) throws SQLException {
-		List<StockDay> all = null;
-		List<StockDay> his = new ArrayList<StockDay>();// 已进行分析过的历史数据
-		CentralInfo info = new CentralInfo();//所以的中枢信息
-		List<OperRecord> operList = new ArrayList<OperRecord>();
-
-		all = stockAnalysisDao.getDay(hcode, c_startDate, null);
-
-		if (all.size() < 50) {
-			logger.error("数据太少，只有：" + all.size());
-			return;
-		}
-
-		BigDecimal price = BigDecimal.ZERO;
-		BigDecimal sum = BigDecimal.ZERO;
-		int num = 0;
-		int total = 0;
-		BigDecimal remain = BigDecimal.ZERO;
-		int symbol = 1; //表示正负
-		int sn = 0;
-		Date date = new Date();
-
-		for (int i = 0; i < all.size() - 1; i++) {
-			StockDay someDay = all.get(i);
-			StockDay nextDay = all.get(i + 1);
-
-			eStockOper result = simulator.handle(someDay, his, info);
-
-			if (result == eStockOper.None)
-				continue;
-
-			if (operList.size() == 0 && result != eStockOper.Buy) {
-				//第一次必须是买
-				continue;
-			}
-
-			sn++;
-
-			//如果能在第二天以中间价处理，结果会理想很多
-			if (result == eStockOper.Buy) {
-				switch (c_priceStrategy) {
-				case 1: //第二天最差价格交易
-					price = new BigDecimal(nextDay.high);
-					date = nextDay.date_;
-					break;
-				case 2://今天最差价格
-					price = new BigDecimal(someDay.high);
-					date = someDay.date_;
-					break;
-				case 3://第二天中间价格
-					price = new BigDecimal(nextDay.high).add(new BigDecimal(nextDay.low)).divide(new BigDecimal(2));
-					date = nextDay.date_;
-					break;
-				default:
-				}
-				//price = (Double.parseDouble(nextDay.high) + Double.parseDouble(nextDay.low)) / 2;
-				symbol = 1;
-			} else if (result == eStockOper.Sell) {
-				switch (c_priceStrategy) {
-				case 1: //第二天最差价格交易
-					price = new BigDecimal(nextDay.low);
-					date = nextDay.date_;
-					break;
-				case 2://今天最差价格
-					price = new BigDecimal(someDay.low);
-					date = someDay.date_;
-					break;
-				case 3://第二天中间价格
-					price = new BigDecimal(nextDay.high).add(new BigDecimal(nextDay.low)).divide(new BigDecimal(2));
-					date = nextDay.date_;
-					break;
-				default:
-				}
-				//price = (Double.parseDouble(nextDay.high) + Double.parseDouble(nextDay.low)) / 2;
-				symbol = -1;
-			}
-
-			switch (strategy) {
-			case One:
-				//每次操作一单位
-				num = one;
-				break;
-			case OneBuyOneSell:
-				//严格执行一买一卖，不然放弃
-				if (operList.size() != 0 && result.toString() == operList.get(operList.size() - 1).getOper())
-					continue;
-				num = one;
-			case Double:
-				//第二次出现相同操作（如连续第二次买），则执行2倍的量
-				break;
-			}
-
-			total += symbol * num;
-			sum = price.multiply(new BigDecimal(symbol * num));//symbol * price * num;
-
-			if (total < 0) {
-				total = 0;
-				continue;
-			}
-			remain = remain.subtract(sum);//remain += -sum; //买是付钱，用负表示
-			operList.add(new OperRecord(sn, hcode, result.toString(), one, price, sum, total, remain, date));
-
-		}
-
-		/*******************   下面是对操作数据的分析与汇总   *********************/
+	private void computeOperSum(String hcode, List<OperRecord> operList) throws SQLException {
 
 		BigDecimal lastRemain = BigDecimal.ZERO;
 		String lastFlag = "00";
@@ -365,16 +237,9 @@ public class AnalysisService {
 		operSum.setCode(hcode);
 		operSum.setName(stockAnalysisDao.getName(hcode.substring(0, hcode.length() - 3)));
 
-		//		if (isPersistent) {
-		//			// 保存至数据库
-		//			stockAnalysisDao.saveOperList(operList);
-		//			stockAnalysisDao.saveOperSum(operSum);
-		//		} else {
-		g_operListMap.put(hcode, operList);
 		g_operSumList.add(operSum);
-		//		}
 
-		logger.info(operSum.toString());
+		//logger.info(operSum.toString());
 	}
 
 	/**
@@ -398,7 +263,7 @@ public class AnalysisService {
 		for (StockOperSum record : operSumList) {
 			if (record.getLastRemain().doubleValue() > 0)
 				win++;
-			else
+			else if (record.getLastRemain().doubleValue() < 0)
 				lose++;
 
 			allRecordsSum = allRecordsSum.add(record.getLastRemain()); //allRecordsSum += record.remain;
@@ -417,14 +282,55 @@ public class AnalysisService {
 
 		try {
 			g_operSumList.clear();
+			for (String code : g_operListMap.keySet())
+				g_operListMap.get(code).clear();
 			g_operListMap.clear();
+
 			List<String> codes = stockSourceDao.getAllAvailableCodes(0, eStockSource.YAHOO);
 			for (String code : codes) {
-				//this.compute(code);
-				this.compute2(code);
+				this.compute(code);
 			}
 
 		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void sellSomeday() {
+
+		List<String> allDates;
+		try {
+			allDates = stockAnalysisDao.getAllDate();
+
+			int index = 0;
+			for (int i = 0; i < allDates.size(); i++) {
+				if (c_startDate != null && c_startDate.equals(allDates.get(i))) {
+					index = i;
+					break;
+				}
+			}
+
+			List<String> subDates = allDates.subList(index, allDates.size());
+			for (int i = 0; i < subDates.size(); i++) {
+				String date = subDates.get(i);
+				c_sellAllDate = date;
+				computeAll();
+				System.out.println(date + "," + this.summary(false));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void sellSomeday2() {
+
+		try {
+
+			c_sellAllDate = "2015-10-28";
+			computeAll();
+			System.out.println(c_sellAllDate + "," + this.summary(false));
+
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -455,7 +361,8 @@ public class AnalysisService {
 			p.list = g_operSumList.subList((page - 1) * rows, size);
 		else if (size <= (page - 1) * rows)
 			p.list = Collections.emptyList();
-		p.list = g_operSumList.subList((page - 1) * rows, page * rows);
+		else
+			p.list = g_operSumList.subList((page - 1) * rows, page * rows);
 
 		p.total = g_operSumList.size();
 

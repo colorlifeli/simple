@@ -253,6 +253,24 @@ function summary(){
 	});
 }
 
+function sellAll(){
+	
+	var url = basePath + "stock/sellAll";
+	
+	$('#bar').dialog('open');
+	$.ajax({
+		async: "false",
+		tyep : "POST",
+		url : url,
+		context : document.body,
+		success : function(data) {
+			$('#bar').dialog('close');
+			var result = eval("("+data+")");
+			$("#sellAll").html(result.msg);
+		}
+	});
+}
+
 function openWin(name) {
 	$('#'+name).window('open');
 }

@@ -36,6 +36,7 @@ public class StocksAnalysis extends ActionIf {
 	private boolean isFromDB;
 	private String code;
 	private String priceStrategy;
+	private String startDate;
 
 	@Action(path = "enter", targets = { @Result(name = "success", value = "stock/stock.jsp") })
 	public String enter() {
@@ -48,6 +49,8 @@ public class StocksAnalysis extends ActionIf {
 
 		if (!TypeUtil.isEmpty(priceStrategy))
 			analysisService.c_priceStrategy = Integer.parseInt(priceStrategy);
+		if (!TypeUtil.isEmpty(startDate))
+			analysisService.c_startDate = startDate;
 
 		analysisService.computeAll();
 
@@ -132,6 +135,23 @@ public class StocksAnalysis extends ActionIf {
 		String msg = "";
 		try {
 			msg = analysisService.summary(isFromDB);
+		} catch (Exception e) {
+			e.printStackTrace();
+			msg = "操作失败";
+		}
+
+		JsonUtil util = new JsonUtil();
+		util.put("msg", msg);
+
+		return util.toString();
+	}
+
+	@Action(path = "sellAll", targets = { @Result(name = "json", value = "json") })
+	public String sellAll() {
+
+		String msg = "完成";
+		try {
+			analysisService.sellSomeday();
 		} catch (Exception e) {
 			e.printStackTrace();
 			msg = "操作失败";

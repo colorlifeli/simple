@@ -1,16 +1,20 @@
 package me.net.dao;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import me.common.SimpleException;
 import me.common.jdbcutil.ArrayHandler;
+import me.common.jdbcutil.ArrayListHandler;
 import me.common.jdbcutil.BeanListHandler;
 import me.common.jdbcutil.QueryRule;
 import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
+import me.common.util.Util;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
@@ -24,6 +28,8 @@ public class StockAnalysisDao {
 
 	SqlRunner sqlrunner = SqlRunner.me();
 
+	Map<String, List<StockDay>> all = new HashMap<String, List<StockDay>>();
+
 	/**
 	 * 获取指定 code 的 day 数据
 	 * @param code
@@ -31,8 +37,16 @@ public class StockAnalysisDao {
 	 * @param endDate
 	 * @return
 	 * @throws SQLException
+	 * @throws IOException 
+	 * @throws ClassNotFoundException 
 	 */
 	public List<StockDay> getDay(String code, String startDate, String endDate) throws SQLException {
+
+		//缓存
+		if (all.get(code) != null) {
+			return Util.deepCopy(all.get(code));
+		}
+
 		String sql = "SELECT * FROM STO_DAY_TMP where code=?";
 		List<Object> params = new ArrayList<Object>();
 		params.add(code);
@@ -48,7 +62,10 @@ public class StockAnalysisDao {
 
 		sql += " order by date_";
 
-		return sqlrunner.query(sql, new BeanListHandler<StockDay>(StockDay.class), params.toArray());
+		List<StockDay> result = sqlrunner.query(sql, new BeanListHandler<StockDay>(StockDay.class), params.toArray());
+		all.put(code, result);
+
+		return Util.deepCopy(result);
 	}
 
 	/**
@@ -195,6 +212,26 @@ public class StockAnalysisDao {
 			logger.error("truncate table sto_oper_sum fail!");
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * 查出所有有历史数据的日期
+	 * @return
+	 * @throws SQLException
+	 */
+	public List<String> getAllDate() throws SQLException {
+		String sql = "select to_char(date_,'yyyy-mm-dd') from sto_day_tmp "
+				+ "where code =(select top 1 code from (select code,count(1)  num from sto_day_tmp group by code) order by num  desc) order by date_";
+		Object[] params = null;
+
+		List<Object[]> result = sqlrunner.query(sql, new ArrayListHandler(), params);
+
+		List<String> strs = new ArrayList<String>();
+		for (Object[] objs : result) {
+			strs.add((String) objs[0]);
+		}
+
+		return strs;
 	}
 
 }
