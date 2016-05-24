@@ -4,6 +4,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
 import me.net.NetType.eStockDayFlag;
@@ -13,9 +16,6 @@ import me.net.dao.StockSourceDao;
 import me.net.model.Central;
 import me.net.model.CentralInfo;
 import me.net.model.StockDay;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 用于分析历史数据，对历史数据进行处理

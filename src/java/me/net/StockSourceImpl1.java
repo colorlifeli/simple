@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.TypeUtil;
 import me.net.NetType.eStockCodeFlag;
@@ -14,9 +17,6 @@ import me.net.dao.StockSourceDao;
 import me.net.model.Item;
 import me.net.model.RealTime;
 import me.net.model.StockDay;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 本实现类，
@@ -35,7 +35,7 @@ public class StockSourceImpl1 implements StockSource {
 	@Ioc
 	private StockSourceDao stockSourceDao;
 
-	private final String historyStartDate = "20140101";
+	private final String historyStartDate = "20130101";
 
 	private eStockSource realtime = eStockSource.SINA;
 	private eStockSource history = eStockSource.YAHOO;

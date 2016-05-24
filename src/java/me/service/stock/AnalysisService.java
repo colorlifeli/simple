@@ -9,6 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.annotation.IocAnno.Ioc;
 import me.common.jdbcutil.Page;
 import me.common.util.Util;
@@ -21,9 +24,6 @@ import me.net.dayHandler.Simulator;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AnalysisService {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -39,7 +39,7 @@ public class AnalysisService {
 	private eStrategy strategy = eStrategy.One; //策略
 	private double abnormal = 20000; //绝对值超过这个值视为异常值
 	public int c_priceStrategy = 1; //以什么策略来交易：1:第二天最差价格，2：今天最差价格 3：第二天中间价格
-	public String c_startDate = "2014-01-01";
+	public String c_startDate = "2015-06-01";
 	public String c_endDate = null;
 
 	public String c_sellAllDate = null; //在这一天全部卖出
@@ -59,7 +59,10 @@ public class AnalysisService {
 		List<StockDay> all = null;
 		List<OperRecord> operList = new ArrayList<OperRecord>();
 
-		all = stockAnalysisDao.getDay(hcode, c_startDate, c_endDate);
+		if (c_sellAllDate != null)
+			all = stockAnalysisDao.getDayCache(hcode, c_startDate, c_endDate);
+		else
+			all = stockAnalysisDao.getDay(hcode, c_startDate, c_endDate);
 
 		if (all.size() < 50) {
 			//logger.error("数据太少，只有：" + all.size());
@@ -296,7 +299,7 @@ public class AnalysisService {
 		}
 	}
 
-	public void sellSomeday() {
+	public void sellSomeday2() {
 
 		List<String> allDates;
 		try {
@@ -322,11 +325,11 @@ public class AnalysisService {
 		}
 	}
 
-	public void sellSomeday2() {
+	public void sellSomeday() {
 
 		try {
 
-			c_sellAllDate = "2015-10-28";
+			c_sellAllDate = "2016-05-19";
 			computeAll();
 			System.out.println(c_sellAllDate + "," + this.summary(false));
 

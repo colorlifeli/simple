@@ -15,8 +15,8 @@ public class GetStockHisData {
 
 		long start = System.currentTimeMillis();
 
-		//impl.getHistoryAll(null, null);
-		impl.getHistoryRemain(null, null);
+		impl.getHistoryAll(null, null);
+		//impl.getHistoryRemain(null, null);
 
 		long end = System.currentTimeMillis();
 		System.out.println("use time:" + (end - start));
