@@ -35,7 +35,7 @@ public class StockSourceImpl1 implements StockSource {
 	@Ioc
 	private StockSourceDao stockSourceDao;
 
-	private final String historyStartDate = "20140101";
+	private final String historyStartDate = "20130101";
 
 	private eStockSource realtime = eStockSource.SINA;
 	private eStockSource history = eStockSource.YAHOO;

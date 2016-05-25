@@ -295,7 +295,7 @@ public class Analyzer {
 		Central c = new Central();
 		if (Double.parseDouble(point1) < Double.parseDouble(point2)) {
 			//向上笔
-			c.low = max(point1, point2);
+			c.low = max(point1, point3);
 			c.high = min(point2, point4);
 		} else {
 			c.low = max(point2, point4);
@@ -326,7 +326,7 @@ public class Analyzer {
 			if (result) {
 				info.centrals.add(c);
 
-				//logger.debug("中枢：({},{})", c.low, c.high);
+				//logger.debug("中枢：({},{}), position:{}", c.low, c.high, c.position);
 
 				//保留最后一个中枢的4点
 				//info.pointsHis.clear();

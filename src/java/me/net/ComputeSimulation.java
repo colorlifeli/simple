@@ -176,7 +176,8 @@ public class ComputeSimulation {
 		try {
 			//String code = "002061.sz";
 			//String code = "600836.ss"; //有代表性
-			String code = "000895.sz";
+			//String code = "000895.sz";
+			String code = "000001.ss";
 			simulation.compute(code);
 			//			List<String> codes = new StockService().getAllAvailableCodes(0, eStockSource.YAHOO);
 			//			System.out.println(codes.size());
