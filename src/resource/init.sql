@@ -41,8 +41,8 @@ name varchar(50),
 market varchar(10),
 source varchar(10),
 valid varchar(1),
-flag varchar(2),
-type_ varchar(2),
+flag varchar(2),  --01:stop 99：获取错误
+type_ varchar(2), --1：指数
 code_sina varchar(15),
 code_yahoo varchar(15),
 PRIMARY KEY(code,market)

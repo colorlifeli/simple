@@ -6,6 +6,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import me.common.SimpleException;
 import me.common.jdbcutil.ArrayHandler;
@@ -18,9 +22,6 @@ import me.common.util.Util;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class StockAnalysisDao {
 
@@ -42,9 +43,48 @@ public class StockAnalysisDao {
 	 */
 	public List<StockDay> getDay(String code, String startDate, String endDate) throws SQLException {
 
+		String sql = "SELECT * FROM STO_DAY_TMP where code=?";
+		List<Object> params = new ArrayList<Object>();
+		params.add(code);
+
+		if (startDate != null) {
+			sql += " and date_>?";
+			params.add(startDate);
+		}
+		if (endDate != null) {
+			sql += "and date_<?";
+			params.add(endDate);
+		}
+
+		sql += " order by date_";
+
+		return sqlrunner.query(sql, new BeanListHandler<StockDay>(StockDay.class), params.toArray());
+
+	}
+
+	/**
+	 * 获取指定 code 的 day 数据,并缓存，有利于重复计算
+	 * @param code
+	 * @param startDate
+	 * @param endDate
+	 * @return
+	 * @throws SQLException
+	 * @throws IOException 
+	 * @throws ClassNotFoundException 
+	 */
+	public List<StockDay> getDayCache(String code, String startDate, String endDate) throws SQLException {
+
+		if (all.size() > 10000) {
+			//缓存太大
+			for (Entry<String, List<StockDay>> entry : all.entrySet()) {
+				entry.getValue().clear();
+			}
+			all.clear();
+		}
+
 		//缓存
-		if (all.get(code) != null) {
-			return Util.deepCopy(all.get(code));
+		if (all.get(code + startDate + endDate) != null) {
+			return Util.deepCopy(all.get(code + startDate + endDate));
 		}
 
 		String sql = "SELECT * FROM STO_DAY_TMP where code=?";
@@ -63,7 +103,7 @@ public class StockAnalysisDao {
 		sql += " order by date_";
 
 		List<StockDay> result = sqlrunner.query(sql, new BeanListHandler<StockDay>(StockDay.class), params.toArray());
-		all.put(code, result);
+		all.put(code + startDate + endDate, result);
 
 		return Util.deepCopy(result);
 	}

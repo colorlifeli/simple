@@ -3,6 +3,7 @@ package me.net;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import me.common.annotation.IocAnno.Ioc;
@@ -37,7 +38,7 @@ public class ComputeSimulation {
 	BigDecimal g_allRecordsSum = BigDecimal.ZERO;
 	BigDecimal g_investment = BigDecimal.ZERO;
 
-	private final eStrategy strategy = eStrategy.One;
+	private final eStrategy strategy = eStrategy.OneBuyOneSell;
 	private final int one = 1;
 
 	public void compute(String hcode) throws SQLException {
@@ -59,6 +60,8 @@ public class ComputeSimulation {
 		int total = 0;
 		BigDecimal remain = BigDecimal.ZERO;
 		int symbol = 1; //表示正负
+		Date date = null;
+		int sn = 0;
 
 		simulator.reset();
 
@@ -76,14 +79,18 @@ public class ComputeSimulation {
 				continue;
 			}
 
+			sn++;
+
 			//如果能在第二天以中间价处理，结果会理想很多
 			if (result == eStockOper.Buy) {
 				price = new BigDecimal(nextDay.high);
 				//price = (Double.parseDouble(nextDay.high) + Double.parseDouble(nextDay.low)) / 2;
+				date = nextDay.date_;
 				symbol = 1;
 			} else if (result == eStockOper.Sell) {
 				price = new BigDecimal(nextDay.low);
 				//price = (Double.parseDouble(nextDay.high) + Double.parseDouble(nextDay.low)) / 2;
+				date = nextDay.date_;
 				symbol = -1;
 			}
 
@@ -110,7 +117,7 @@ public class ComputeSimulation {
 				continue;
 			}
 			remain = remain.subtract(sum);//remain += -sum; //买是付钱，用负表示
-			operList.add(new OperRecord(result.toString(), one, price, sum, total, remain));
+			operList.add(new OperRecord(sn, hcode, result.toString(), one, price, sum, total, remain, date));
 		}
 
 		for (OperRecord record : operList) {
@@ -177,19 +184,11 @@ public class ComputeSimulation {
 			//String code = "002061.sz";
 			//String code = "600836.ss"; //有代表性
 			//String code = "000895.sz";
-			String code = "000001.ss";
+			String code = "000001.ss"; //上证指数
+
 			simulation.compute(code);
-			//			List<String> codes = new StockService().getAllAvailableCodes(0, eStockSource.YAHOO);
-			//			System.out.println(codes.size());
-			//			for (String code : codes) {
-			//				simulation.compute(code);
-			//			}
-			//			System.out.println("\n\n************************************************************\n\n");
-			//			System.out.println(
-			//					String.format("total:%s, win:%s, lose:%s, remain:%s, investment:%s", simulation.g_totalRecords,
-			//							simulation.g_win, simulation.g_lose, simulation.g_allRecordsSum, simulation.g_investment));
+
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -211,7 +210,6 @@ public class ComputeSimulation {
 					simulation.g_totalRecords, simulation.g_win, simulation.g_lose, simulation.g_allRecordsSum,
 					simulation.g_investment));
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
