@@ -17,6 +17,7 @@ public class StockDay implements Serializable {
 	public String volume;
 	public String source;
 	public String flag;
+	public int sn;
 
 	public void setFlag(String flag) {
 		this.flag = flag;

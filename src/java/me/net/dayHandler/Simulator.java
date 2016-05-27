@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.Constant;
 import me.net.NetType.eStockDayFlag;
 import me.net.NetType.eStockOper;
 import me.net.model.CentralInfo;
 import me.net.model.StockDay;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 模拟处理器
@@ -79,6 +79,7 @@ public class Simulator {
 
 				Point point = new Point();
 				point.type = type;
+				point.sn = his.get(his.size() - 1).sn;
 
 				if (eStockDayFlag.TOP.toString().equals(type)) {
 					//同为顶点，选取高的那个，去除另一个
@@ -126,7 +127,13 @@ public class Simulator {
 					}
 				}
 
-				//logger.debug("point:{},{}", point.value, point.type);
+				if (lastP != null) {
+					point.degree = Math.abs((Double.parseDouble(point.value) - Double.parseDouble(lastP.value))
+							/ (point.sn - lastP.sn));
+				}
+
+				//logger.debug("point:{},{},{},{}", point.value, point.type, point.sn,
+				//		String.format("%.2f", point.degree));
 			}
 
 			boolean result = false;
@@ -154,17 +161,45 @@ public class Simulator {
 			//不论是否形成中枢
 			if (result && type != null && info.centrals.size() > 0) {
 				int pos = info.centrals.get(info.centrals.size() - 1).position;
-				//趋势向下，且当前的分型是顶分型，则看顶是否大于中枢，是则卖.
-				//暂改为今天是否大于中枢，是则卖
-				if (pos > 0 && type.equals(eStockDayFlag.TOP.toString()) && Double.parseDouble(day.low) > Double
-						.parseDouble(info.centrals.get(info.centrals.size() - 1).high)) {
+				//				//趋势向下，且当前的分型是顶分型，则看顶是否大于中枢，是则卖.
+				//				//暂改为今天是否大于中枢，是则卖
+				//				if (pos > 0
+				//						&& type.equals(eStockDayFlag.TOP.toString())
+				//						&& Double.parseDouble(day.low) > Double
+				//								.parseDouble(info.centrals.get(info.centrals.size() - 1).high)) {
+				//					return eStockOper.Sell;
+				//
+				//				}
+				//				if (pos < 0
+				//						&& type.equals(eStockDayFlag.BOTTOM.toString())
+				//						&& Double.parseDouble(day.high) < Double
+				//								.parseDouble(info.centrals.get(info.centrals.size() - 1).low)) {
+				//					return eStockOper.Buy;
+				//
+				//				}
+
+				//只要倾斜度趋缓，认为是背驰,就执行操作
+
+				//第1种判断方法：
+				//卖：找到最近的顶点，与前一顶点进行degree比较
+				if (pos > 1) {
+					//					for (int i = points.size() - 1; i >= 0; i--) {
+					//						if (eStockDayFlag.TOP.toString().equals(points.get(i).type)) {
+					//							if (points.get(i).degree < points.get(i - 2).degree)
+					//								return eStockOper.Sell;
+					//						}
+					//					}
 					return eStockOper.Sell;
-
 				}
-				if (pos < 0 && type.equals(eStockDayFlag.BOTTOM.toString()) && Double.parseDouble(day.high) < Double
-						.parseDouble(info.centrals.get(info.centrals.size() - 1).low)) {
+				//买：找到最近的底，与前一底进行degree比较
+				if (pos < -1) {
+					//					for (int i = points.size() - 1; i >= 0; i--) {
+					//						if (eStockDayFlag.BOTTOM.toString().equals(points.get(i).type)) {
+					//							if (points.get(i).degree < points.get(i - 2).degree)
+					//								return eStockOper.Buy;
+					//						}
+					//					}
 					return eStockOper.Buy;
-
 				}
 			}
 
@@ -201,7 +236,9 @@ public class Simulator {
 
 	class Point {
 		String value = "0";
-		String type = "";
+		String type = ""; //是顶还是底
+		int sn = 0;
+		double degree = 0.0; //角度，变化值/间隔
 	}
 
 }

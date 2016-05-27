@@ -38,7 +38,7 @@ public class ComputeSimulation {
 	BigDecimal g_allRecordsSum = BigDecimal.ZERO;
 	BigDecimal g_investment = BigDecimal.ZERO;
 
-	private final eStrategy strategy = eStrategy.OneBuyOneSell;
+	private final eStrategy strategy = eStrategy.One;
 	private final int one = 1;
 
 	public void compute(String hcode) throws SQLException {
@@ -53,6 +53,8 @@ public class ComputeSimulation {
 			logger.error("数据太少，只有：" + all.size());
 			return;
 		}
+
+		this.addSequence(all);
 
 		BigDecimal price = BigDecimal.ZERO;
 		BigDecimal sum = BigDecimal.ZERO;
@@ -174,6 +176,13 @@ public class ComputeSimulation {
 
 	}
 
+	private void addSequence(List<StockDay> list) {
+
+		for (int i = 0; i < list.size(); i++) {
+			list.get(i).sn = i;
+		}
+	}
+
 	private void runOne() {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 
@@ -216,7 +225,7 @@ public class ComputeSimulation {
 
 	public static void main(String[] args) {
 
-		new ComputeSimulation().runOne();
+		new ComputeSimulation().runAll();
 
 	}
 
