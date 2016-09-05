@@ -36,9 +36,9 @@ public class AnalysisService {
 	private StockSourceDao stockSourceDao;
 
 	/**   配置参数   *****/
-	private eStrategy strategy = eStrategy.One; //策略
+	private eStrategy strategy = eStrategy.OneBuyOneSell; //策略
 	private double abnormal = 20000; //绝对值超过这个值视为异常值
-	public int c_priceStrategy = 1; //以什么策略来交易：1:第二天最差价格，2：今天最差价格 3：第二天中间价格
+	public int c_priceStrategy = 1; //以什么策略来交易：1:第二天最差价格，2：今天最差价格 3：第二天中间价格 4:按中枢价格
 	public String c_startDate = "2015-06-01";
 	public String c_endDate = null;
 
@@ -109,8 +109,9 @@ public class AnalysisService {
 
 			}
 
-			eStockOper result = simulator.handle(someDay);
-			//eStockOper result = simulator.handle_old(someDay);
+			StockDay tmp = new StockDay();
+			//eStockOper result = simulator.handle(someDay, nextDay, tmp);
+			eStockOper result = simulator.handle_old(someDay);
 
 			if (result == eStockOper.None)
 				continue;
@@ -137,6 +138,9 @@ public class AnalysisService {
 					price = new BigDecimal(nextDay.high).add(new BigDecimal(nextDay.low)).divide(new BigDecimal(2));
 					date = nextDay.date_;
 					break;
+				case 4:
+					price = new BigDecimal(tmp.low);
+					break;
 				default:
 				}
 				//price = (Double.parseDouble(nextDay.high) + Double.parseDouble(nextDay.low)) / 2;
@@ -155,6 +159,9 @@ public class AnalysisService {
 					price = new BigDecimal(nextDay.high).add(new BigDecimal(nextDay.low)).divide(new BigDecimal(2));
 					date = nextDay.date_;
 					break;
+				case 4:
+					price = new BigDecimal(tmp.high);
+					break;
 				default:
 				}
 				//price = (Double.parseDouble(nextDay.high) + Double.parseDouble(nextDay.low)) / 2;
@@ -169,10 +176,22 @@ public class AnalysisService {
 			case OneBuyOneSell:
 				//严格执行一买一卖，不然放弃
 				if (operList.size() != 0 && result.toString() == operList.get(operList.size() - 1).getOper())
+					//if (operList.size() > 1 && result.toString() == operList.get(operList.size() - 1).getOper()
+					//		&& result.toString() == operList.get(operList.size() - 2).getOper())
 					continue;
 				num = one;
 			case Double:
 				//第二次出现相同操作（如连续第二次买），则执行2倍的量
+				num = one;
+				if (operList.size() != 0 && result.toString() == operList.get(operList.size() - 1).getOper())
+					num = one * 2;
+				if (operList.size() > 1 && result.toString() == operList.get(operList.size() - 1).getOper()
+						&& result.toString() == operList.get(operList.size() - 2).getOper())
+					num = one * 4;
+				if (operList.size() > 2 && result.toString() == operList.get(operList.size() - 1).getOper()
+						&& result.toString() == operList.get(operList.size() - 2).getOper()
+						&& result.toString() == operList.get(operList.size() - 3).getOper())
+					continue;
 				break;
 			}
 

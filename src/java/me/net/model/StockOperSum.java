@@ -121,4 +121,5 @@ public class StockOperSum {
 	public void setMinRemain(BigDecimal minRemain) {
 		this.minRemain = minRemain;
 	}
+
 }

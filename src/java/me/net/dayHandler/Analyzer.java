@@ -209,19 +209,19 @@ public class Analyzer {
 		String result = null;
 
 		// 要超过一定间隔才能再次设置分型
-		//		if ((last2 != null && (top.equals(last2.flag) || bottom.equals(last2.flag)))) {
-		//			return null;
-		//		}
-		//		if (his.size() > 2) {
-		//			StockDay last3 = his.get(his.size() - 3);
-		//			if (last3 != null && (top.equals(last3.flag) || bottom.equals(last3.flag)))
-		//				return null;
-		//		}
-		//		if (isNeedK && his.size() > 3) {
-		//			StockDay last4 = his.get(his.size() - 4);
-		//			if (top.equals(last4.flag) || bottom.equals(last4.flag))
-		//				return null;
-		//		}
+		if ((last2 != null && (top.equals(last2.flag) || bottom.equals(last2.flag)))) {
+			return null;
+		}
+		if (his.size() > 2) {
+			StockDay last3 = his.get(his.size() - 3);
+			if (last3 != null && (top.equals(last3.flag) || bottom.equals(last3.flag)))
+				return null;
+		}
+		if (isNeedK && his.size() > 3) {
+			StockDay last4 = his.get(his.size() - 4);
+			if (top.equals(last4.flag) || bottom.equals(last4.flag))
+				return null;
+		}
 
 		//如果加入上面间隔的判断语句的话，就会出现一个顶分型的下一个分型仍然是顶分型的情况。
 		//去除下面的间隔约束之后，则必定是顶底分型交叉出现，顶分型的下一个必是底分型，反之成立。
@@ -265,7 +265,7 @@ public class Analyzer {
 
 	/**
 	 * 笔的唯一性规则：
-	 * 1. 顶和底不共享k线，或者只少有一根独立k线
+	 * 1. 顶和底不共享k线，或者至少有一根独立k线
 	 * 2. 如果项和底之间共享了k线，则这个顶到底（或底到顶）不是笔。选取顶到底这种情况，虽然顶到底不是一笔，但前一个底到顶已构成了一笔，在这里暂称为笔a。
 	 * 	    分3种情况：（1）下一个顶比这个顶要高，则这是笔a的延伸，笔a变成了前一个底到下一个顶。（2）下一个顶比这个顶要低，证明下一个底必然比顶要低，所以顶到下一个底会构成一笔。
 	 * 				(3) 如果下一个是底，且底比顶还高，则舍弃这个底。有可能一直都是底，（因为顶离底没有k线，顶被舍去了），这样就有可能永远都形成不了笔了... 也算是这个理论的一个bug吧...

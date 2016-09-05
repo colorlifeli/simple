@@ -236,8 +236,8 @@ function getOperList(code){
 }
 
 function summary(){
-	
-	var url = basePath + "stock/summary";
+	var isFromDB = $('#isFromDB').is(':checked');
+	var url = basePath + "stock/summary?isFromDB=" + isFromDB;
 	
 	$('#bar').dialog('open');
 	$.ajax({
@@ -254,8 +254,8 @@ function summary(){
 }
 
 function sellAll(){
-	
-	var url = basePath + "stock/sellAll";
+	var isFromDB = $('#isFromDB').is(':checked');
+	var url = basePath + "stock/sellAll?isFromDB=" + isFromDB;
 	
 	$('#bar').dialog('open');
 	$.ajax({
