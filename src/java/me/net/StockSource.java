@@ -29,7 +29,7 @@ public interface StockSource {
 	public void getRealTimeAll(int interval);
 
 	/**
-	 * 获取指定 codes 的某个时间段的日线
+	 * 获取指定 codes 的某个时间段的日线，包含 startDate和endDate
 	 * @param codes
 	 * @param startDate
 	 * @param endDate

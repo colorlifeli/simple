@@ -20,10 +20,11 @@ public class Temp {
 	public static void main(String[] args) {
 		Temp tmp = new Temp();
 		try {
-			tmp.testAnalysisService();
+			tmp.testAnalysisService2();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		System.exit(0);
 	}
 
 	public void testAnalysisService() {
@@ -51,6 +52,48 @@ public class Temp {
 			}
 
 		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void testAnalysisService2() {
+		SqlRunner.me().setConn(H2Helper.connEmbededDb());
+
+		BeanContext bc = new BeanContext();
+		AnalysisService service = (AnalysisService) bc.getBean("analysisService");
+		StockSourceDao stockSourceDao = (StockSourceDao) bc.getBean("stockSourceDao");
+		//service.computeAll();
+
+		try {
+			List<String> codes = stockSourceDao.getAllAvailableCodes(0, eStockSource.YAHOO);
+			for (String code : codes) {
+				service.compute(code);
+
+			}
+			
+			try {
+				System.out.println(service.summary(false));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void testAnalysisService3() {
+		SqlRunner.me().setConn(H2Helper.connEmbededDb());
+
+		BeanContext bc = new BeanContext();
+		AnalysisService service = (AnalysisService) bc.getBean("analysisService");
+		//service.computeAll();
+
+		try {
+			//service.compute("603188.ss");
+			service.sellSomeday2();
+
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

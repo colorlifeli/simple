@@ -10,7 +10,6 @@ import me.net.NetType.eStockDayFlag;
 import me.net.NetType.eStockSource;
 import me.net.dao.StockAnalysisDao;
 import me.net.dao.StockSourceDao;
-import me.net.model.Central;
 import me.net.model.CentralInfo;
 import me.net.model.StockDay;
 
@@ -274,103 +273,8 @@ public class Analyzer {
 	 * @return 返回是否形成中枢，true:是 false:否
 	 */
 	public boolean makeCentral(CentralInfo info) {
-
-		//info.points.add(point);
-
-		if (info.points.size() < 4) {
-			//4个点，构成3笔，才能计算中枢
-			return false;
-		}
-
-		// ****** 开始计算中枢
-
-		//判断第一笔是向上笔还是向下笔
-		String point1 = info.points.get(0);
-		String point2 = info.points.get(1);
-		String point3 = info.points.get(2);
-		String point4 = info.points.get(3);
-
-		//logger.debug("{},{},{},{}", point1, point2, point3, point4);
-
-		Central c = new Central();
-		if (Double.parseDouble(point1) < Double.parseDouble(point2)) {
-			//向上笔
-			c.low = max(point1, point3);
-			c.high = min(point2, point4);
-		} else {
-			c.low = max(point2, point4);
-			c.high = min(point1, point3);
-		}
-
-		if (Double.parseDouble(c.low) < Double.parseDouble(c.high)) {
-			//有公共区域，才有中枢
-
-			//这是第一个中枢
-			boolean result = false;
-			if (info.centrals.size() == 0) {
-				c.position = 0;
-				result = true;
-			} else {
-				//如果前面已经有中枢，则要与最后一个中枢进行比较
-				Central c_pre = info.centrals.get(info.centrals.size() - 1);
-				if (Double.parseDouble(c.low) > Double.parseDouble(c_pre.high)) {
-					//趋势向上。记录第几次向上
-					c.position = c_pre.position > 0 ? c_pre.position + 1 : 1;
-					result = true;
-				} else if (Double.parseDouble(c.high) < Double.parseDouble(c_pre.low)) {
-					//趋势向下
-					c.position = c_pre.position < 0 ? c_pre.position - 1 : -1;
-					result = true;
-				}
-			}
-			if (result) {
-				info.centrals.add(c);
-
-				//logger.debug("中枢：({},{}), position:{}", c.low, c.high, c.position);
-
-				//保留最后一个中枢的4点
-				//info.pointsHis.clear();
-				//info.pointsHis.addAll(info.points);
-
-				info.points.clear();
-				//以最后一点作为下一个中枢的起点
-				info.points.add(point4);
-				return true;
-			}
-
-		}
-
-		//删除第一个点，和后面加入的点再形成中枢
-		info.points.remove(0);
-
+		//改为了在 CentralInfo 类实现
 		return false;
-
-	}
-
-	/**
-	 * 取较大值。针对String 类型的数字
-	 * @param num1
-	 * @param num2
-	 * @return
-	 */
-	private String max(String num1, String num2) {
-		if (Double.parseDouble(num1) > Double.parseDouble(num2))
-			return num1;
-		else
-			return num2;
-	}
-
-	/**
-	 * 取较小值。针对String 类型的数字
-	 * @param num1
-	 * @param num2
-	 * @return
-	 */
-	private String min(String num1, String num2) {
-		if (Double.parseDouble(num1) < Double.parseDouble(num2))
-			return num1;
-		else
-			return num2;
 	}
 
 	public static void main(String[] args) throws SQLException {

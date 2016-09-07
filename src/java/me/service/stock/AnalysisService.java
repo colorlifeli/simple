@@ -59,10 +59,9 @@ public class AnalysisService {
 		List<StockDay> all = null;
 		List<OperRecord> operList = new ArrayList<OperRecord>();
 
-		if (c_sellAllDate != null)
-			all = stockAnalysisDao.getDayCache(hcode, c_startDate, c_endDate);
-		else
-			all = stockAnalysisDao.getDay(hcode, c_startDate, c_endDate);
+		 all = stockAnalysisDao.getDay(hcode, c_startDate, c_endDate);
+		
+		//logger.debug(hcode);
 
 		if (all.size() < 50) {
 			//logger.error("数据太少，只有：" + all.size());
@@ -79,13 +78,15 @@ public class AnalysisService {
 		int symbol = 1; //表示正负
 		int sn = 0;
 		Date date = new Date();
+		//BigDecimal gain = BigDecimal.ZERO;//在买入后到今天这个时间段内的最大赢利
+		BigDecimal cost = BigDecimal.ZERO; //成本
 
 		simulator.reset();
 
 		for (int i = 0; i < all.size() - 1; i++) {
 			StockDay someDay = all.get(i);
 			StockDay nextDay = all.get(i + 1);
-
+			
 			if (c_sellAllDate != null && c_sellAllDate.compareTo(nextDay.date_.toString()) < 0)
 				break;
 			if (c_sellAllDate != null && c_sellAllDate.equals(nextDay.date_.toString())) {
@@ -110,90 +111,101 @@ public class AnalysisService {
 			}
 
 			StockDay tmp = new StockDay();
-			//eStockOper result = simulator.handle(someDay, nextDay, tmp);
-			eStockOper result = simulator.handle_old(someDay);
+			eStockOper result = simulator.handle2(someDay);
+			//eStockOper result = simulator.handle_old(someDay);
 
-			if (result == eStockOper.None)
-				continue;
+			if (result == eStockOper.None) {
 
-			if (operList.size() == 0 && result != eStockOper.Buy) {
-				//第一次必须是买
-				continue;
-			}
-
-			sn++;
-
-			//如果能在第二天以中间价处理，结果会理想很多
-			if (result == eStockOper.Buy) {
-				switch (c_priceStrategy) {
-				case 1: //第二天最差价格交易
-					price = new BigDecimal(nextDay.high);
-					date = nextDay.date_;
-					break;
-				case 2://今天最差价格
-					price = new BigDecimal(someDay.high);
-					date = someDay.date_;
-					break;
-				case 3://第二天中间价格
-					price = new BigDecimal(nextDay.high).add(new BigDecimal(nextDay.low)).divide(new BigDecimal(2));
-					date = nextDay.date_;
-					break;
-				case 4:
-					price = new BigDecimal(tmp.low);
-					break;
-				default:
-				}
-				//price = (Double.parseDouble(nextDay.high) + Double.parseDouble(nextDay.low)) / 2;
-				symbol = 1;
-			} else if (result == eStockOper.Sell) {
-				switch (c_priceStrategy) {
-				case 1: //第二天最差价格交易
-					price = new BigDecimal(nextDay.low);
-					date = nextDay.date_;
-					break;
-				case 2://今天最差价格
-					price = new BigDecimal(someDay.low);
-					date = someDay.date_;
-					break;
-				case 3://第二天中间价格
-					price = new BigDecimal(nextDay.high).add(new BigDecimal(nextDay.low)).divide(new BigDecimal(2));
-					date = nextDay.date_;
-					break;
-				case 4:
-					price = new BigDecimal(tmp.high);
-					break;
-				default:
-				}
-				//price = (Double.parseDouble(nextDay.high) + Double.parseDouble(nextDay.low)) / 2;
-				symbol = -1;
-			}
-
-			switch (strategy) {
-			case One:
-				//每次操作一单位
-				num = one;
-				break;
-			case OneBuyOneSell:
-				//严格执行一买一卖，不然放弃
-				if (operList.size() != 0 && result.toString() == operList.get(operList.size() - 1).getOper())
-					//if (operList.size() > 1 && result.toString() == operList.get(operList.size() - 1).getOper()
-					//		&& result.toString() == operList.get(operList.size() - 2).getOper())
+				//卖时机是通过资金管理手段来控制
+				if(operList.size() == 0)
 					continue;
-				num = one;
-			case Double:
-				//第二次出现相同操作（如连续第二次买），则执行2倍的量
-				num = one;
-				if (operList.size() != 0 && result.toString() == operList.get(operList.size() - 1).getOper())
-					num = one * 2;
-				if (operList.size() > 1 && result.toString() == operList.get(operList.size() - 1).getOper()
-						&& result.toString() == operList.get(operList.size() - 2).getOper())
-					num = one * 4;
-				if (operList.size() > 2 && result.toString() == operList.get(operList.size() - 1).getOper()
-						&& result.toString() == operList.get(operList.size() - 2).getOper()
-						&& result.toString() == operList.get(operList.size() - 3).getOper())
+				OperRecord last = operList.get(operList.size() - 1);
+				if(last.getTotal() == 0)
 					continue;
-				break;
+				if(last.getDate_()!=null && last.getDate_().equals(someDay.date_)) //昨天决定今天买，今天不能卖
+					continue;
+				
+				
+				BigDecimal price_l = new BigDecimal(someDay.low);
+				int total_l = last.getTotal();
+				BigDecimal gain_l = price_l.multiply(new BigDecimal(total_l));
+				date = someDay.date_;
+				int num_l = 0;
+				BigDecimal sum_l = BigDecimal.ZERO;
+				
+				// *********** 最简单的资金管理，赚10%即卖
+				if (i == all.size() - 2) {//最后一天，全卖
+					num_l = total_l;
+				} else if(gain_l.doubleValue() > cost.doubleValue() * 1) {
+					num_l = total_l;
+				} else if(gain_l.doubleValue() < cost.doubleValue() * 0.9) {
+					num_l = (int)Math.floor(total_l/2); //向上取整
+				} else if(gain_l.doubleValue() < cost.doubleValue() * 0.8) {
+					num_l = total_l; //向上取整
+				}
+				
+				if(num_l > 0) {
+					sum_l = price_l.multiply(new BigDecimal(num_l));
+					remain = remain.add(sum_l);//remain += -sum; //买是付钱，用负表示
+					cost = cost.multiply(new BigDecimal(total_l - num_l/total_l));
+					operList.add(new OperRecord(++sn, hcode, eStockOper.Sell.toString(), num_l, price_l, sum_l, total_l-num_l, remain, date));
+				}
+				
+//				double average = last.getRemain().divide(new BigDecimal(last.getTotal())).abs().doubleValue();
+//				double low = Double.parseDouble(someDay.low);
+//				int total_l = last.getTotal();
+//				BigDecimal gain_l = BigDecimal.ZERO;
+//				
+//				//今天价格大于最后一次买的价格，采取赢利判断。（虽然今天价格大于最后价格，但可能小于平均价格）
+//				if(low > last.getPrice().doubleValue()) {
+//					gain_l = new BigDecimal(someDay.low).multiply(new BigDecimal(total_l)).subtract(last.getRemain().abs());
+//					if(gain_l.doubleValue() > gain.doubleValue()) 
+//						gain = gain_l;
+//					//else if(gain > 0){
+//						
+//					//}
+//				}
+//				
+//				//情况1，买后就下跌
+//				if(low <= average * 0.8) {
+//					num = total_l;
+//				} else if(low <= average * 0.85) {
+//					num = (int)Math.floor(total_l/2); //向上取整
+//				} else if(low <= average * 0.9) {
+//					num = (int)Math.floor(total_l/2); //向上取整
+//				} 
+				
+				continue;
 			}
+			
+			//最后一天卖，所以前一天计算出来也不买。（这里最后一天是指倒数第二天）
+			if(i == all.size() - 3) {
+				logger.debug(hcode + " last 2 " + someDay.date_);
+				continue;
+			}
+			if(i == all.size() - 2) {
+				logger.debug(hcode + " last 1 " + someDay.date_);
+				continue;
+			}
+
+			
+			//只取买入时机
+			symbol = 1;
+
+			//输出前后2天，共5天的k线
+//			logger.info(String.format("%s:(%s, %s),%s:(%s, %s),%s:(%s, %s),%s:(%s, %s),%s:(%s, %s)", 
+//					all.get(i - 2).date_, all.get(i - 2).low,all.get(i - 2).high, 
+//					all.get(i - 1).date_, all.get(i - 1).low, all.get(i - 1).high, 
+//					all.get(i).date_, all.get(i).low, all.get(i).high,
+//					all.get(i + 1).date_, all.get(i + 1).low, all.get(i + 1).high, 
+//					all.get(i + 2).date_, all.get(i + 2).low, all.get(i + 2).high));
+
+			//第二天最差价格买
+			price = new BigDecimal(nextDay.high);
+			date = nextDay.date_;
+			
+			//每次买1个单位
+			num = one;
 
 			total += symbol * num;
 			sum = price.multiply(new BigDecimal(symbol * num));//symbol * price * num;
@@ -203,7 +215,8 @@ public class AnalysisService {
 				continue;
 			}
 			remain = remain.subtract(sum);//remain += -sum; //买是付钱，用负表示
-			operList.add(new OperRecord(sn, hcode, result.toString(), one, price, sum, total, remain, date));
+			cost = cost.add(sum);
+			operList.add(new OperRecord(++sn, hcode, result.toString(), num, price, sum, total, remain, date));
 
 		} //end for
 		g_operListMap.put(hcode, operList);
@@ -453,6 +466,167 @@ public class AnalysisService {
 		for (int i = 0; i < list.size(); i++) {
 			list.get(i).sn = i;
 		}
+	}
+
+	/**
+	 * 生成此 code 的所有操作数据
+	 * @param hcode
+	 * @throws SQLException
+	 */
+	public void compute_old(String hcode) throws SQLException {
+		List<StockDay> all = null;
+		List<OperRecord> operList = new ArrayList<OperRecord>();
+
+		if (c_sellAllDate != null)
+			all = stockAnalysisDao.getDayCache(hcode, c_startDate, c_endDate);
+		else
+			all = stockAnalysisDao.getDay(hcode, c_startDate, c_endDate);
+
+		if (all.size() < 50) {
+			//logger.error("数据太少，只有：" + all.size());
+			return;
+		}
+
+		this.addSequence(all);
+
+		BigDecimal price = BigDecimal.ZERO;
+		BigDecimal sum = BigDecimal.ZERO;
+		int num = 0;
+		int total = 0;
+		BigDecimal remain = BigDecimal.ZERO;
+		int symbol = 1; //表示正负
+		int sn = 0;
+		Date date = new Date();
+
+		simulator.reset();
+
+		for (int i = 0; i < all.size() - 1; i++) {
+			StockDay someDay = all.get(i);
+			StockDay nextDay = all.get(i + 1);
+
+			if (c_sellAllDate != null && c_sellAllDate.compareTo(nextDay.date_.toString()) < 0)
+				break;
+			if (c_sellAllDate != null && c_sellAllDate.equals(nextDay.date_.toString())) {
+				//如果明天要卖，取消今天的操作。因为今天的操作是以今天的最后结果来决定的。
+				if (operList.size() > 0) {
+					OperRecord rec = operList.get(operList.size() - 1);
+					if (rec.getTotal() > 0) {
+						num = rec.getTotal();
+						total = 0;
+
+						price = new BigDecimal(nextDay.low);
+						symbol = -1;
+						sum = price.multiply(new BigDecimal(symbol * num));
+						remain = remain.subtract(sum);//remain += -sum; //买是付钱，用负表示
+						date = nextDay.date_;
+						operList.add(new OperRecord(sn, hcode, eStockOper.Sell.toString(), num, price, sum, total,
+								remain, date));
+						break;
+					}
+				}
+
+			}
+
+			StockDay tmp = new StockDay();
+			eStockOper result = simulator.handle(someDay, nextDay, tmp);
+			//eStockOper result = simulator.handle_old(someDay);
+
+			if (result == eStockOper.None)
+				continue;
+
+			if (operList.size() == 0 && result != eStockOper.Buy) {
+				//第一次必须是买
+				continue;
+			}
+
+			sn++;
+
+			//如果能在第二天以中间价处理，结果会理想很多
+			if (result == eStockOper.Buy) {
+				switch (c_priceStrategy) {
+				case 1: //第二天最差价格交易
+					price = new BigDecimal(nextDay.high);
+					date = nextDay.date_;
+					break;
+				case 2://今天最差价格
+					price = new BigDecimal(someDay.high);
+					date = someDay.date_;
+					break;
+				case 3://第二天中间价格
+					price = new BigDecimal(nextDay.high).add(new BigDecimal(nextDay.low)).divide(new BigDecimal(2));
+					date = nextDay.date_;
+					break;
+				case 4:
+					price = new BigDecimal(tmp.low);
+					break;
+				default:
+				}
+				//price = (Double.parseDouble(nextDay.high) + Double.parseDouble(nextDay.low)) / 2;
+				symbol = 1;
+			} else if (result == eStockOper.Sell) {
+				switch (c_priceStrategy) {
+				case 1: //第二天最差价格交易
+					price = new BigDecimal(nextDay.low);
+					date = nextDay.date_;
+					break;
+				case 2://今天最差价格
+					price = new BigDecimal(someDay.low);
+					date = someDay.date_;
+					break;
+				case 3://第二天中间价格
+					price = new BigDecimal(nextDay.high).add(new BigDecimal(nextDay.low)).divide(new BigDecimal(2));
+					date = nextDay.date_;
+					break;
+				case 4:
+					price = new BigDecimal(tmp.high);
+					break;
+				default:
+				}
+				//price = (Double.parseDouble(nextDay.high) + Double.parseDouble(nextDay.low)) / 2;
+				symbol = -1;
+			}
+
+			switch (strategy) {
+			case One:
+				//每次操作一单位
+				num = one;
+				break;
+			case OneBuyOneSell:
+				//严格执行一买一卖，不然放弃
+				if (operList.size() != 0 && result.toString() == operList.get(operList.size() - 1).getOper())
+					//if (operList.size() > 1 && result.toString() == operList.get(operList.size() - 1).getOper()
+					//		&& result.toString() == operList.get(operList.size() - 2).getOper())
+					continue;
+				num = one;
+			case Double:
+				//第二次出现相同操作（如连续第二次买），则执行2倍的量
+				num = one;
+				if (operList.size() != 0 && result.toString() == operList.get(operList.size() - 1).getOper())
+					num = one * 2;
+				if (operList.size() > 1 && result.toString() == operList.get(operList.size() - 1).getOper()
+						&& result.toString() == operList.get(operList.size() - 2).getOper())
+					num = one * 4;
+				if (operList.size() > 2 && result.toString() == operList.get(operList.size() - 1).getOper()
+						&& result.toString() == operList.get(operList.size() - 2).getOper()
+						&& result.toString() == operList.get(operList.size() - 3).getOper())
+					continue;
+				break;
+			}
+
+			total += symbol * num;
+			sum = price.multiply(new BigDecimal(symbol * num));//symbol * price * num;
+
+			if (total < 0) {
+				total = 0;
+				continue;
+			}
+			remain = remain.subtract(sum);//remain += -sum; //买是付钱，用负表示
+			operList.add(new OperRecord(sn, hcode, result.toString(), one, price, sum, total, remain, date));
+
+		} //end for
+		g_operListMap.put(hcode, operList);
+
+		this.computeOperSum(hcode, operList);
 	}
 
 }

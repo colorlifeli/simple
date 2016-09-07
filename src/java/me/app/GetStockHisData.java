@@ -7,6 +7,11 @@ import me.net.StockSourceImpl1;
 
 public class GetStockHisData {
 
+	/**
+	 * 2013.01.01 - 2016-05-18
+	 * 
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 

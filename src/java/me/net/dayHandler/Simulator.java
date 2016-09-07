@@ -66,6 +66,104 @@ public class Simulator {
 		return eStockOper.None;
 	}
 
+	public eStockOper handle2(StockDay day) {
+		eStockOper operation = eStockOper.None;
+		if (!analyzer.includeOne(his, day)) {
+			//不需要独立k线，似乎结果更好
+			String type = analyzer.recognizeTypeOne(his, day, Constant.simulate.isNeedK);
+
+			//对分型进行处理，必须是顶底交叉，从而可以形成笔
+			if (type != null) {
+
+				Point lastP = null;
+				if (points.size() > 0)
+					lastP = points.peek();
+
+				Point point = new Point();
+				point.type = type;
+				point.sn = his.get(his.size() - 1).sn;
+
+				if (eStockDayFlag.TOP.toString().equals(type)) {
+					//同为顶点，选取高的那个，去除另一个
+					point.value = his.get(his.size() - 1).high;
+					if (lastP == null) {
+						points.push(point);
+
+						info.addPoint(point.value);
+					} else if (lastP.type.equals(type)
+							&& Double.parseDouble(point.value) > Double.parseDouble(lastP.value)) {
+						//新顶点更高
+						points.pop();
+						points.push(point);
+
+						info.reassignPoint(point.value);
+					} else if (!lastP.type.equals(type)
+							&& Double.parseDouble(point.value) > Double.parseDouble(lastP.value)) {
+						//和上一个分型不一样，则要判断是否符合顶高于底
+						points.push(point);
+
+						info.addPoint(point.value);
+					}
+
+				} else if (eStockDayFlag.BOTTOM.toString().equals(type)) {
+					point.value = his.get(his.size() - 1).low;
+					if (lastP == null) {
+						points.push(point);
+
+						info.addPoint(point.value);
+					} else if (lastP.type.equals(type)
+							&& Double.parseDouble(point.value) < Double.parseDouble(lastP.value)) {
+						//新底更低
+						points.pop();
+						points.push(point);
+
+						info.reassignPoint(point.value);
+					} else if (!lastP.type.equals(type)
+							&& Double.parseDouble(point.value) < Double.parseDouble(lastP.value)) {
+						//和上一个分型不一样，则要判断是否符合顶高于底
+						points.push(point);
+
+						info.addPoint(point.value);
+					}
+				}
+
+				//logger.debug("point:{},{},{},{}", point.value, point.type, point.sn,
+				//		String.format("%.2f", point.degree));
+			}
+
+			boolean result = false;
+			if (eStockDayFlag.TOP.toString().equals(type) || eStockDayFlag.BOTTOM.toString().equals(type)) {
+				result = info.makeNewCentral();
+			}
+
+			his.add(day);
+
+			if (result && type != null && info.centrals.size() > 0) {
+				int pos = info.centrals.get(info.centrals.size() - 1).position;
+				//趋势向下，且当前的分型是顶分型，则看顶是否大于中枢，是则卖.
+				//暂改为今天是否大于中枢，是则以中枢顶点价格卖
+				//				if (pos > 0
+				//						//&& type.equals(eStockDayFlag.TOP.toString())
+				//						&& Double.parseDouble(day.high) > Double
+				//								.parseDouble(info.centrals.get(info.centrals.size() - 1).high)) {
+				//					operation = eStockOper.Sell;
+				//
+				//				}
+				if (pos < 0
+				&& type.equals(eStockDayFlag.BOTTOM.toString())
+						//&& Double.parseDouble(day.low) < Double
+						//		.parseDouble(info.centrals.get(info.centrals.size() - 1).low)
+						) {
+					operation = eStockOper.Buy;
+
+				}
+
+			}
+
+		}
+		return operation;
+	}
+
 	public eStockOper handle(StockDay day, StockDay nextDay, StockDay tmp) {
 
 		eStockOper operation = eStockOper.None;

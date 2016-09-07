@@ -137,4 +137,30 @@ public class Util {
 		}
 
 	}
+
+	/**
+	 * 取较大值。针对String 类型的数字
+	 * @param num1
+	 * @param num2
+	 * @return
+	 */
+	public static String max(String num1, String num2) {
+		if (Double.parseDouble(num1) > Double.parseDouble(num2))
+			return num1;
+		else
+			return num2;
+	}
+
+	/**
+	 * 取较小值。针对String 类型的数字
+	 * @param num1
+	 * @param num2
+	 * @return
+	 */
+	public static String min(String num1, String num2) {
+		if (Double.parseDouble(num1) < Double.parseDouble(num2))
+			return num1;
+		else
+			return num2;
+	}
 }
