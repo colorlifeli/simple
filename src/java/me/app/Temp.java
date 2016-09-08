@@ -65,7 +65,7 @@ public class Temp {
 		//service.computeAll();
 
 		try {
-			List<String> codes = stockSourceDao.getAllAvailableCodes(100, eStockSource.YAHOO);
+			List<String> codes = stockSourceDao.getAllAvailableCodes(0, eStockSource.YAHOO);
 			for (String code : codes) {
 				service.compute(code);
 

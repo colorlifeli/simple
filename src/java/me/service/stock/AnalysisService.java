@@ -83,34 +83,12 @@ public class AnalysisService {
 
 		simulator.reset();
 
-		for (int i = 0; i < all.size() - 1; i++) {
+		for (int i = 0; i <= all.size() - 1; i++) {
 			StockDay someDay = all.get(i);
-			StockDay nextDay = all.get(i + 1);
+			StockDay nextDay = new StockDay();
+			if(i != all.size() - 1)
+				nextDay = all.get(i + 1);
 
-			if (c_sellAllDate != null && c_sellAllDate.compareTo(nextDay.date_.toString()) < 0)
-				break;
-			if (c_sellAllDate != null && c_sellAllDate.equals(nextDay.date_.toString())) {
-				//如果明天要卖，取消今天的操作。因为今天的操作是以今天的最后结果来决定的。
-				if (operList.size() > 0) {
-					OperRecord rec = operList.get(operList.size() - 1);
-					if (rec.getTotal() > 0) {
-						num = rec.getTotal();
-						total = 0;
-
-						price = new BigDecimal(nextDay.low);
-						symbol = -1;
-						sum = price.multiply(new BigDecimal(symbol * num));
-						remain = remain.subtract(sum);//remain += -sum; //买是付钱，用负表示
-						date = nextDay.date_;
-						operList.add(new OperRecord(sn, hcode, eStockOper.Sell.toString(), num, price, sum, total,
-								remain, date));
-						break;
-					}
-				}
-
-			}
-
-			StockDay tmp = new StockDay();
 			eStockOper result = simulator.handle2(someDay);
 			//eStockOper result = simulator.handle_old(someDay);
 
@@ -135,12 +113,12 @@ public class AnalysisService {
 				// *********** 最简单的资金管理，赚10%即卖
 				if (i == all.size() - 2) {//最后一天，全卖
 					num_l = total_l;
-				} else if (gain_l.doubleValue() > cost.doubleValue() * 1.1) {
+				} else if (gain_l.doubleValue() > cost.doubleValue() * 1) {
 					num_l = total_l;
 				} else if (gain_l.doubleValue() < cost.doubleValue() * 0.9) {
-					//num_l = (int) Math.ceil((double)total_l / 2); //进位取整
+					num_l = (int) Math.ceil((double)total_l / 2); //进位取整
 				} else if (gain_l.doubleValue() < cost.doubleValue() * 0.8) {
-					//num_l = total_l; //向上取整
+					num_l = total_l; //向上取整
 				}
 
 				if (num_l > 0) {
@@ -185,11 +163,11 @@ public class AnalysisService {
 			}
 
 			//最后一天卖，所以前一天计算出来也不买。（这里最后一天是指倒数第二天）
-			if (i == all.size() - 3) {
-				logger.debug(hcode + " last 2 " + someDay.date_);
+			if (i == all.size() - 2) {
+				//logger.debug(hcode + " last 2 " + someDay.date_);
 				continue;
 			}
-			if (i == all.size() - 2) {
+			if (i == all.size() - 1) {
 				logger.debug(hcode + " last 1 " + someDay.date_);
 				continue;
 			}
@@ -282,10 +260,10 @@ public class AnalysisService {
 		g_operSumList.add(operSum);
 
 		if(lastRemain.doubleValue() < 0) {
-		logger.info(operSum.toString());
-			for(OperRecord record : operList) {
-				logger.debug(record.toString());
-			}
+//			logger.info(operSum.toString());
+//			for(OperRecord record : operList) {
+//				logger.debug(record.toString());
+//			}
 		}
 	}
 
