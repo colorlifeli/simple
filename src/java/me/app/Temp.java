@@ -65,12 +65,12 @@ public class Temp {
 		//service.computeAll();
 
 		try {
-			List<String> codes = stockSourceDao.getAllAvailableCodes(0, eStockSource.YAHOO);
+			List<String> codes = stockSourceDao.getAllAvailableCodes(100, eStockSource.YAHOO);
 			for (String code : codes) {
 				service.compute(code);
 
 			}
-			
+
 			try {
 				System.out.println(service.summary(false));
 			} catch (Exception e) {
@@ -81,7 +81,7 @@ public class Temp {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void testAnalysisService3() {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 

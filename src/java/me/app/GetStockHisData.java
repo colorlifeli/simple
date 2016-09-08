@@ -8,7 +8,7 @@ import me.net.StockSourceImpl1;
 public class GetStockHisData {
 
 	/**
-	 * 2013.01.01 - 2016-05-18
+	 * 2013.01.01 - 2016-05-19
 	 * 
 	 * @param args
 	 */
@@ -20,7 +20,7 @@ public class GetStockHisData {
 
 		long start = System.currentTimeMillis();
 
-		impl.getHistoryAll(null, null);
+		impl.getHistoryAll("20160520", null);
 		//impl.getHistoryRemain(null, null);
 
 		long end = System.currentTimeMillis();
