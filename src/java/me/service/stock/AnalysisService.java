@@ -9,9 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import me.common.annotation.IocAnno.Ioc;
 import me.common.jdbcutil.Page;
 import me.common.util.Util;
@@ -24,6 +21,9 @@ import me.net.dayHandler.Simulator;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AnalysisService {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -103,7 +103,7 @@ public class AnalysisService {
 				if (last.getDate_() != null && last.getDate_().equals(someDay.date_)) //昨天决定今天买，今天不能卖
 					continue;
 
-				BigDecimal price_l = new BigDecimal(someDay.low);
+				BigDecimal price_l = new BigDecimal(someDay.high);
 				int total_l = last.getTotal();
 				BigDecimal gain_l = price_l.multiply(new BigDecimal(total_l));
 				date = someDay.date_;
@@ -116,9 +116,9 @@ public class AnalysisService {
 				} else if (gain_l.doubleValue() > cost.doubleValue() * 1) {
 					num_l = total_l;
 				} else if (gain_l.doubleValue() < cost.doubleValue() * 0.9) {
-					num_l = (int) Math.ceil((double)total_l / 2); //进位取整
+//					num_l = (int) Math.ceil((double)total_l / 2); //进位取整
 				} else if (gain_l.doubleValue() < cost.doubleValue() * 0.8) {
-					num_l = total_l; //向上取整
+//					num_l = total_l; 
 				}
 
 				if (num_l > 0) {
@@ -126,13 +126,13 @@ public class AnalysisService {
 					remain = remain.add(sum_l);//remain += -sum; //买是付钱，用负表示
 					cost = cost.multiply(new BigDecimal(total_l - num_l / total_l));
 					//输出前后2天，共5天的k线
-//					logger.info(String.format("%s:(%s, %s),%s:(%s, %s),%s:(%s, %s),%s:(%s, %s)",
-//							all.get(i - 2).date_, all.get(i - 2).low, all.get(i - 2).high, all.get(i - 1).date_,
-//							all.get(i - 1).low, all.get(i - 1).high, all.get(i).date_, all.get(i).low, all.get(i).high,
-//							all.get(i + 1).date_, all.get(i + 1).low, all.get(i + 1).high));
 					operList.add(new OperRecord(++sn, hcode, eStockOper.Sell.toString(), num_l, price_l, sum_l,
 							total_l - num_l, remain, date));
-					//logger.debug(operList.get(operList.size() - 1).toString());
+//					logger.info(String.format("%s:(%s, %s),%s:(%s, %s),%s:(%s, %s),%s:(%s, %s)",
+//					all.get(i - 2).date_, all.get(i - 2).low, all.get(i - 2).high, all.get(i - 1).date_,
+//					all.get(i - 1).low, all.get(i - 1).high, all.get(i).date_, all.get(i).low, all.get(i).high,
+//					i==all.size()-1?"":all.get(i + 1).date_, i==all.size()-1?"":all.get(i + 1).low, i==all.size()-1?"":all.get(i + 1).high));
+//					logger.debug(operList.get(operList.size() - 1).toString());
 				}
 
 				//				double average = last.getRemain().divide(new BigDecimal(last.getTotal())).abs().doubleValue();
@@ -168,7 +168,7 @@ public class AnalysisService {
 				continue;
 			}
 			if (i == all.size() - 1) {
-				logger.debug(hcode + " last 1 " + someDay.date_);
+				//logger.debug(hcode + " last 1 " + someDay.date_);
 				continue;
 			}
 
@@ -176,11 +176,7 @@ public class AnalysisService {
 			symbol = 1;
 
 			//输出前后2天，共5天的k线
-//			logger.info(String.format("%s:(%s, %s),%s:(%s, %s),%s:(%s, %s),%s:(%s, %s),%s:(%s, %s)",
-//					all.get(i - 2).date_, all.get(i - 2).low, all.get(i - 2).high, all.get(i - 1).date_,
-//					all.get(i - 1).low, all.get(i - 1).high, all.get(i).date_, all.get(i).low, all.get(i).high,
-//					all.get(i + 1).date_, all.get(i + 1).low, all.get(i + 1).high, all.get(i + 2).date_,
-//					all.get(i + 2).low, all.get(i + 2).high));
+
 
 			//第二天最差价格买
 			price = new BigDecimal(nextDay.high);
@@ -189,7 +185,10 @@ public class AnalysisService {
 			//每次买1个单位
 			num = one;
 
-			total += symbol * num;
+			if(operList.size() > 0) {
+				total = operList.get(operList.size() -1 ).getTotal() + symbol * num;
+			} else
+				total = symbol * num;
 			sum = price.multiply(new BigDecimal(symbol * num));//symbol * price * num;
 
 			if (total < 0) {
@@ -199,7 +198,12 @@ public class AnalysisService {
 			remain = remain.subtract(sum);//remain += -sum; //买是付钱，用负表示
 			cost = cost.add(sum);
 			operList.add(new OperRecord(++sn, hcode, result.toString(), num, price, sum, total, remain, date));
-			//logger.debug(operList.get(operList.size() - 1).toString());
+//			logger.info(String.format("%s:(%s, %s),%s:(%s, %s),%s:(%s, %s),%s:(%s, %s),%s:(%s, %s)",
+//					all.get(i - 2).date_, all.get(i - 2).low, all.get(i - 2).high, all.get(i - 1).date_,
+//					all.get(i - 1).low, all.get(i - 1).high, all.get(i).date_, all.get(i).low, all.get(i).high,
+//					all.get(i + 1).date_, all.get(i + 1).low, all.get(i + 1).high, all.get(i + 2).date_,
+//					all.get(i + 2).low, all.get(i + 2).high));
+//			logger.debug(operList.get(operList.size() - 1).toString());
 
 		} //end for
 		g_operListMap.put(hcode, operList);
