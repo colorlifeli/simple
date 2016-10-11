@@ -43,7 +43,7 @@ public class StockAnalysisDao {
 	 */
 	public List<StockDay> getDay(String code, String startDate, String endDate) throws SQLException {
 
-		String sql = "SELECT * FROM STO_DAY_TMP where code=?";
+		String sql = "SELECT * FROM STO_DAY_TMP2 where code=?";
 		List<Object> params = new ArrayList<Object>();
 		params.add(code);
 
