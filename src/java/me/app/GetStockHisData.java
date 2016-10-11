@@ -26,6 +26,9 @@ public class GetStockHisData {
 
 		long end = System.currentTimeMillis();
 		System.out.println("use time:" + (end - start));
+		
+		H2Helper.close(SqlRunner.me().getConn());
+		System.exit(0);
 	}
 
 }

@@ -54,6 +54,8 @@ public class Temp {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		
+		H2Helper.close(SqlRunner.me().getConn());
 	}
 
 	public void testAnalysisService2() {
@@ -80,6 +82,8 @@ public class Temp {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		
+		H2Helper.close(SqlRunner.me().getConn());
 	}
 
 	public void testAnalysisService3() {
@@ -96,6 +100,8 @@ public class Temp {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		H2Helper.close(SqlRunner.me().getConn());
 	}
 
 	public void tmp() throws Exception {

@@ -6,13 +6,17 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.annotation.IocAnno.Ioc;
 import me.net.dao.StockSourceDao;
 import me.net.model.StockDay;
 import me.net.supplier.IStockSupplier;
 
 public class StockSourceImpl2 implements StockSource {
-	
+
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Ioc(name = "sinaHisSupplier")
 	private IStockSupplier history_supplier;
@@ -75,6 +79,7 @@ public class StockSourceImpl2 implements StockSource {
 
 					start += each;
 				}
+				logger.debug("process: " + start);
 			}
 			
 		} catch (SQLException e) {
