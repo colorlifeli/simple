@@ -8,9 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import me.common.SimpleException;
 import me.common.jdbcutil.ArrayHandler;
 import me.common.jdbcutil.ArrayListHandler;
@@ -22,6 +19,9 @@ import me.common.util.Util;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StockAnalysisDao {
 
@@ -43,7 +43,7 @@ public class StockAnalysisDao {
 	 */
 	public List<StockDay> getDay(String code, String startDate, String endDate) throws SQLException {
 
-		String sql = "SELECT * FROM STO_DAY_TMP where code=?";
+		String sql = "SELECT * FROM STO_DAY_TMP2 where code=?";
 		List<Object> params = new ArrayList<Object>();
 		params.add(code);
 

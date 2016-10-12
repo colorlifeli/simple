@@ -37,6 +37,8 @@ public class SinaHisSupplier implements IStockSupplier {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	private final String url = "http://vip.stock.finance.sina.com.cn/corp/go.php/vMS_FuQuanMarketHistory/stockid/%s.phtml?year=%s&jidu=%s";
+	//指数的url不一样
+	private final String url_index = "http://vip.stock.finance.sina.com.cn/corp/go.php/vMS_MarketHistory/stockid/%s/type/S.phtml?year=%s&jidu=%s";
 
 	@Override
 	public List<?> getData(List<String> codes, Object... obj) {
