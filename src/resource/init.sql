@@ -24,15 +24,16 @@ flag varchar(2)
 
 create table sto_day (
 code varchar(10),
-date_ date,open_ varchar(15),high varchar(15),low varchar(15),close_ varchar(15),volume varchar(20),
+date_ date,open_ varchar(15),high varchar(15),low varchar(15),close_ varchar(15),volume varchar(20),factor varchar(15),
 source varchar(10),
 PRIMARY KEY(code,date_)
 );
 
 create table sto_day_tmp (
 code varchar(10),
-date_ date,open_ varchar(15),high varchar(15),low varchar(15),close_ varchar(15),volume varchar(20),
-source varchar(10)
+date_ date,open_ varchar(15),high varchar(15),low varchar(15),close_ varchar(15),volume varchar(20),factor varchar(15),
+source varchar(10),
+PRIMARY KEY(code,date_)
 );
 
 create table sto_code (

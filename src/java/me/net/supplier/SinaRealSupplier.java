@@ -1,4 +1,4 @@
-package me.net;
+package me.net.supplier;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  * @author James
  *
  */
-public class SinaSourceService implements StockSupplier {
+public class SinaRealSupplier implements IStockSupplier {
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 

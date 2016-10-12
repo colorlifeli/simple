@@ -6,9 +6,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import me.common.jdbcutil.ArrayHandler;
 import me.common.jdbcutil.ArrayListHandler;
 import me.common.jdbcutil.BeanListHandler;
@@ -18,6 +15,9 @@ import me.net.NetType.eStockSource;
 import me.net.model.Item;
 import me.net.model.RealTime;
 import me.net.model.StockDay;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StockSourceDao {
 
@@ -352,6 +352,24 @@ public class StockSourceDao {
 			e.printStackTrace();
 		}
 	}
+	
+	public void saveDayData2(List<StockDay> list) {
+		if (list == null || list.size() == 0) {
+			logger.info("saveDayData2: list is empty");
+			return;
+		}
+		String sql = "insert into sto_day_tmp2 (code,date_,open_,high,low,close_,volume,factor,source) values (?,?,?,?,?,?,?,?,?)";
+		Object[][] params = new Object[list.size()][];
+		for (int i = 0; i < list.size(); i++) {
+			params[i] = list.get(i).toObjectArray2();
+		}
+		try {
+			sqlrunner.insertBatch(sql, new ArrayHandler(), params);
+		} catch (SQLException e) {
+			logger.error("批量插入每日数据失败.");
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * 将实时数据转为日数据
@@ -418,7 +436,7 @@ public class StockSourceDao {
 
 		String sql = "insert into sto_day_tmp(code,date_,open_,high,low,close_,volume,source) "
 				+ "SELECT '%s',date,open,high,low,close,volume,'%s' FROM CSVREAD('%s')";
-		String source = "yahoo";
+		String source = eStockSource.YAHOO.toString();
 		int i = 0;
 		for (Item item : items) {
 			String url = item.getValue();
@@ -479,6 +497,7 @@ public class StockSourceDao {
 
 		return strs;
 	}
+	
 
 	// class SourceVar {
 	// TypeUtil.StockSource realSource;

@@ -15,6 +15,7 @@ public class StockDay implements Serializable {
 	public String low;
 	public String close_;
 	public String volume;
+	public String factor; //复权因子
 	public String source;
 	public String flag;
 	public int sn;
@@ -44,6 +45,15 @@ public class StockDay implements Serializable {
 	 */
 	public Object[] toObjectArray() {
 		return new Object[] { this.code, this.date_, this.open_, this.high, this.low, this.close_, this.volume,
+				this.source };
+	}
+	
+	/**
+	 * 得到一个按顺序的对象数组
+	 * @return
+	 */
+	public Object[] toObjectArray2() {
+		return new Object[] { this.code, this.date_, this.open_, this.high, this.low, this.close_, this.volume,this.factor,
 				this.source };
 	}
 
@@ -77,5 +87,9 @@ public class StockDay implements Serializable {
 
 	public void setSource(String source) {
 		this.source = source;
+	}
+
+	public void setFactor(String factor) {
+		this.factor = factor;
 	}
 }

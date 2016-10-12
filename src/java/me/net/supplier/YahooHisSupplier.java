@@ -1,4 +1,4 @@
-package me.net;
+package me.net.supplier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +8,7 @@ import me.net.model.Item;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class YahooSourceService implements StockSupplier {
+public class YahooHisSupplier implements IStockSupplier {
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 

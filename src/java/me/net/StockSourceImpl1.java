@@ -6,9 +6,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.TypeUtil;
 import me.net.NetType.eStockCodeFlag;
@@ -17,6 +14,10 @@ import me.net.dao.StockSourceDao;
 import me.net.model.Item;
 import me.net.model.RealTime;
 import me.net.model.StockDay;
+import me.net.supplier.IStockSupplier;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 本实现类，
@@ -28,10 +29,10 @@ public class StockSourceImpl1 implements StockSource {
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	@Ioc(name = "sinaSourceService")
-	private StockSupplier realtime_supplier;
-	@Ioc(name = "yahooSourceService")
-	private StockSupplier history_supplier;
+	@Ioc(name = "sinaRealSupplier")
+	private IStockSupplier realtime_supplier;
+	@Ioc(name = "yahooHisSupplier")
+	private IStockSupplier history_supplier;
 	@Ioc
 	private StockSourceDao stockSourceDao;
 
@@ -407,19 +408,19 @@ public class StockSourceImpl1 implements StockSource {
 		}
 	}
 
-	public StockSupplier getRealtime_supplier() {
+	public IStockSupplier getRealtime_supplier() {
 		return realtime_supplier;
 	}
 
-	public void setRealtime_supplier(StockSupplier realtime_supplier) {
+	public void setRealtime_supplier(IStockSupplier realtime_supplier) {
 		this.realtime_supplier = realtime_supplier;
 	}
 
-	public StockSupplier getHistory_supplier() {
+	public IStockSupplier getHistory_supplier() {
 		return history_supplier;
 	}
 
-	public void setHistory_supplier(StockSupplier history_supplier) {
+	public void setHistory_supplier(IStockSupplier history_supplier) {
 		this.history_supplier = history_supplier;
 	}
 

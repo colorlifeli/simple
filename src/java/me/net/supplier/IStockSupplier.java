@@ -1,4 +1,4 @@
-package me.net;
+package me.net.supplier;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ import java.util.List;
  * @author James
  *
  */
-public interface StockSupplier {
+public interface IStockSupplier {
 
 	/**
 	 * 根据stock代码获取数据

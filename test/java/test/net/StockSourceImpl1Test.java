@@ -15,11 +15,11 @@ import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
 import me.common.util.NetUtil;
 import me.net.NetType.eStockSource;
-import me.net.SinaSourceService;
 import me.net.StockSourceImpl1;
-import me.net.YahooSourceService;
 import me.net.dao.StockSourceDao;
 import me.net.model.RealTime;
+import me.net.supplier.SinaRealSupplier;
+import me.net.supplier.YahooHisSupplier;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -34,8 +34,8 @@ import org.junit.runners.MethodSorters;
 public class StockSourceImpl1Test {
 
 	private StockSourceImpl1 impl = new StockSourceImpl1();
-	private SinaSourceService sina = new SinaSourceService();
-	private YahooSourceService yahoo = new YahooSourceService();
+	private SinaRealSupplier sina = new SinaRealSupplier();
+	private YahooHisSupplier yahoo = new YahooHisSupplier();
 	private StockSourceDao sourceDao = new StockSourceDao();
 
 	@Before
