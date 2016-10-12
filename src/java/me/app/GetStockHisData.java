@@ -3,7 +3,7 @@ package me.app;
 import me.common.internal.BeanContext;
 import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
-import me.net.StockSourceImpl1;
+import me.net.StockSourceImpl2;
 
 public class GetStockHisData {
 
@@ -16,11 +16,12 @@ public class GetStockHisData {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 
 		BeanContext bc = new BeanContext();
-		StockSourceImpl1 impl = (StockSourceImpl1) bc.getBean("stockSourceImpl1");
+		//StockSourceImpl1 impl = (StockSourceImpl1) bc.getBean("stockSourceImpl1");
+		StockSourceImpl2 impl = (StockSourceImpl2) bc.getBean("stockSourceImpl2");
 
 		long start = System.currentTimeMillis();
 
-		impl.getHistoryAll("20160520", null);
+		impl.getHistoryAll(null, null);
 		//impl.getHistoryRemain(null, null);
 
 		long end = System.currentTimeMillis();
