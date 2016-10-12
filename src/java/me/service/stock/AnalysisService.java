@@ -9,6 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.annotation.IocAnno.Ioc;
 import me.common.jdbcutil.Page;
 import me.common.util.Util;
@@ -21,9 +24,6 @@ import me.net.dayHandler.Simulator;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AnalysisService {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -259,7 +259,8 @@ public class AnalysisService {
 		StockOperSum operSum = new StockOperSum(buys, sells, times, winTimes, loseTimes, lastRemain, minRemain,
 				lastFlag);
 		operSum.setCode(hcode);
-		operSum.setName(stockAnalysisDao.getName(hcode.substring(0, hcode.length() - 3)));
+		//operSum.setName(stockAnalysisDao.getName(hcode.substring(0, hcode.length() - 3)));
+		operSum.setName(stockAnalysisDao.getName(hcode));
 
 		g_operSumList.add(operSum);
 
