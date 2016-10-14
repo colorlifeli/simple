@@ -40,13 +40,15 @@ public class AnalysisService {
 	private eStrategy strategy = eStrategy.OneBuyOneSell; //策略
 	private double abnormal = 20000; //绝对值超过这个值视为异常值
 	public int c_priceStrategy = 1; //以什么策略来交易：1:第二天最差价格，2：今天最差价格 3：第二天中间价格 4:按中枢价格
-	public String c_startDate = "2013-01-01"; //2013-01-01  2015-06-01
+	public String c_startDate = "2015-06-02"; //2013-01-01  2015-06-01
 	public String c_endDate = null;
 
 	public String c_sellAllDate = null; //在这一天全部卖出
 	//private boolean isPersistent = false;
 
 	private final int one = 10;
+	//不以量来买，以总价来买，更贴合实际
+	private final int oneAmount = 1000000;
 
 	private Map<String, List<OperRecord>> g_operListMap = new HashMap<String, List<OperRecord>>();
 	private List<StockOperSum> g_operSumList = new ArrayList<StockOperSum>();
@@ -137,9 +139,11 @@ public class AnalysisService {
 				if (i == all.size() - 1) {//最后一天，全卖
 					num_l = total_l;
 					sn = 998;
-				} else if (gain_l.doubleValue() > cost.doubleValue() * 1.1) {
+				} else if (gain_l.doubleValue() > cost.doubleValue() * 1.2) {
 					num_l = total_l;
 				} else if (gain_l.doubleValue() < cost.doubleValue() * 0.9) {
+					//logger.debug("0.9 do nothing : {},{},{}", hcode, date, num_l);
+					num_l = total_l;
 //					num_l = (int) Math.ceil((double)total_l / 2); //进位取整
 				} else if (gain_l.doubleValue() < cost.doubleValue() * 0.8) {
 					//num_l = (int) Math.ceil((double)total_l / 2); 
@@ -217,7 +221,9 @@ public class AnalysisService {
 			date = nextDay.date_;
 
 			//每次买1个单位
-			num = one;
+//			num = one;
+			// 以固定总价来买, 取一个整的数量，然后以这个数量来买。卖还是以量来卖 
+			num = oneAmount/price.toBigInteger().intValue();
 
 			if(operList.size() > 0) {
 				total = operList.get(operList.size() -1 ).getTotal() + symbol * num;
@@ -229,6 +235,7 @@ public class AnalysisService {
 				total = 0;
 				continue;
 			}
+			
 			remain = remain.subtract(sum);//remain += -sum; //买是付钱，用负表示
 			cost = cost.add(sum);
 			operList.add(new OperRecord(++sn, hcode, result.toString(), num, price, sum, total, remain, date));
@@ -366,8 +373,10 @@ public class AnalysisService {
 
 		}
 
+		//数值太大没什么意义，主要还是看比例
+		BigDecimal factor = new BigDecimal(10000);
 		return String.format("total:%s, win stocks:%s, lose:%s, last day sell stocks:%s, remain:%s, investment:%s, buys:%s, sells:%s, win times:%s, lose times:%s", 
-				operSumList.size(), win, lose, lastDaySell, allRecordsSum, investment, buys, sells, wins, loses);
+				operSumList.size(), win, lose, lastDaySell, allRecordsSum.divide(factor), investment.divide(factor), buys, sells, wins, loses);
 	}
 
 	/**

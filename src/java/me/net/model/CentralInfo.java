@@ -5,6 +5,9 @@ import java.util.List;
 
 import me.common.util.Util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * 中枢相关信息。
  * 
@@ -14,6 +17,8 @@ import me.common.util.Util;
  *
  */
 public class CentralInfo {
+	
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	//中枢列表
 	public List<Central> centrals;
@@ -109,8 +114,11 @@ public class CentralInfo {
 
 		if (points.size() == 4) {
 			//等于4，即上一个点执行过 makeCentral
-			if (isLastSuccess) //如果上一个点的 makeCentral成功的话，要将最后一个中枢删除，重新构建
+			if (isLastSuccess) //如果上一个点的 makeCentral成功的话，要将最后一个中枢删除，重新构建 
+			{
+				Central c_pre = centrals.get(centrals.size() - 1);
 				centrals.remove(centrals.size() - 1);
+			}
 		}
 	}
 

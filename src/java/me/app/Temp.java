@@ -20,8 +20,8 @@ public class Temp {
 	public static void main(String[] args) {
 		Temp tmp = new Temp();
 		try {
-			//tmp.testAnalysisService2();
-			tmp.testSellSomeDay();
+			tmp.testAnalysisService2();
+			//tmp.testSellSomeDay();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -96,6 +96,8 @@ public class Temp {
 		//service.computeAll();
 
 		try {
+			//600980 生成的中枢非常经典，posision由1，2，3，－1，4，4，5... 经查看是正确的。因为 －1 的 central 形成个，下一点是更高的点，要重新计算central，这时又与前一个central冲突，所以被抛弃了
+			//仅是从表面实在很难想象这个过程。所以正确的逻辑真的很重要！！
 			service.compute("600980");
 			//service.sellSomeday2();
 

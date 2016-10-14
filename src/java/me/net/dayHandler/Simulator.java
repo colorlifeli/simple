@@ -127,8 +127,8 @@ public class Simulator {
 					}
 				}
 
-				//logger.debug("point:{},{},{},{}", point.value, point.type, point.sn,
-				//		String.format("%.2f", point.degree));
+//				logger.debug("point:{}, {}, {}, {}, {}", point.value, point.type, point.sn,
+//						String.format("%.2f", point.degree), day.date_);
 			}
 
 			boolean result = false;
@@ -149,7 +149,7 @@ public class Simulator {
 				//					operation = eStockOper.Sell;
 				//
 				//				}
-				if (pos < 0
+				if (pos < -2
 				&& type.equals(eStockDayFlag.BOTTOM.toString())
 						//&& Double.parseDouble(day.low) < Double
 						//		.parseDouble(info.centrals.get(info.centrals.size() - 1).low)
@@ -158,6 +158,16 @@ public class Simulator {
 
 				}
 
+			} else if(type != null && info.centrals.size() > 0){
+				//没有产生中枢，但如果是底且比中枢的底还低，则买入
+				int pos = info.centrals.get(info.centrals.size() - 1).position;
+				if (pos < -2
+					&& type.equals(eStockDayFlag.BOTTOM.toString())
+							&& Double.parseDouble(day.high) < Double
+									.parseDouble(info.centrals.get(info.centrals.size() - 1).low)
+							) {
+					operation = eStockOper.Buy;
+				}
 			}
 
 		}
