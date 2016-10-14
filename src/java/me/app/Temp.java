@@ -20,7 +20,8 @@ public class Temp {
 	public static void main(String[] args) {
 		Temp tmp = new Temp();
 		try {
-			tmp.testAnalysisService2();
+			//tmp.testAnalysisService2();
+			tmp.testSellSomeDay();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -95,13 +96,24 @@ public class Temp {
 		//service.computeAll();
 
 		try {
-			//service.compute("603188.ss");
-			service.sellSomeday2();
+			service.compute("600980");
+			//service.sellSomeday2();
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
+		H2Helper.close(SqlRunner.me().getConn());
+	}
+	
+	public void testSellSomeDay() {
+		SqlRunner.me().setConn(H2Helper.connEmbededDb());
+
+		BeanContext bc = new BeanContext();
+		AnalysisService service = (AnalysisService) bc.getBean("analysisService");
+
+		service.sellSomeday3();
+
 		H2Helper.close(SqlRunner.me().getConn());
 	}
 
@@ -136,6 +148,7 @@ public class Temp {
 			System.out.println(i);
 		}
 	}
+	
 
 	class A {
 		int i = 0;

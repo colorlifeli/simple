@@ -75,7 +75,8 @@ public class KAction extends ActionIf {
 	private void showK(List<StockDay> list, String code) {
 		String stockName = "";
 		try {
-			stockName = stockAnalysisDao.getName(code.substring(0, code.length() - 3));
+			//stockName = stockAnalysisDao.getName(code.substring(0, code.length() - 3));
+			stockName = stockAnalysisDao.getName(code);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

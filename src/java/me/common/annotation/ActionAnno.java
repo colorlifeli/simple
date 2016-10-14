@@ -175,17 +175,28 @@ public class ActionAnno {
 			for (String key : params.keySet()) {
 
 				String[] values = params.get(key);
+				
+				Map<String, Object> filedInstances = new HashMap<String, Object>();
 
 				//参数名字是否包含 . 包含则认为是对象（如vo),而不是基本数据类型
-				String[] namePart = key.split(".");
+				String[] namePart = key.split("\\.");
 				if (namePart.length > 1) {
+					//字段 是对象，则要 new 一个实例，以保证和这个action之前的调用没有关系。
+					//对象有多个字段，但实例只可以创建一次。
 					Field field = null;
 					try {
 						field = action.getClass().getDeclaredField(namePart[0]);
 						field.setAccessible(true);
+						
+						Object instance = filedInstances.get(field.getName());
+						if(null == instance) {
+							instance = field.getType().newInstance();
+							field.set(action, instance);
+							filedInstances.put(field.getName(), instance);
+						}
 
-						Object fieldObj = field.get(action);
-						TypeUtil.setField(fieldObj, namePart[1], values);
+						//Object fieldObj = field.get(action);
+						TypeUtil.setField(instance, namePart[1], values);
 
 					} catch (NoSuchFieldException nfe) {
 						logger.debug(String.format("找不到field. field:%s, action:%s ", key, actionName));
@@ -200,7 +211,7 @@ public class ActionAnno {
 					try {
 						TypeUtil.setField(action, key, values);
 					} catch (NoSuchFieldException nfe) {
-						logger.debug(String.format("找不到field. field:%s, action:%s ", key, actionName));
+						//logger.debug(String.format("找不到field. field:%s, action:%s ", key, actionName));
 					} catch (Exception e) {
 						logger.error(String.format("赋值失败. field:%s, action:%s ", key, actionName));
 					}

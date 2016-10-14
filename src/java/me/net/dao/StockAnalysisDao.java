@@ -74,7 +74,7 @@ public class StockAnalysisDao {
 	 */
 	public List<StockDay> getDayCache(String code, String startDate, String endDate) throws SQLException {
 
-		if (all.size() > 10000) {
+		if (all.size() > 3000) {
 			//缓存太大
 			for (Entry<String, List<StockDay>> entry : all.entrySet()) {
 				entry.getValue().clear();
@@ -87,7 +87,7 @@ public class StockAnalysisDao {
 			return Util.deepCopy(all.get(code + startDate + endDate));
 		}
 
-		String sql = "SELECT * FROM STO_DAY_TMP where code=?";
+		String sql = "SELECT * FROM STO_DAY_TMP2 where code=?";
 		List<Object> params = new ArrayList<Object>();
 		params.add(code);
 
@@ -203,10 +203,10 @@ public class StockAnalysisDao {
 	 */
 	public List<StockOperSum> getAllCodeSum(boolean isIncludeAbnormal, Map<String, String> voMap) throws Exception {
 
-		String sql = "SELECT * FROM sto_oper_sum where flag='00'";
+		String sql = "SELECT * FROM sto_oper_sum where flag not in('01','02') ";
 
 		if (isIncludeAbnormal)
-			sql = "SELECT * FROM sto_oper_sum";
+			sql = "SELECT * FROM sto_oper_sum where 1=1 ";
 
 		Object[] params = null;
 		if (voMap != null) {
@@ -260,8 +260,8 @@ public class StockAnalysisDao {
 	 * @throws SQLException
 	 */
 	public List<String> getAllDate() throws SQLException {
-		String sql = "select to_char(date_,'yyyy-mm-dd') from sto_day_tmp "
-				+ "where code =(select top 1 code from (select code,count(1)  num from sto_day_tmp group by code) order by num  desc) order by date_";
+		String sql = "select to_char(date_,'yyyy-mm-dd') from sto_day_tmp2 "
+				+ "where code =(select top 1 code from (select code,count(1)  num from sto_day_tmp2 group by code) order by num  desc) order by date_";
 		Object[] params = null;
 
 		List<Object[]> result = sqlrunner.query(sql, new ArrayListHandler(), params);

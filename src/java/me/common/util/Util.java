@@ -11,7 +11,9 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 其它公用方法
@@ -167,43 +169,71 @@ public class Util {
 	}
 	
 	/** 
-     *  
-     * 1 第一季度 2 第二季度 3 第三季度 4 第四季度 
-     *  
-     * @param date 
-     * @return 
-     */  
-    public static int getSeason(Date date) {  
-  
-        int season = 0;  
-  
-        Calendar c = Calendar.getInstance();  
-        c.setTime(date);  
-        int month = c.get(Calendar.MONTH);  
-        switch (month) {  
-        case Calendar.JANUARY:  
-        case Calendar.FEBRUARY:  
-        case Calendar.MARCH:  
-            season = 1;  
-            break;  
-        case Calendar.APRIL:  
-        case Calendar.MAY:  
-        case Calendar.JUNE:  
-            season = 2;  
-            break;  
-        case Calendar.JULY:  
-        case Calendar.AUGUST:  
-        case Calendar.SEPTEMBER:  
-            season = 3;  
-            break;  
-        case Calendar.OCTOBER:  
-        case Calendar.NOVEMBER:  
-        case Calendar.DECEMBER:  
-            season = 4;  
-            break;  
-        default:  
-            break;  
-        }  
-        return season;  
-    }  
+	 *  
+	 * 1 第一季度 2 第二季度 3 第三季度 4 第四季度 
+	 *  
+	 * @param date 
+	 * @return 
+	 */
+	public static int getSeason(Date date) {
+
+		int season = 0;
+
+		Calendar c = Calendar.getInstance();
+		c.setTime(date);
+		int month = c.get(Calendar.MONTH);
+		switch (month) {
+		case Calendar.JANUARY:
+		case Calendar.FEBRUARY:
+		case Calendar.MARCH:
+			season = 1;
+			break;
+		case Calendar.APRIL:
+		case Calendar.MAY:
+		case Calendar.JUNE:
+			season = 2;
+			break;
+		case Calendar.JULY:
+		case Calendar.AUGUST:
+		case Calendar.SEPTEMBER:
+			season = 3;
+			break;
+		case Calendar.OCTOBER:
+		case Calendar.NOVEMBER:
+		case Calendar.DECEMBER:
+			season = 4;
+			break;
+		default:
+			break;
+		}
+		return season;
+	}
+	
+	/**
+	 * 返回对象的 <field_name, field_value>键值对
+	 * @param obj
+	 * @return
+	 * @throws  
+	 */
+	public static Map<String, String> getMapFromObject(Object obj) {
+
+		Map<String, String> map = new HashMap<String, String>();
+		if(obj == null)
+			return map;
+		Field[] ff = obj.getClass().getDeclaredFields();
+		for (Field f : ff) {
+			f.setAccessible(true);
+			try {
+				if(f.get(obj) != null && !TypeUtil.isEmpty(String.valueOf(f.get(obj)))) {
+					map.put(f.getName(), f.get(obj).toString());
+				}
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return map;
+	}
 }

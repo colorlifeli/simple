@@ -114,32 +114,32 @@ var dg_columns_codeOper = [ [
 	field : 'date_',
 	title : '日期',
 	align : 'center',
-	width : 70
+	width : 80
 }, {
 	field : 'num',
 	title : '数量',
 	align : 'center',
-	width : 30
+	width : 40
 }, {
 	field : 'price',
 	title : '单价',
 	align : 'center',
-	width : 40
+	width : 80
 }, {
 	field : 'sum',
 	title : '总价',
 	align : 'center',
-	width : 50
+	width : 80
 }, {
 	field : 'total',
 	title : '现有数量',
 	align : 'center',
-	width : 60
+	width : 40
 }, {
 	field : 'remain',
 	title : '余额',
 	align : 'center',
-	width : 60
+	width : 80
 }
 
 ]];

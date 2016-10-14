@@ -31,6 +31,8 @@ public abstract class ActionIf {
 	/**
 	 * 将页面传递的参数组合成map
 	 * 
+	 * 由于此函数与 action的自动注入有冲突（会找不到字段的set函数），因此尽量少用
+	 * 
 	 * 如果是日期，则需要增加辅助字段，比较复杂，暂不支持
 	 * @param classType：对于数据库字段的实体类或 vo类。
 	 * @param voMap
@@ -60,4 +62,5 @@ public abstract class ActionIf {
 
 		}
 	}
+	
 }

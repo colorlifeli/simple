@@ -89,7 +89,7 @@
 					</tr>
 					<tr>
 						<td>开始日期</td>
-						<td><input name="startDate" id="startDate" type="text" size="10" value="2014-01-01"></input>
+						<td><input name="startDate" id="startDate" type="text" size="10" value="2013-01-01"></input>
 						</td>
 					</tr>
 					

@@ -20,7 +20,7 @@ import me.net.model.StockOperSum;
 import me.service.stock.AnalysisService;
 
 @Pack(path = "stock")
-public class StocksAnalysis extends ActionIf {
+public class StocksAnalysisAction extends ActionIf {
 
 	@Ioc
 	private StockAnalysisDao stockAnalysisDao;
@@ -37,6 +37,8 @@ public class StocksAnalysis extends ActionIf {
 	private String code;
 	private String priceStrategy;
 	private String startDate;
+	
+	private StockOperSum operSum;
 
 	@Action(path = "enter", targets = { @Result(name = "success", value = "stock/stock.jsp") })
 	public String enter() {
@@ -83,6 +85,9 @@ public class StocksAnalysis extends ActionIf {
 
 		Map<String, String> voMap = new HashMap<String, String>();
 		this.getVoMapFromJsp(StockOperSum.class, voMap);
+		
+		//由于 int 等数字类型，在不赋值的情况下是 0，这会导致生成错误的条件，所以这么用也不好
+		//Map<String, String> voMap = Util.getMapFromObject(operSum);
 
 		Page p = new Page();
 		try {

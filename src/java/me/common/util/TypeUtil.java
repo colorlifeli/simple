@@ -145,6 +145,8 @@ public class TypeUtil {
 			field.set(obj, list);
 		} else {
 			//基本类型
+			if(isEmpty(values[0]))
+				return;
 			field.set(obj, stringValueToObject(values[0], clazz));
 		}
 
