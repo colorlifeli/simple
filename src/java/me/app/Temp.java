@@ -4,7 +4,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import me.common.internal.BeanContext;
@@ -22,6 +25,7 @@ public class Temp {
 		try {
 			tmp.testAnalysisService2();
 			//tmp.testSellSomeDay();
+			//tmp.tmp2();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -148,6 +152,19 @@ public class Temp {
 		TypeUtil.setField(a, "list2", new String[] { "1", "3" });
 		for (int i : a.list2) {
 			System.out.println(i);
+		}
+	}
+	
+	public void tmp2() throws Exception {
+		Calendar c = Calendar.getInstance();
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+		Date start = format.parse("2016-08-30");
+		Date end = new Date();
+		c.setTime(start);
+		while(start.before(end)) {
+			System.out.println(format.format(start));
+			c.add(Calendar.DAY_OF_YEAR, 1);
+			start = c.getTime();
 		}
 	}
 	
