@@ -5,9 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.Constant;
 import me.net.NetType.eStockDayFlag;
@@ -15,6 +12,9 @@ import me.net.NetType.eStockOper;
 import me.net.model.Central;
 import me.net.model.CentralInfo;
 import me.net.model.StockDay;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 模拟处理器
@@ -154,19 +154,85 @@ public class Simulator {
 						//&& Double.parseDouble(day.low) < Double
 						//		.parseDouble(info.centrals.get(info.centrals.size() - 1).low)
 						) {
-					operation = eStockOper.Buy;
+					//operation = eStockOper.Buy;
 
 				}
+				
+				//正负交替，比前一个负更低时
+				if (pos == -1 && type.equals(eStockDayFlag.BOTTOM.toString())
+				//&& Double.parseDouble(day.low) < Double
+				//		.parseDouble(info.centrals.get(info.centrals.size() - 1).low)
+				) {
+					if (info.centrals.size() > 2) {
+						for (int i = info.centrals.size() - 2; i > 0; i--) {
+							int tmp_pos = info.centrals.get(i).position;
+							if (tmp_pos < 0)
+								if (Double.parseDouble(info.centrals.get(info.centrals.size()-1).low) < Double.parseDouble(info.centrals.get(i).low)) {
 
-			} else if(type != null && info.centrals.size() > 0){
+									//operation = eStockOper.Buy;
+								} else
+									break;
+						}
+					}
+				}
+				
+				//卖
+				if (pos > 1
+						&& type.equals(eStockDayFlag.TOP.toString())
+								//&& Double.parseDouble(day.low) < Double
+								//		.parseDouble(info.centrals.get(info.centrals.size() - 1).low)
+								) {
+							//operation = eStockOper.Sell;
+
+						}
+				if (pos == 1 && type.equals(eStockDayFlag.TOP.toString())
+						//&& Double.parseDouble(day.low) < Double
+						//		.parseDouble(info.centrals.get(info.centrals.size() - 1).low)
+						) {
+							if (info.centrals.size() > 2) {
+								for (int i = info.centrals.size() - 2; i > 0; i--) {
+									int tmp_pos = info.centrals.get(i).position;
+									if (tmp_pos > 0)
+										if (Double.parseDouble(info.centrals.get(info.centrals.size()-1).high) > Double.parseDouble(info.centrals.get(i).high)) {
+
+											//operation = eStockOper.Sell;
+										} else
+											break;
+								}
+							}
+						}
+
+				
+			} else if(type != null && info.centrals.size() > 0){ //非产生中枢时
 				//没有产生中枢，但如果是底且比中枢的底还低，则买入
 				int pos = info.centrals.get(info.centrals.size() - 1).position;
-				if (pos < -1
+				if (pos < -2
 					&& type.equals(eStockDayFlag.BOTTOM.toString())
 							&& Double.parseDouble(day.high) < Double
 									.parseDouble(info.centrals.get(info.centrals.size() - 1).low)
 							) {
 					//operation = eStockOper.Buy;
+				}
+				
+
+				//正负交替，比前一个负更低时
+				if (pos == -1 && type.equals(eStockDayFlag.BOTTOM.toString()) && Double.parseDouble(day.high) < Double
+						.parseDouble(info.centrals.get(info.centrals.size() - 1).low)
+				//&& Double.parseDouble(day.low) < Double
+				//		.parseDouble(info.centrals.get(info.centrals.size() - 1).low)
+				) {
+					if (info.centrals.size() > 2) {
+						for (int i = info.centrals.size() - 2; i > 0; i--) {
+							int tmp_pos = info.centrals.get(i).position;
+							if (tmp_pos < 0)
+								if (Double.parseDouble(info.centrals.get(info.centrals.size() - 1).low) < Double
+										.parseDouble(info.centrals.get(i).low)) {
+
+									operation = eStockOper.Buy;
+								} else
+									break;
+						}
+					}
 				}
 			}
 

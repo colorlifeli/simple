@@ -12,9 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import me.common.annotation.IocAnno.Ioc;
 import me.common.jdbcutil.Page;
 import me.common.util.TypeUtil;
@@ -27,6 +24,9 @@ import me.net.dayHandler.Simulator;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AnalysisService {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -63,6 +63,7 @@ public class AnalysisService {
 	public void compute(String hcode) throws SQLException {
 		List<StockDay> all = null;
 		List<OperRecord> operList = new ArrayList<OperRecord>();
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
 		// ******  在这一天全部卖出。此功能仅在这一处进行了修改
 
@@ -72,7 +73,6 @@ public class AnalysisService {
 		else {
 			List<StockDay> cache = stockAnalysisDao.getDayCache(hcode, c_startDate, c_endDate);
 			int date_index = 0;
-			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 			for(int i=0; i<cache.size(); i++) {
 				try {
 					if(cache.get(i).date_.after(format.parse(c_sellAllDate)))
@@ -119,7 +119,7 @@ public class AnalysisService {
 			eStockOper result = simulator.handle2(someDay);
 			//eStockOper result = simulator.handle_old(someDay);
 
-			if (result == eStockOper.None || i == all.size() - 1) { //最后一天是特殊的，必须全卖
+			if (result == eStockOper.None || i == all.size() - 1 || result == eStockOper.Sell) { //最后一天是特殊的，必须全卖
 
 				//卖时机是通过资金管理手段来控制
 				if (operList.size() == 0)
@@ -141,8 +141,11 @@ public class AnalysisService {
 				if (i == all.size() - 1) {//最后一天，全卖
 					num_l = total_l;
 					sn = 998;
-				} else if (gain_l.doubleValue() > cost.doubleValue() * 1.1) {
-					//num_l = total_l;
+				} else if(result == eStockOper.Sell) {
+					num_l = total_l;
+					logger.debug("oper is sell : {},{},{}", hcode, date, num_l);
+				} else if (gain_l.doubleValue() > cost.doubleValue() * 1.2) {
+					num_l = total_l;
 				} else if (gain_l.doubleValue() < cost.doubleValue() * 0.9) {
 					//logger.debug("0.9 do nothing : {},{},{}", hcode, date, num_l);
 					//num_l = total_l;
@@ -248,6 +251,13 @@ public class AnalysisService {
 //					all.get(i + 1).date_, all.get(i + 1).low, all.get(i + 1).high, all.get(i + 2).date_,
 //					all.get(i + 2).low, all.get(i + 2).high));
 			//logger.debug(operList.get(operList.size() - 1).toString());
+			//if(date.equals(new Date()))
+				try {
+					if(date.after(format.parse("2016-09-01")))	
+						System.out.println(operList.get(operList.size() - 1).toString());
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
 			if(printOperLog)
 			System.out.println(operList.get(operList.size() - 1).toString());
 
