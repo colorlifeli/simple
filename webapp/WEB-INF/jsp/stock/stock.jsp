@@ -22,6 +22,9 @@
 
 			<table class="fix_table">
 				<tr>
+					<td class="bgc_tt short">代码</td>
+					<td class="long"><input name="code" id="code" type="text" size="10">
+					</td>
 					<td class="bgc_tt short">名称</td>
 					<td class="long"><input name="name" id="name" type="text" size="10">
 					</td>
@@ -89,7 +92,7 @@
 					</tr>
 					<tr>
 						<td>开始日期</td>
-						<td><input name="startDate" id="startDate" type="text" size="10" value="2013-01-01"></input>
+						<td><input name="startDate" id="startDate" type="text" size="10" value="2014-04-01"></input>
 						</td>
 					</tr>
 					

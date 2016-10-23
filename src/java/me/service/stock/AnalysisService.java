@@ -256,7 +256,7 @@ public class AnalysisService {
 			if (isPractice) {
 				Calendar c = Calendar.getInstance();
 				c.setTime(new Date());
-				c.add(Calendar.WEEK_OF_MONTH, -1); //打印最近2个星期可买的
+				c.add(Calendar.WEEK_OF_MONTH, -4); //打印最近1个星期可买的
 				if (date.after(c.getTime()))
 					System.out.println(operList.get(operList.size() - 1).toString());
 			}
