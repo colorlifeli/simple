@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.SimpleException;
 import me.common.jdbcutil.ArrayHandler;
 import me.common.jdbcutil.ArrayListHandler;
@@ -15,13 +18,11 @@ import me.common.jdbcutil.BeanListHandler;
 import me.common.jdbcutil.QueryRule;
 import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
+import me.common.util.TypeUtil;
 import me.common.util.Util;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class StockAnalysisDao {
 
@@ -263,6 +264,23 @@ public class StockAnalysisDao {
 		String sql = "select to_char(date_,'yyyy-mm-dd') from sto_day_tmp2 "
 				+ "where code =(select top 1 code from (select code,count(1)  num from sto_day_tmp2 group by code) order by num  desc) order by date_";
 		Object[] params = null;
+
+		List<Object[]> result = sqlrunner.query(sql, new ArrayListHandler(), params);
+
+		List<String> strs = new ArrayList<String>();
+		for (Object[] objs : result) {
+			strs.add((String) objs[0]);
+		}
+
+		return strs;
+	}
+	
+	public List<String> getAllDate(String code) throws SQLException {
+		if(TypeUtil.isEmpty(code)) 
+			return null;
+		String sql = "select to_char(date_,'yyyy-mm-dd') from sto_day_tmp2 "
+				+ "where code = ? order by date_";
+		Object[] params = {code};
 
 		List<Object[]> result = sqlrunner.query(sql, new ArrayListHandler(), params);
 

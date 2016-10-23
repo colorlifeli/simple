@@ -7,17 +7,17 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.common.jdbcutil.SqlRunner;
-import me.common.jdbcutil.h2.H2Helper;
-import me.net.NetType.eStockSource;
-import me.net.dao.StockSourceDao;
-
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+
+import me.common.jdbcutil.SqlRunner;
+import me.common.jdbcutil.h2.H2Helper;
+import me.net.NetType.eStockSource;
+import me.net.dao.StockSourceDao;
 
 /**
  * 为了按顺序执行 test case，方法名前加了前缀
@@ -41,7 +41,6 @@ public class StockSourceDaoTest {
 
 	@Test
 	public void a1_initCode() throws SQLException {
-		System.out.println("aaa");
 		String file = this.getClass().getClassLoader().getResource("codes_test.csv").getPath().substring(1);
 		// 或
 		// this.getClass().getResource("/codes_test.csv");

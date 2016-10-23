@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.annotation.IocAnno.Ioc;
 import me.common.jdbcutil.Page;
 import me.common.util.TypeUtil;
@@ -24,9 +27,6 @@ import me.net.dayHandler.Simulator;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AnalysisService {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -42,11 +42,12 @@ public class AnalysisService {
 	private eStrategy strategy = eStrategy.OneBuyOneSell; //策略
 	private double abnormal = 20000; //绝对值超过这个值视为异常值
 	public int c_priceStrategy = 1; //以什么策略来交易：1:第二天最差价格，2：今天最差价格 3：第二天中间价格 4:按中枢价格
-	public String c_startDate = " 2015-06-01"; //2013-01-01  2015-06-01
+	public String c_startDate = "2014-04-01"; //2013-01-01  2015-06-01
 	public String c_endDate = null;
 
 	public String c_sellAllDate = null; //在这一天全部卖出
 	private boolean printOperLog = false;
+	private boolean isPractice = true;  //如果是实际操作，则最后一天不卖，倒数第二天和最后一天要计算买
 
 	private final int one = 10;
 	//不以量来买，以总价来买，更贴合实际
@@ -138,7 +139,7 @@ public class AnalysisService {
 				BigDecimal sum_l = BigDecimal.ZERO;
 
 				// *********** 最简单的资金管理，赚10%即卖
-				if (i == all.size() - 1) {//最后一天，全卖
+				if (i == all.size() - 1 && !isPractice) {//最后一天，全卖
 					num_l = total_l;
 					sn = 998;
 				} else if(result == eStockOper.Sell) {
@@ -201,18 +202,18 @@ public class AnalysisService {
 				continue;
 			}
 			
-			int stop = all.size()/2>100?all.size()-100:all.size()/2; //为了测试大部分都卖出的情况，在最后100天或最后2分之一的时间不再买入
+			int stop = all.size()/2>200?all.size()-200:all.size()/2; //为了测试大部分都卖出的情况，在最后100天或最后2分之一的时间不再买入
 			if(i > stop) {
 				//continue;
 			}
 
 			//最后一天卖，所以前一天计算出来也不买。（这里最后一天是指倒数第二天，因为买是用第二的价格）
-			if (i == all.size() - 2) {
+			if (i == all.size() - 2 && !isPractice) {
 				//logger.debug(hcode + " last 2 " + someDay.date_);
 				continue;
 			}
-			if (i == all.size() - 1) {
-				//logger.debug(hcode + " last 1 " + someDay.date_);
+			if (i == all.size() - 1 && !isPractice) {
+				logger.debug("****** tomorrow buy!! {} {} price: {} *********", someDay.date_, hcode, nextDay.high);
 				continue;
 			}
 
@@ -252,12 +253,14 @@ public class AnalysisService {
 //					all.get(i + 2).low, all.get(i + 2).high));
 			//logger.debug(operList.get(operList.size() - 1).toString());
 			//if(date.equals(new Date()))
-				try {
-					if(date.after(format.parse("2016-09-01")))	
-						System.out.println(operList.get(operList.size() - 1).toString());
-				} catch (ParseException e) {
-					e.printStackTrace();
-				}
+			if (isPractice) {
+				Calendar c = Calendar.getInstance();
+				c.setTime(new Date());
+				c.add(Calendar.WEEK_OF_MONTH, -1); //打印最近2个星期可买的
+				if (date.after(c.getTime()))
+					System.out.println(operList.get(operList.size() - 1).toString());
+			}
+
 			if(printOperLog)
 			System.out.println(operList.get(operList.size() - 1).toString());
 
@@ -463,7 +466,7 @@ public class AnalysisService {
 
 			int index = 0;
 			for (int i = 0; i < allDates.size(); i++) {
-				if (c_startDate != null && c_startDate.equals(allDates.get(i))) {
+				if (c_startDate != null && c_startDate.compareTo(allDates.get(i)) < 0) {
 					index = i;
 					break;
 				}
@@ -495,7 +498,7 @@ public class AnalysisService {
 
 			int index = 0;
 			for (int i = 0; i < allDates.size(); i++) {
-				if (c_startDate != null && c_startDate.equals(allDates.get(i))) {
+				if (c_startDate != null && c_startDate.compareTo(allDates.get(i)) < 0) {
 					index = i;
 					break;
 				}

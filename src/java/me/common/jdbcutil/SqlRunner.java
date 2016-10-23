@@ -326,6 +326,14 @@ public class SqlRunner {
 		return generatedKeys;
 	}
 
+	/**
+	 * 即使部分插入失败，但不影响能插入数据的提交
+	 * @param sql
+	 * @param rsh
+	 * @param params
+	 * @return
+	 * @throws SQLException
+	 */
 	public <T> T insertBatch(String sql, ResultSetHandler<T> rsh, Object[][] params) throws SQLException {
 		return insertBatch(this.conn, sql, rsh, params);
 	}

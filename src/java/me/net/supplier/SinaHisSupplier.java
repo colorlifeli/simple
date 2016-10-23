@@ -5,17 +5,13 @@ import java.net.InetAddress;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
-import me.common.util.Constant;
-import me.common.util.Util;
-import me.net.NetType.eStockSource;
-import me.net.model.StockDay;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -30,22 +26,27 @@ import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import me.common.util.Constant;
+import me.common.util.Util;
+import me.net.NetType.eStockSource;
+import me.net.model.StockDay;
 
 public class SinaHisSupplier implements IStockSupplier {
-	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	//private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	private final String url = "http://vip.stock.finance.sina.com.cn/corp/go.php/vMS_FuQuanMarketHistory/stockid/%s.phtml?year=%s&jidu=%s";
 	//指数的url不一样
-	private final String url_index = "http://vip.stock.finance.sina.com.cn/corp/go.php/vMS_MarketHistory/stockid/%s/type/S.phtml?year=%s&jidu=%s";
+	//private final String url_index = "http://vip.stock.finance.sina.com.cn/corp/go.php/vMS_MarketHistory/stockid/%s/type/S.phtml?year=%s&jidu=%s";
 
 	@Override
 	public List<?> getData(List<String> codes, Object... obj) {
-		
+
 		
 		String start = (String) obj[0];
 		String end = (String) obj[1];
+		if(start.compareTo(end) > 0)
+			return null;
 		
 		SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
 
@@ -67,10 +68,25 @@ public class SinaHisSupplier implements IStockSupplier {
 			List<int[]> seasons = this.getAllSeason(sYear, startSeason, eYear, endSeason);
 				
 			//return this.sigleThread(httpclient, codes, seasons);
-			return this.multiThread(httpclient, codes, seasons);
+			List<StockDay> days = new ArrayList<StockDay>();
+			days = this.multiThread(httpclient, codes, seasons);
 			
-		} catch (Exception e) {
+			//筛选，取start与end之间
+			Date startDate = format.parse(start);
+			Date endDate = format.parse(end);
+			List<StockDay> result = new ArrayList<StockDay>();
+			for(StockDay day : days) {
+				if(!day.date_.before(startDate) && !day.date_.after(endDate)) //startDate <= date <= endDate
+					result.add(day);
+			}
+			
+			return result;
+			
+		} catch (Exception e) { 
+			//发生exception，则返回空表。要保持原子性，不成功就全部时间不成功。
+			//不然只是中间部分不成功的话，程序没办法检查出来重新执行。因为没有数据有可能是停牌
 			e.printStackTrace();
+			return null;
 		} finally {
 			try {
 				httpclient.close();
@@ -79,7 +95,6 @@ public class SinaHisSupplier implements IStockSupplier {
 			}
 		}
 		
-		return null;
 	}
 
 	@Override
@@ -120,7 +135,7 @@ public class SinaHisSupplier implements IStockSupplier {
 	 * @throws ExecutionException
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private List<StockDay> multiThread(CloseableHttpClient httpclient, List<String> codes, List<int[]> seasons) throws InterruptedException, IOException, ExecutionException {
+	private List<StockDay> multiThread(CloseableHttpClient httpclient, List<String> codes, List<int[]> seasons) throws IOException, InterruptedException, ExecutionException {
 
         List<StockDay> days = new ArrayList<StockDay>();
         int multiSize = 5; //10线程
@@ -143,7 +158,7 @@ public class SinaHisSupplier implements IStockSupplier {
 					if(++j == multiSize) {
 						//线程都满了，就去获取结果，这时会阻塞
 						for(Future ff : f) {
-							days.addAll((List<StockDay>)ff.get());
+							days.addAll((List<StockDay>)ff.get()); //不能catch exception。要保持原子性，不成功就全部时间不成功。不然只是中间部分不成功的话，程序没办法检查出来重新执行。因为没有数据有可能是停牌
 						}
 						j = 0;
 					}

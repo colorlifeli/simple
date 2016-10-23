@@ -3,6 +3,7 @@ package me.net;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import me.common.annotation.IocAnno.Ioc;
+import me.net.dao.StockAnalysisDao;
 import me.net.dao.StockSourceDao;
 import me.net.model.StockDay;
 import me.net.supplier.IStockSupplier;
@@ -23,16 +25,34 @@ public class StockSourceImpl2 implements StockSource {
 
 	@Ioc
 	private StockSourceDao stockSourceDao;
-	
+	@Ioc
+	private StockAnalysisDao stockAnalysisDao;
 
 	private final String historyStartDate = "20130101";
 
+	private final SimpleDateFormat format_db = new SimpleDateFormat("yyyy-MM-dd"); //数据库日期的表示
+	private final SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
+
 	@Override
 	public void getHistory(List<String> codes, String startDate, String endDate) {
-		if (startDate == null)
-			startDate = this.historyStartDate;
+		if (startDate == null) {
+			try {
+				List<String> allDates = stockAnalysisDao.getAllDate(codes.get(0));
+				if (allDates != null && allDates.size() > 0) {
+					Calendar c = Calendar.getInstance();
+					c.setTime(format_db.parse(allDates.get(allDates.size() - 1)));
+					c.add(Calendar.DAY_OF_YEAR, 1);
+					startDate = format.format(c.getTime());
+					logger.debug("start date: " + startDate);
+				} else
+					startDate = historyStartDate;
+			} catch (Exception e) {
+				e.printStackTrace();
+				logger.debug("获取日期时出错。");
+				return;
+			}
+		}
 		if (endDate == null) {
-			SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
 			Date date = new Date();
 			endDate = format.format(date);
 		}
@@ -46,10 +66,24 @@ public class StockSourceImpl2 implements StockSource {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void getHistoryAll(String startDate, String endDate) {
-		if (startDate == null)
-			startDate = this.historyStartDate;
+		if (startDate == null) {
+			try {
+				List<String> allDates = stockAnalysisDao.getAllDate();
+				if (allDates != null && allDates.size() > 0) {
+					Calendar c = Calendar.getInstance();
+					c.setTime(format_db.parse(allDates.get(allDates.size() - 1)));
+					c.add(Calendar.DAY_OF_YEAR, 1);
+					startDate = format.format(c.getTime());
+					logger.debug("start date: " + startDate);
+				} else
+					startDate = historyStartDate;
+			} catch (Exception e) {
+				e.printStackTrace();
+				logger.debug("获取日期时出错。");
+				return;
+			}
+		}
 		if (endDate == null) {
-			SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
 			Date date = new Date();
 			endDate = format.format(date);
 		}
@@ -124,6 +158,10 @@ public class StockSourceImpl2 implements StockSource {
 
 	public void setStockSourceDao(StockSourceDao stockSourceDao) {
 		this.stockSourceDao = stockSourceDao;
+	}
+
+	public void setStockAnalysisDao(StockAnalysisDao stockAnalysisDao) {
+		this.stockAnalysisDao = stockAnalysisDao;
 	}
 
 }

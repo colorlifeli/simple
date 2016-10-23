@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.Constant;
 import me.net.NetType.eStockDayFlag;
@@ -12,9 +15,6 @@ import me.net.NetType.eStockOper;
 import me.net.model.Central;
 import me.net.model.CentralInfo;
 import me.net.model.StockDay;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 模拟处理器
@@ -216,7 +216,9 @@ public class Simulator {
 				
 
 				//正负交替，比前一个负更低时
-				if (pos == -1 && type.equals(eStockDayFlag.BOTTOM.toString()) && Double.parseDouble(day.high) < Double
+				if (pos == -1 
+						&& type.equals(eStockDayFlag.BOTTOM.toString()) 
+						&& Double.parseDouble(day.high) < Double
 						.parseDouble(info.centrals.get(info.centrals.size() - 1).low)
 				//&& Double.parseDouble(day.low) < Double
 				//		.parseDouble(info.centrals.get(info.centrals.size() - 1).low)

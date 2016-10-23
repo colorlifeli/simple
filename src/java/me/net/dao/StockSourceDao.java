@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.jdbcutil.ArrayHandler;
 import me.common.jdbcutil.ArrayListHandler;
 import me.common.jdbcutil.BeanListHandler;
@@ -15,9 +18,6 @@ import me.net.NetType.eStockSource;
 import me.net.model.Item;
 import me.net.model.RealTime;
 import me.net.model.StockDay;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class StockSourceDao {
 
@@ -362,6 +362,7 @@ public class StockSourceDao {
 		Object[][] params = new Object[list.size()][];
 		for (int i = 0; i < list.size(); i++) {
 			params[i] = list.get(i).toObjectArray2();
+			//logger.debug(list.get(i).toString());
 		}
 		try {
 			sqlrunner.insertBatch(sql, new ArrayHandler(), params);
