@@ -3,6 +3,7 @@ package me.net.dao;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -290,6 +291,19 @@ public class StockAnalysisDao {
 		}
 
 		return strs;
+	}
+	
+	public String getFactor(String code, Date date) throws SQLException {
+		String sql = "select factor from sto_day_tmp2 "
+				+ "where code = ? and date_= ? ";
+		
+		Object[] result = sqlrunner.query(sql, new ArrayHandler(), code, date);
+		if (result == null || result.length == 0) {
+			logger.error("cannot find the code:{}, date:{}", code, date);
+			return null;
+		}
+
+		return (String) result[0];
 	}
 
 }

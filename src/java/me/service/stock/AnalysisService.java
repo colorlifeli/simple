@@ -42,12 +42,12 @@ public class AnalysisService {
 	private eStrategy strategy = eStrategy.OneBuyOneSell; //策略
 	private double abnormal = 20000; //绝对值超过这个值视为异常值
 	public int c_priceStrategy = 1; //以什么策略来交易：1:第二天最差价格，2：今天最差价格 3：第二天中间价格 4:按中枢价格
-	public String c_startDate = "2014-04-01"; //2013-01-01  2015-06-01
-	public String c_endDate = null;
+	public String c_startDate = "2010-01-01"; //2013-01-01  2015-06-01 2014-04-01
+	public String c_endDate = "2014-01-20";  //startdate 与 enddate都是不包含
 
 	public String c_sellAllDate = null; //在这一天全部卖出
 	private boolean printOperLog = false;
-	private boolean isPractice = true;  //如果是实际操作，则最后一天不卖，倒数第二天和最后一天要计算买
+	private boolean isPractice = false;  //如果是实际操作，则最后一天不卖，倒数第二天和最后一天要计算买
 
 	private final int one = 10;
 	//不以量来买，以总价来买，更贴合实际
@@ -120,7 +120,7 @@ public class AnalysisService {
 			eStockOper result = simulator.handle2(someDay);
 			//eStockOper result = simulator.handle_old(someDay);
 
-			if (result == eStockOper.None || i == all.size() - 1 || result == eStockOper.Sell) { //最后一天是特殊的，必须全卖
+			if (result == eStockOper.None || (!isPractice && i == all.size() - 1) || result == eStockOper.Sell) { //最后一天是特殊的，必须全卖
 
 				//卖时机是通过资金管理手段来控制
 				if (operList.size() == 0)
@@ -212,8 +212,9 @@ public class AnalysisService {
 				//logger.debug(hcode + " last 2 " + someDay.date_);
 				continue;
 			}
-			if (i == all.size() - 1 && !isPractice) {
-				logger.debug("****** tomorrow buy!! {} {} price: {} *********", someDay.date_, hcode, nextDay.high);
+			if (i == all.size() - 1) {
+				if(isPractice)
+					logger.debug("****** tomorrow buy!! {} {}  *********", someDay.date_, hcode);
 				continue;
 			}
 
@@ -257,8 +258,11 @@ public class AnalysisService {
 				Calendar c = Calendar.getInstance();
 				c.setTime(new Date());
 				c.add(Calendar.WEEK_OF_MONTH, -4); //打印最近1个星期可买的
-				if (date.after(c.getTime()))
-					System.out.println(operList.get(operList.size() - 1).toString());
+				if (date.after(c.getTime())) {
+					String factor = stockAnalysisDao.getFactor(hcode, date);
+					BigDecimal aprice = price.divide(new BigDecimal(factor), 2);
+					System.out.println(operList.get(operList.size() - 1).toString() + String.format("actual price:%.2f", aprice));
+				}
 			}
 
 			if(printOperLog)
