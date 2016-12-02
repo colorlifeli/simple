@@ -35,8 +35,8 @@ public class GetStockHisData {
 
 		long start = System.currentTimeMillis();
 
-		getHisData(impl);
-		//getHisData2(impl, stockSourceDao);
+		//getHisData(impl);
+		getHisData2(impl, stockSourceDao);
 
 		long end = System.currentTimeMillis();
 		System.out.println("use time:" + (end - start));
@@ -57,7 +57,7 @@ public class GetStockHisData {
 			for(String code : codes) {
 				tmp.clear();
 				tmp.add(code);
-				impl.getHistory(tmp, null, "20161021"); //endDate 一般填null即可。如果是周末，为了可以忽略已完全获取取的，可填周五日期。
+				impl.getHistory(tmp, null, "20161130"); //endDate 由于今天的数据还没出，所以一般填昨天的日期。如果是周末，为了可以忽略已完全获取取的，可填周五日期。
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();

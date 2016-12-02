@@ -14,14 +14,12 @@ import me.common.internal.BeanContext;
 import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
 import me.common.util.TypeUtil;
-import me.net.NetType.eStockSource;
 import me.net.dao.StockSourceDao;
-import me.net.model.OperRecord;
-import me.service.stock.AnalysisService;
+import me.service.stock.AnalysisService2;
 
-public class Temp {
+public class Temp2 {
 	public static void main(String[] args) {
-		Temp tmp = new Temp();
+		Temp2 tmp = new Temp2();
 		try {
 			tmp.testAnalysisService2();
 			//tmp.testSellSomeDay();
@@ -32,42 +30,12 @@ public class Temp {
 		System.exit(0);
 	}
 
-	public void testAnalysisService() {
-		SqlRunner.me().setConn(H2Helper.connEmbededDb());
-
-		BeanContext bc = new BeanContext();
-		AnalysisService service = (AnalysisService) bc.getBean("analysisService");
-		StockSourceDao stockSourceDao = (StockSourceDao) bc.getBean("stockSourceDao");
-		//service.computeAll();
-
-		try {
-			List<String> codes = stockSourceDao.getAllAvailableCodes(0, eStockSource.YAHOO);
-			for (String code : codes) {
-				service.compute(code);
-				List<OperRecord> operList = service.getOperList(code);
-				if (operList == null)
-					continue;
-				for (int i = 0; i < operList.size(); i++) {
-					OperRecord oper = operList.get(i);
-					if (i > 0) {
-						if (oper.getOper().equals(operList.get(i - 1).getOper()))
-							System.out.println("the same as last");
-					}
-				}
-			}
-
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		H2Helper.close(SqlRunner.me().getConn());
-	}
 
 	public void testAnalysisService2() {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 
 		BeanContext bc = new BeanContext();
-		AnalysisService service = (AnalysisService) bc.getBean("analysisService");
+		AnalysisService2 service = (AnalysisService2) bc.getBean("analysisService2");
 		StockSourceDao stockSourceDao = (StockSourceDao) bc.getBean("stockSourceDao");
 		//service.computeAll();
 
@@ -96,14 +64,15 @@ public class Temp {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 
 		BeanContext bc = new BeanContext();
-		AnalysisService service = (AnalysisService) bc.getBean("analysisService");
+		AnalysisService2 service = (AnalysisService2) bc.getBean("analysisService2");
 		//service.computeAll();
 
 		try {
 			//600980 生成的中枢非常经典，posision由1，2，3，－1，4，4，5... 经查看是正确的。因为 －1 的 central 形成后，下一点是更高的点，
 			//这时-1 central的最后一点要舍弃，要重新计算central，这时又与前一个central冲突，所以central 被被抛弃了
 			//仅是从表面实在很难想象这个过程。所以正确的逻辑真的很重要！！
-			service.compute("603116");
+			//603116, 601137
+			service.compute("601137");
 			//service.sellSomeday2();
 
 		} catch (Exception e) {
@@ -117,7 +86,7 @@ public class Temp {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 
 		BeanContext bc = new BeanContext();
-		AnalysisService service = (AnalysisService) bc.getBean("analysisService");
+		AnalysisService2 service = (AnalysisService2) bc.getBean("analysisService2");
 
 		service.sellSomeday3();
 

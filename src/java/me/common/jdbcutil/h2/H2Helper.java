@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import me.common.jdbcutil.ArrayHandler;
 import me.common.jdbcutil.QueryRule;
@@ -170,6 +171,84 @@ public class H2Helper {
 			}
 
 		}
+	}
+	
+	public static void genCondition2(Map<String, String> map, String prefix, QueryRule queryRule)
+			throws Exception {
+		for (Entry<String, String> entry : map.entrySet()) {
+			String tmp = entry.getValue();
+			String name = entry.getKey();
+			String value = tmp.split(",")[0];
+			String type = tmp.split(",")[1];
+			if(TypeUtil.isEmpty(value))
+				continue;
+			if (TypeUtil.isEmpty(value))
+				continue;
+			String propertyName = prefix + name;
+			logger.debug("name:" + name + ", type:" + type + ", value:" + value);
+
+			switch (Type.toType(type.toUpperCase())) {
+			case STRING:
+				value = value.replace("*", "%");
+				queryRule.andLike(propertyName, value);
+				break;
+
+			case INT:
+				value = value.trim();
+				if (value.startsWith("<")) {// example: <10
+					value = value.split("<")[1].trim();
+					logger.debug("int value:" + value);
+					queryRule.andLessThan(propertyName, Integer.parseInt(value));
+				} else {
+					if (value.startsWith(">")) { // >10
+						value = value.split(">")[1].trim();
+						logger.debug("int value:" + value);
+						queryRule.andGreaterThan(propertyName, Integer.parseInt(value));
+					} else {
+						if (value.startsWith("[") && value.endsWith("]")) { // [1,10]
+							value = value.substring(1, value.length() - 1);
+							logger.debug("int value:" + value);
+							String start = value.split(",")[0].trim();
+							String end = value.split(",")[1].trim();
+							queryRule.andBetween(propertyName, Integer.parseInt(start), Integer.parseInt(end));
+						} else {//just a number
+							queryRule.andEqual(propertyName, Integer.parseInt(value));
+						}
+					}
+				}
+
+				break;
+			case BIGDECIMAL:
+				value = value.trim();
+				if (value.startsWith("<")) {// example: <10
+					value = value.split("<")[1].trim();
+					logger.debug("int value:" + value);
+					queryRule.andLessThan(propertyName, new BigDecimal(value));
+				} else {
+					if (value.startsWith(">")) { // >10
+						value = value.split(">")[1].trim();
+						logger.debug("int value:" + value);
+						queryRule.andGreaterThan(propertyName, new BigDecimal(value));
+					} else {
+						if (value.startsWith("[") && value.endsWith("]")) { // [1,10]
+							value = value.substring(1, value.length() - 1);
+							logger.debug("int value:" + value);
+							String start = value.split(",")[0].trim();
+							String end = value.split(",")[1].trim();
+							queryRule.andBetween(propertyName, new BigDecimal(start), new BigDecimal(end));
+						} else {//just a number
+							queryRule.andEqual(propertyName, new BigDecimal(value));
+						}
+					}
+				}
+				break;
+
+			case NOVALUE:
+				break;
+			}
+			
+		}
+		
 	}
 
 	public enum Type {

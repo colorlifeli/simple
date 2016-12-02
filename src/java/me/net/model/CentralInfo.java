@@ -24,7 +24,8 @@ public class CentralInfo {
 	public List<Central> centrals;
 
 	//最新的点，由这些点形成最新的中枢
-	public List<String> points;
+	//public List<String> points;
+	public List<Point> points;
 
 	//标记最后一次 MakeCentral 是否成功
 	private boolean isLastSuccess = false;
@@ -33,7 +34,7 @@ public class CentralInfo {
 
 	public CentralInfo() {
 		centrals = new ArrayList<Central>();
-		points = new ArrayList<String>();
+		points = new ArrayList<Point>();
 		//pointsHis = new ArrayList<String>();
 	}
 
@@ -51,10 +52,10 @@ public class CentralInfo {
 			return false;
 		}
 
-		String point1 = points.get(0);
-		String point2 = points.get(1);
-		String point3 = points.get(2);
-		String point4 = points.get(3);
+		String point1 = points.get(0).value;
+		String point2 = points.get(1).value;
+		String point3 = points.get(2).value;
+		String point4 = points.get(3).value;
 
 		//logger.debug("{},{},{},{}", point1, point2, point3, point4);
 
@@ -91,6 +92,8 @@ public class CentralInfo {
 				}
 			}
 			if (result) {
+				c.startDate = points.get(0).date;
+				c.endDate = points.get(3).date;
 				centrals.add(c);
 
 				//logger.debug("中枢：({},{}), position:{}", c.low, c.high, c.position);
@@ -107,16 +110,16 @@ public class CentralInfo {
 	 * 对最后一个点重新赋值
 	 * @param value
 	 */
-	public void reassignPoint(String value) {
+	public void reassignPoint(String value, String date) {
 
 		points.remove(points.size() - 1);
-		points.add(value);
+		points.add(new Point(value, date));
 
 		if (points.size() == 4) {
 			//等于4，即上一个点执行过 makeCentral
 			if (isLastSuccess) //如果上一个点的 makeCentral成功的话，要将最后一个中枢删除，重新构建 
 			{
-				Central c_pre = centrals.get(centrals.size() - 1);
+				//Central c_pre = centrals.get(centrals.size() - 1);
 				centrals.remove(centrals.size() - 1);
 			}
 		}
@@ -126,13 +129,14 @@ public class CentralInfo {
 	 * 增加一个点
 	 * @param value
 	 */
-	public void addPoint(String value) {
+	public void addPoint(String value, String date) {
 
 		if (points.size() == 4) {
 			//等于4，即上一个点执行过 makeCentral
 			if (isLastSuccess) {
 				//上一个点的 makeCentral成功,以上一中枢最后一点作为下一个中枢的起点
-				String last = points.get(points.size() - 1);
+				//String last = points.get(points.size() - 1);
+				Point last = points.get(points.size() - 1);
 				points.clear();
 				points.add(last);
 
@@ -142,7 +146,22 @@ public class CentralInfo {
 			}
 		}
 
-		points.add(value);
+		points.add(new Point(value, date));
+	}
+	
+	public void printCentrals() {
+		for(Central c : centrals) {
+			logger.debug("中枢：({},{}), position:{}, date:({}, {})", c.low, c.high, c.position, c.startDate, c.endDate);
+		}
+	}
+	
+	class Point {
+		public Point(String value, String date) {
+			this.value = value;
+			this.date = date;
+		}
+		String value;
+		String date;
 	}
 
 }

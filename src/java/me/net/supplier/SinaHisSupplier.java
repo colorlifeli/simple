@@ -13,6 +13,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import me.common.util.Constant;
+import me.common.util.Util;
+import me.net.NetType.eStockSource;
+import me.net.model.StockDay;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.client.ClientProtocolException;
@@ -27,11 +32,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
-import me.common.util.Constant;
-import me.common.util.Util;
-import me.net.NetType.eStockSource;
-import me.net.model.StockDay;
-
 public class SinaHisSupplier implements IStockSupplier {
 	//private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
@@ -42,6 +42,9 @@ public class SinaHisSupplier implements IStockSupplier {
 	@Override
 	public List<?> getData(List<String> codes, Object... obj) {
 
+		/**
+		 * start 和 end 日期都被包括
+		 */
 		
 		String start = (String) obj[0];
 		String end = (String) obj[1];
@@ -139,9 +142,9 @@ public class SinaHisSupplier implements IStockSupplier {
 
         List<StockDay> days = new ArrayList<StockDay>();
         int multiSize = 5; //10线程
-        
+
+		ExecutorService pool = Executors.newFixedThreadPool(multiSize);
 		try {
-			ExecutorService pool = Executors.newFixedThreadPool(multiSize);
             int j = 0;
             Future f[] = new Future[multiSize];
 			

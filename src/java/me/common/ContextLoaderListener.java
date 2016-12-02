@@ -27,6 +27,7 @@ public class ContextLoaderListener implements ServletContextListener {
 
 		BeanContext bc = new BeanContext();
 		Map<String, Object> beans = bc.getAllBeans();
+		arg0.getServletContext().setAttribute("beans", beans);
 
 		for (Object bean : beans.values()) {
 			// 对 action 进行注解处理
