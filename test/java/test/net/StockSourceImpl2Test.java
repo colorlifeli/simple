@@ -113,7 +113,7 @@ public class StockSourceImpl2Test {
 
 		long start = System.currentTimeMillis();
 
-		impl.getHistory(codes, "20161012", null);
+		impl.getHistory(codes, "20161022", null);
 		
 		sql = "select * from sto_day_tmp2 where code='" + code + "' and date_>'" + strdate + "'";
 		try {

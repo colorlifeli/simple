@@ -42,12 +42,12 @@ public class AnalysisService {
 	private eStrategy strategy = eStrategy.OneBuyOneSell; //策略
 	private double abnormal = 20000; //绝对值超过这个值视为异常值
 	public int c_priceStrategy = 1; //以什么策略来交易：1:第二天最差价格，2：今天最差价格 3：第二天中间价格 4:按中枢价格
-	public String c_startDate = "2010-01-01"; //2013-01-01  2015-06-01 2014-04-01
-	public String c_endDate = "2014-01-20";  //startdate 与 enddate都是不包含
+	public String c_startDate = "2014-04-01"; //2013-01-01  2015-06-01 2014-04-01
+	public String c_endDate = null;  //startdate 与 enddate都是不包含
 
 	public String c_sellAllDate = null; //在这一天全部卖出
 	private boolean printOperLog = false;
-	private boolean isPractice = false;  //如果是实际操作，则最后一天不卖，倒数第二天和最后一天要计算买
+	private boolean isPractice = true;  //如果是实际操作，则最后一天不卖，倒数第二天和最后一天要计算买
 
 	private final int one = 10;
 	//不以量来买，以总价来买，更贴合实际

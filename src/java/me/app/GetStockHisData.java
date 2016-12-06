@@ -17,7 +17,7 @@ public class GetStockHisData {
 	 * 
 	 * 每次执行应执行是否有异常。有异常使用 getHisData2 重新执行。直到没有异常为止。
 	 * 
-	 * 如果怀疑某段日期开始的数据可能有问题，则可填上 startDate，则会从这个日期开始的数据都会下载，插入时有主键冲突插入不了，没有主键冲突的会正常插入。
+	 * 如果怀疑某段日期开始的数据可能有问题，则可填上 startDate，则会从这个日期开始的数据都会下载，插入时有主键冲突插入不了，没有主键冲突的会正常插入。(已多次确认)
 	 * 
 	 * 执行日志：
 	 * 20130101-20161021 数据执行无异常。
@@ -35,8 +35,8 @@ public class GetStockHisData {
 
 		long start = System.currentTimeMillis();
 
-		getHisData(impl);
-		//getHisData2(impl, stockSourceDao);
+		//getHisData(impl);
+		getHisData2(impl, stockSourceDao);
 
 		long end = System.currentTimeMillis();
 		System.out.println("use time:" + (end - start));
@@ -46,7 +46,8 @@ public class GetStockHisData {
 	}
 	
 	public static void getHisData(StockSourceImpl2 impl) {
-		impl.getHistoryAll(null, null);
+		impl.getHistoryAll("20161110", null);
+		//impl.getHistoryAll(null, null);
 	}
 	
 	//逐个code来获取数据。
