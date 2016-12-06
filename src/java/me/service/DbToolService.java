@@ -8,11 +8,17 @@ import java.util.List;
 
 import me.common.util.TypeUtil;
 
+/**
+ * 2016-12-02 为了保持项目的简单，暂不加入 oracle 的库
+ * 
+ * @author James
+ *
+ */
 public class DbToolService {
 	//private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	private List<String> tableNamesAll = new ArrayList<String>();
-	private boolean isUseOracle = true;
+	private boolean isUseOracle = false;
 	
 	public DbToolService() {
 		if(isUseOracle) {
