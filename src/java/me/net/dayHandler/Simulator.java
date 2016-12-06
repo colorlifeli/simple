@@ -1,12 +1,10 @@
 package me.net.dayHandler;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.Constant;
@@ -15,6 +13,9 @@ import me.net.NetType.eStockOper;
 import me.net.model.Central;
 import me.net.model.CentralInfo;
 import me.net.model.StockDay;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 模拟处理器
@@ -37,6 +38,8 @@ public class Simulator {
 	List<StockDay> his = new ArrayList<StockDay>();
 	//中枢信息
 	CentralInfo info = new CentralInfo();
+	
+	SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
 	/**
 	 * 在使用不同的code之前应该执行此方法进行重置
@@ -89,20 +92,20 @@ public class Simulator {
 					if (lastP == null) {
 						points.push(point);
 
-						info.addPoint(point.value);
+						info.addPoint(point.value, format.format(day.date_));
 					} else if (lastP.type.equals(type)
 							&& Double.parseDouble(point.value) > Double.parseDouble(lastP.value)) {
 						//新顶点更高
 						points.pop();
 						points.push(point);
 
-						info.reassignPoint(point.value);
+						info.reassignPoint(point.value, format.format(day.date_));
 					} else if (!lastP.type.equals(type)
 							&& Double.parseDouble(point.value) > Double.parseDouble(lastP.value)) {
 						//和上一个分型不一样，则要判断是否符合顶高于底
 						points.push(point);
 
-						info.addPoint(point.value);
+						info.addPoint(point.value, format.format(day.date_));
 					}
 
 				} else if (eStockDayFlag.BOTTOM.toString().equals(type)) {
@@ -110,20 +113,20 @@ public class Simulator {
 					if (lastP == null) {
 						points.push(point);
 
-						info.addPoint(point.value);
+						info.addPoint(point.value, format.format(day.date_));
 					} else if (lastP.type.equals(type)
 							&& Double.parseDouble(point.value) < Double.parseDouble(lastP.value)) {
 						//新底更低
 						points.pop();
 						points.push(point);
 
-						info.reassignPoint(point.value);
+						info.reassignPoint(point.value, format.format(day.date_));
 					} else if (!lastP.type.equals(type)
 							&& Double.parseDouble(point.value) < Double.parseDouble(lastP.value)) {
 						//和上一个分型不一样，则要判断是否符合顶高于底
 						points.push(point);
 
-						info.addPoint(point.value);
+						info.addPoint(point.value, format.format(day.date_));
 					}
 				}
 
@@ -206,7 +209,7 @@ public class Simulator {
 			} else if(type != null && info.centrals.size() > 0){ //非产生中枢时
 				//没有产生中枢，但如果是底且比中枢的底还低，则买入
 				int pos = info.centrals.get(info.centrals.size() - 1).position;
-				if (pos < -2
+				if (pos < -1
 					&& type.equals(eStockDayFlag.BOTTOM.toString())
 							&& Double.parseDouble(day.high) < Double
 									.parseDouble(info.centrals.get(info.centrals.size() - 1).low)
@@ -289,7 +292,7 @@ public class Simulator {
 					if (lastP == null) {
 						points.push(point);
 
-						info.points.add(point.value);
+						// **** info.points.add(point.value);
 					} else if (lastP.type.equals(type)
 							&& Double.parseDouble(point.value) > Double.parseDouble(lastP.value)) {
 						//新顶点更高
@@ -297,13 +300,13 @@ public class Simulator {
 						points.push(point);
 
 						info.points.remove(info.points.size() - 1);
-						info.points.add(point.value);
+						// **** info.points.add(point.value);
 					} else if (!lastP.type.equals(type)
 							&& Double.parseDouble(point.value) > Double.parseDouble(lastP.value)) {
 						//和上一个分型不一样，则要判断是否符合顶高于底
 						points.push(point);
 
-						info.points.add(point.value);
+						// **** info.points.add(point.value);
 					}
 
 				} else if (eStockDayFlag.BOTTOM.toString().equals(type)) {
@@ -311,7 +314,7 @@ public class Simulator {
 					if (lastP == null) {
 						points.push(point);
 
-						info.points.add(point.value);
+						// **** info.points.add(point.value);
 					} else if (lastP.type.equals(type)
 							&& Double.parseDouble(point.value) < Double.parseDouble(lastP.value)) {
 						//新底更低
@@ -319,13 +322,13 @@ public class Simulator {
 						points.push(point);
 
 						info.points.remove(info.points.size() - 1);
-						info.points.add(point.value);
+						// **** info.points.add(point.value);
 					} else if (!lastP.type.equals(type)
 							&& Double.parseDouble(point.value) < Double.parseDouble(lastP.value)) {
 						//和上一个分型不一样，则要判断是否符合顶高于底
 						points.push(point);
 
-						info.points.add(point.value);
+						// **** info.points.add(point.value);
 					}
 				}
 
@@ -472,7 +475,7 @@ public class Simulator {
 					if (lastP == null) {
 						points.push(point);
 
-						info.points.add(point.value);
+						// **** info.points.add(point.value);
 					} else if (lastP.type.equals(type)
 							&& Double.parseDouble(point.value) > Double.parseDouble(lastP.value)) {
 						//新顶点更高
@@ -480,13 +483,13 @@ public class Simulator {
 						points.push(point);
 
 						info.points.remove(info.points.size() - 1);
-						info.points.add(point.value);
+						// **** info.points.add(point.value);
 					} else if (!lastP.type.equals(type)
 							&& Double.parseDouble(point.value) > Double.parseDouble(lastP.value)) {
 						//和上一个分型不一样，则要判断是否符合顶高于底
 						points.push(point);
 
-						info.points.add(point.value);
+						// **** info.points.add(point.value);
 					}
 
 				} else if (eStockDayFlag.BOTTOM.toString().equals(type)) {
@@ -494,7 +497,7 @@ public class Simulator {
 					if (lastP == null) {
 						points.push(point);
 
-						info.points.add(point.value);
+						// **** info.points.add(point.value);
 					} else if (lastP.type.equals(type)
 							&& Double.parseDouble(point.value) < Double.parseDouble(lastP.value)) {
 						//新底更低
@@ -502,13 +505,13 @@ public class Simulator {
 						points.push(point);
 
 						info.points.remove(info.points.size() - 1);
-						info.points.add(point.value);
+						// **** info.points.add(point.value);
 					} else if (!lastP.type.equals(type)
 							&& Double.parseDouble(point.value) < Double.parseDouble(lastP.value)) {
 						//和上一个分型不一样，则要判断是否符合顶高于底
 						points.push(point);
 
-						info.points.add(point.value);
+						// **** info.points.add(point.value);
 					}
 				}
 

@@ -49,6 +49,7 @@ public class ActionAnno {
 
 	private static Logger logger = LoggerFactory.getLogger(ActionAnno.class);
 	public static final Map<String, ActionInfo> actions = new HashMap<String, ActionInfo>();
+	protected static boolean isSingle = false; //是否采用单例模式
 
 	@Target(ElementType.TYPE)
 	@Retention(RetentionPolicy.RUNTIME)
@@ -138,11 +139,23 @@ public class ActionAnno {
 		}
 
 		public String execute(HttpServletRequest request, HttpServletResponse response) throws Exception {
-			action.setRequest(request);
-			action.setResponse(response);
-			setParameter(request);
+			ActionIf tmp = null;
+			if(isSingle) {
+				tmp = action;
+			} else {
+				tmp = action.getClass().newInstance();
+				//执行 ioc 注入
+				@SuppressWarnings("unchecked")
+				Map<String, Object> beans = (Map<String, Object>)request.getSession().getServletContext().getAttribute("beans");
+				if(beans != null) {
+					IocAnno.processor(tmp, action.getClass(), beans);
+				}
+			}
+			tmp.setRequest(request);
+			tmp.setResponse(response);
+			setParameter(tmp, request);
 
-			Object ret = method.invoke(action);
+			Object ret = method.invoke(tmp);
 
 			if (ret != null && ret.getClass().equals(String.class)) {
 				//json
@@ -167,7 +180,7 @@ public class ActionAnno {
 
 		// 将页面参数 set 到 action属性
 		// 如果参数名是 a.b ，则 b是a的属性，先查找 action 里是否有此属性
-		private void setParameter(HttpServletRequest request) {
+		private void setParameter(Object action, HttpServletRequest request) {
 
 			Map<String, String[]> params = request.getParameterMap();
 			String actionName = action.getClass().getName();

@@ -22,6 +22,7 @@ import me.net.model.StockDay;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Deprecated
 public class ComputeSimulation {
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());

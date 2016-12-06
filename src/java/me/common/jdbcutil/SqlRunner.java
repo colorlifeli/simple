@@ -9,10 +9,17 @@ import java.sql.Connection;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import me.common.util.TypeUtil;
 
 public class SqlRunner {
 
@@ -38,8 +45,61 @@ public class SqlRunner {
 		ResultSet set = conn.getMetaData().getTables(null, null, tableName.toUpperCase(), null);
 		while (set.next()) {
 			state = true;
+			break;
 		}
 		return state;
+	}
+	
+	public List<String> getAllTables(Connection conn, String schema, String catalog, String pattern) throws SQLException {
+		if(conn == null) conn = this.conn;
+		if(TypeUtil.isEmpty(pattern))
+			pattern = "%";
+		else {
+			pattern.replaceAll("*", "%");
+		}
+		ResultSet rs = conn.getMetaData().getTables(catalog, schema, pattern, new String[] { "TABLE" });
+		List<String> tableNameList = new ArrayList<String>();
+		while (rs.next()) {
+			tableNameList.add(rs.getString("TABLE_NAME"));
+		}
+		return tableNameList;
+	}
+	
+	/**
+	 * 获得指定表的所有列的sql数据类型
+	 * @param tableName
+	 * @return
+	 * @throws SQLException
+	 */
+	public Map<String, String> getColumns(Connection conn, String tableName, Page.dbType type) throws SQLException {
+		if(conn == null) conn = this.conn;
+		String sql = "select * from " + tableName;
+		sql = Page.makePageSql(sql, type, 1, 1);
+		Map<String, String> types = new HashMap<String, String>();
+		
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+
+		try {
+			stmt = this.prepareStatement(conn, sql);
+			rs = stmt.executeQuery();
+			ResultSetMetaData rsd = rs.getMetaData();
+		       for(int i=1; i<=rsd.getColumnCount(); i++){
+		         String strType = this.sqlTypeToJavaType(rsd.getColumnType(i));
+		         types.put(rsd.getColumnName(i), strType);
+		       }
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				close(rs);
+			} finally {
+				close(stmt);
+			}
+		}
+		
+		return types;
 	}
 
 	/**
@@ -94,6 +154,23 @@ public class SqlRunner {
 		}
 
 		return rows;
+	}
+	
+	/**
+	 * 根据分页信息查询
+	 * @param sql
+	 * @param rsh
+	 * @param page
+	 * @param pageSize
+	 * @param type
+	 * @param params
+	 * @return
+	 * @throws SQLException
+	 */
+	public <T> T queryForPage(Connection conn, String sql, ResultSetHandler<T> rsh, int page, int pageSize, Page.dbType type, Object... params) throws SQLException {
+		sql = Page.makePageSql(sql, type, page, pageSize);
+		if(conn == null) conn = this.conn;
+		return this.<T> query(conn, sql, rsh, params);
 	}
 
 	/**
@@ -524,6 +601,12 @@ public class SqlRunner {
 		}
 
 	}
+	
+	public void close(Connection conn) throws SQLException {
+		if(conn != null) {
+			conn.close();
+		}
+	}
 
 	public Connection getConn() {
 		return conn;
@@ -531,5 +614,46 @@ public class SqlRunner {
 
 	public void setConn(Connection conn) {
 		this.conn = conn;
+	}
+	
+	private String sqlTypeToJavaType(int type) {
+		switch (type) {
+		case Types.CHAR:
+		case Types.CLOB:
+		case Types.NVARCHAR:
+		case Types.VARCHAR:
+		case Types.BLOB:
+			return "String";
+		case Types.INTEGER:
+		case Types.NUMERIC:
+			return "int";
+		case Types.DATE:
+			return "Date";
+		case Types.BIGINT:
+			return "long";
+		case Types.BINARY:
+			return null;
+		case Types.BIT:
+			return "byte";
+		case Types.BOOLEAN:
+			return "boolean";
+		case Types.DECIMAL:
+			//return "double";
+			return "BIGDECIMAL";
+		case Types.DOUBLE:
+			return "double";
+		case Types.FLOAT:
+			return "float";
+		case Types.SMALLINT:
+			return "short";
+		case Types.TIME:
+			return "Time";
+		case Types.TIMESTAMP:
+			return "Timestamp";
+		case Types.TINYINT:
+			return "short";
+		default:
+			return null;
+		}
 	}
 }

@@ -82,29 +82,29 @@
 	
 	<!-- 参数配置窗口 -->
 	<div id="pwin" class="easyui-window" title="计算" data-options="iconCls:'icon-save',closed:true"
-			style="width: 370px; height: 200px; left: 380; top: 230;">
-			<form name="pform" id="pform" method="post">
-				<table>
-					<tr>
-						<td>定价策略</td>
-						<td><input name="priceStrategy" id="priceStrategy" type="text" size="10" value="1"></input>
-						</td>
-					</tr>
-					<tr>
-						<td>开始日期</td>
-						<td><input name="startDate" id="startDate" type="text" size="10" value="2014-04-01"></input>
-						</td>
-					</tr>
-					
-					<tr>
-						<td align="right" style="width: 100px"><input type="button" value="开始计算" onclick="compute();">
-						</td>
-						<td><input type="button" class="button_ty" value="取消" onclick="closeWin('pwin');"></td>
-					</tr>
-					
-				</table>
-			</form>
-		</div>
+		style="width: 370px; height: 200px; left: 380; top: 230;">
+		<form name="pform" id="pform" method="post">
+			<table>
+				<tr>
+					<td>定价策略</td>
+					<td><input name="priceStrategy" id="priceStrategy" type="text" size="10" value="1"></input>
+					</td>
+				</tr>
+				<tr>
+					<td>开始日期</td>
+					<td><input name="startDate" id="startDate" type="text" size="10" value="2014-04-01"></input>
+					</td>
+				</tr>
+				
+				<tr>
+					<td align="right" style="width: 100px"><input type="button" value="开始计算" onclick="compute();">
+					</td>
+					<td><input type="button" class="button_ty" value="取消" onclick="closeWin('pwin');"></td>
+				</tr>
+				
+			</table>
+		</form>
+	</div>
 
 </body>
 </html>
