@@ -76,7 +76,7 @@
 
 	
 	
-	<div id="bar" class="easyui-dialog" title="处理中">
+	<div id="bar" class="easyui-dialog" title="处理中" data-options="closed:true">
 		<img src="<%=ctx%>/image/progressbar.gif"/>
 	</div>
 	

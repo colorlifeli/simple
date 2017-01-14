@@ -35,8 +35,8 @@ public class GetStockHisData {
 
 		long start = System.currentTimeMillis();
 
-		//getHisData(impl);
-		getHisData2(impl, stockSourceDao);
+		getHisData(impl);
+		//getHisData2(impl, stockSourceDao);
 
 		long end = System.currentTimeMillis();
 		System.out.println("use time:" + (end - start));

@@ -146,7 +146,7 @@ var dg_columns_codeOper = [ [
 
 
 $(function(){
-	$('#bar').dialog('close');	
+	//$('#bar').dialog('close');	
 });
 
 
