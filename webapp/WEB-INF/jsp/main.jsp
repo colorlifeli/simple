@@ -29,7 +29,8 @@ function to(title, target){
 <body class="easyui-layout" data-options="fit:true">
  
 	<div data-options="region:'north'" style="height:30px">
-	<a href="#" onclick="to('stock','stock/enter')" style="font-size:14px;display:inline-block;text-align:bottom">stock</a> |
+	<a href="#" onclick="to('stock','stock/enter')" style="font-size:14px;display:inline-block;text-align:bottom">stock</a>
+	 | <a href="#" onclick="to('dbtool','db/enter')" style="font-size:14px;display:inline-block;text-align:bottom">dbtool</a>
 	</div>
     <div id="main" data-options="region:'center',fit:true" >
     	<div id="mainTabs" class="easyui-tabs" data-options="fit:true">

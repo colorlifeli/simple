@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.annotation.IocAnno.Ioc;
 import me.common.jdbcutil.Page;
 import me.common.util.TypeUtil;
@@ -24,9 +27,6 @@ import me.net.dayHandler.Simulator;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AnalysisService {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -42,12 +42,12 @@ public class AnalysisService {
 	private eStrategy strategy = eStrategy.OneBuyOneSell; //策略
 	private double abnormal = 20000; //绝对值超过这个值视为异常值
 	public int c_priceStrategy = 1; //以什么策略来交易：1:第二天最差价格，2：今天最差价格 3：第二天中间价格 4:按中枢价格
-	public String c_startDate = "2014-04-01"; //2013-01-01  2015-06-01 2014-04-01
+	public String c_startDate = "2015-04-01"; //2013-01-01  2015-06-01 2014-04-01
 	public String c_endDate = null;  //startdate 与 enddate都是不包含
 
 	public String c_sellAllDate = null; //在这一天全部卖出
 	private boolean printOperLog = false;
-	private boolean isPractice = true;  //如果是实际操作，则最后一天不卖，倒数第二天和最后一天要计算买
+	private boolean isPractice = false;  //如果是实际操作，则最后一天不卖，倒数第二天和最后一天要计算买
 
 	private final int one = 10;
 	//不以量来买，以总价来买，更贴合实际
@@ -147,7 +147,7 @@ public class AnalysisService {
 					logger.debug("oper is sell : {},{},{}", hcode, date, num_l);
 				} else if (gain_l.doubleValue() > cost.doubleValue() * 1.2) {
 					num_l = total_l;
-				} else if (gain_l.doubleValue() < cost.doubleValue() * 0.9) {
+				} else if (gain_l.doubleValue() < cost.doubleValue() * 0.9 && gain_l.doubleValue() >= cost.doubleValue() * 0.8) {
 					//logger.debug("0.9 do nothing : {},{},{}", hcode, date, num_l);
 					//num_l = total_l;
 //					num_l = (int) Math.ceil((double)total_l / 2); //进位取整
@@ -261,7 +261,7 @@ public class AnalysisService {
 			if (isPractice) {
 				Calendar c = Calendar.getInstance();
 				c.setTime(new Date());
-				c.add(Calendar.WEEK_OF_MONTH, -4); //打印最近1个星期可买的
+				c.add(Calendar.WEEK_OF_MONTH, -1); //打印最近1个星期可买的
 				if (date.after(c.getTime())) {
 					String factor = stockAnalysisDao.getFactor(hcode, date);
 					BigDecimal aprice = price.divide(new BigDecimal(factor), 2);
