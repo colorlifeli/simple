@@ -9,7 +9,7 @@ public class GetRealtimeEveryday {
 	public static void main(String[] args) {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 
-		BeanContext bc = new BeanContext();
+		BeanContext bc = BeanContext.me();
 		StockSourceImpl1 impl = (StockSourceImpl1) bc.getBean("stockSourceImpl1");
 
 		long start = System.currentTimeMillis();

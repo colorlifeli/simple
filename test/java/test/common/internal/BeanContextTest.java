@@ -10,8 +10,8 @@ public class BeanContextTest {
 
 	@Test
 	public void testReadBean() {
-		BeanContext beanContext = new BeanContext();
-		Object hello = beanContext.getBean("helloAction");
+		BeanContext bc = BeanContext.me();
+		Object hello = bc.getBean("helloAction");
 
 		Assert.assertEquals(HelloAction.class.getName(), hello.getClass().getName());
 		Assert.assertEquals("hello", ((HelloAction) hello).getHello());

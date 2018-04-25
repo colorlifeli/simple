@@ -25,7 +25,7 @@ public class ContextLoaderListener implements ServletContextListener {
 
 		logger.info("start up...");
 
-		BeanContext bc = new BeanContext();
+		BeanContext bc = BeanContext.me();
 		Map<String, Object> beans = bc.getAllBeans();
 		arg0.getServletContext().setAttribute("beans", beans);
 

@@ -151,6 +151,7 @@ public class AnalysisService2 {
 
 				BigDecimal price_l = new BigDecimal(someDay.low);
 				int total_l = last.getTotal();
+				cost = last.getRemain().negate();
 				BigDecimal gain_l = price_l.multiply(new BigDecimal(total_l));
 				date = someDay.date_;
 				int num_l = 0;
@@ -181,6 +182,7 @@ public class AnalysisService2 {
 				if (num_l > 0) {
 					sum_l = price_l.multiply(new BigDecimal(num_l));
 					remain = remain.add(sum_l);//remain += -sum; //买是付钱，用负表示
+					//20180412 这里 cost计算有问题，成本直接用 remain 好了
 					cost = cost.multiply(new BigDecimal((total_l - num_l) / total_l));
 					//输出前后2天，共5天的k线
 					operList.add(new OperRecord(++sn, hcode, eStockOper.Sell.toString(), num_l, price_l, sum_l,

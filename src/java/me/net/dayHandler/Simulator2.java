@@ -49,6 +49,9 @@ public class Simulator2 {
 		info.points.clear();
 	}
 
+	public eStockOper handle2(StockDay day) {
+		return handle(day, null);
+	}
 	public eStockOper handle(StockDay day, StockDay nextDay) {
 		eStockOper operation = eStockOper.None;
 		if (!analyzer.includeOne(his, day)) {

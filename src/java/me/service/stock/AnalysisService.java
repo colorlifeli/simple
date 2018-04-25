@@ -12,9 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import me.common.annotation.IocAnno.Ioc;
 import me.common.jdbcutil.Page;
 import me.common.util.TypeUtil;
@@ -27,6 +24,9 @@ import me.net.dayHandler.Simulator;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AnalysisService {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -135,6 +135,7 @@ public class AnalysisService {
 				int total_l = last.getTotal();
 				BigDecimal gain_l = price_l.multiply(new BigDecimal(total_l));
 				date = someDay.date_;
+				cost = last.getRemain().negate();
 				int num_l = 0;
 				BigDecimal sum_l = BigDecimal.ZERO;
 
@@ -340,10 +341,10 @@ public class AnalysisService {
 		g_operSumList.add(operSum);
 
 		if(lastRemain.doubleValue() < 0) {
-//			logger.info(operSum.toString());
-//			for(OperRecord record : operList) {
-//				logger.debug(record.toString());
-//			}
+			logger.info(operSum.toString());
+			for(OperRecord record : operList) {
+				logger.debug(record.toString());
+			}
 		}
 	}
 

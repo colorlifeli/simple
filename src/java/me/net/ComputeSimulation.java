@@ -187,7 +187,7 @@ public class ComputeSimulation {
 	private void runOne() {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 
-		BeanContext bc = new BeanContext();
+		BeanContext bc = BeanContext.me();
 		ComputeSimulation simulation = (ComputeSimulation) bc.getBean("computeSimulation");
 
 		try {
@@ -206,7 +206,7 @@ public class ComputeSimulation {
 	private void runAll() {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 
-		BeanContext bc = new BeanContext();
+		BeanContext bc = BeanContext.me();
 		ComputeSimulation simulation = (ComputeSimulation) bc.getBean("computeSimulation");
 
 		try {

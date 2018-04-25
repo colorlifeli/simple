@@ -28,7 +28,7 @@ public class GetStockHisData {
 	public static void main(String[] args) {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 
-		BeanContext bc = new BeanContext();
+		BeanContext bc = BeanContext.me();
 		//StockSourceImpl1 impl = (StockSourceImpl1) bc.getBean("stockSourceImpl1");
 		StockSourceImpl2 impl = (StockSourceImpl2) bc.getBean("stockSourceImpl2");
 		StockSourceDao stockSourceDao = (StockSourceDao) bc.getBean("stockSourceDao");

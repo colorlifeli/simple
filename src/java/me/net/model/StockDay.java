@@ -92,4 +92,19 @@ public class StockDay implements Serializable {
 	public void setFactor(String factor) {
 		this.factor = factor;
 	}
+	
+	public StockDay duplicate() {
+		StockDay copy = new StockDay();
+		Class<?> clazz = this.getClass();
+		Field[] fields = clazz.getFields();
+		for (Field field : fields) {
+			try {
+				field.set(copy, field.get(this));
+			} catch (Exception e) {
+				System.out.println("duplicate StockDay error" + e.getMessage());
+				e.printStackTrace();
+			} 
+		}
+		return copy;
+	}
 }

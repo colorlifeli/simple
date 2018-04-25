@@ -139,8 +139,9 @@ public class Simulator {
 				result = info.makeNewCentral();
 			}
 
-			his.add(day);
-
+			//因为判断包含关系时会修改数据，为了不修改原来的数据，复制一份出来
+			his.add(day.duplicate()); 
+			
 			if (result && type != null && info.centrals.size() > 0) {
 				int pos = info.centrals.get(info.centrals.size() - 1).position;
 				//趋势向下，且当前的分型是顶分型，则看顶是否大于中枢，是则卖.

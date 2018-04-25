@@ -15,6 +15,7 @@ import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
 import me.common.util.TypeUtil;
 import me.net.dao.StockSourceDao;
+import me.service.stock.AnalysisService;
 import me.service.stock.AnalysisService2;
 
 public class Temp2 {
@@ -34,8 +35,8 @@ public class Temp2 {
 	public void testAnalysisService2() {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 
-		BeanContext bc = new BeanContext();
-		AnalysisService2 service = (AnalysisService2) bc.getBean("analysisService2");
+		BeanContext bc = BeanContext.me();
+		AnalysisService service = (AnalysisService) bc.getBean("analysisService");
 		StockSourceDao stockSourceDao = (StockSourceDao) bc.getBean("stockSourceDao");
 		//service.computeAll();
 
@@ -63,7 +64,7 @@ public class Temp2 {
 	public void testAnalysisService3() {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 
-		BeanContext bc = new BeanContext();
+		BeanContext bc = BeanContext.me();
 		AnalysisService2 service = (AnalysisService2) bc.getBean("analysisService2");
 		//service.computeAll();
 
@@ -85,7 +86,7 @@ public class Temp2 {
 	public void testSellSomeDay() {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 
-		BeanContext bc = new BeanContext();
+		BeanContext bc = BeanContext.me();
 		AnalysisService2 service = (AnalysisService2) bc.getBean("analysisService2");
 
 		service.sellSomeday3();

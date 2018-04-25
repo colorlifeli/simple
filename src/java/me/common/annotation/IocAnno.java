@@ -5,7 +5,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+
+import me.common.util.Constant;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +19,8 @@ import org.slf4j.LoggerFactory;
  * ioc 依赖注入注解。用于标记某个 field自动注入
  * 		name: 注入的对象名称，默认是 field 的名字。对象名称是 类名，首字母小写
  * 
+ * 20180412:
+ * 		增加对父类属性的注入
  * @author james
  *
  */
@@ -28,7 +35,19 @@ public class IocAnno {
 
 	public static <T> void processor(Object obj, Class<T> clazz, Map<String, Object> beans) {
 		Field[] fields = clazz.getDeclaredFields();
-		for (Field field : fields) {
+		List<Field> fieldList = new ArrayList<Field>(Arrays.asList(fields));
+		//最多只能继承一个父类, 循环直到父类是Object类
+		for (Class<?> superClass = clazz.getSuperclass(); superClass != Object.class; 
+				superClass = superClass.getSuperclass()) {
+			//父类是本地父类，才考虑要注入
+			for (String packageName : Constant.web.packages) {
+				if(superClass.getName().startsWith(packageName)) {
+					Field[] fields2 = superClass.getDeclaredFields();
+					fieldList.addAll(Arrays.asList(fields2));
+				}
+			}
+		}
+		for (Field field : fieldList) {
 			if (field.isAnnotationPresent(Ioc.class)) {
 				Ioc ioc = field.getAnnotation(Ioc.class);
 				String name = ioc.name();
