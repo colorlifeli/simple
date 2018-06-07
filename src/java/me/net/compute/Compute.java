@@ -92,7 +92,6 @@ public abstract class Compute {
 			StockDay nextDay = null;
 			if(i != all.size() - 1)
 				nextDay = all.get(i + 1);
-
 			buyOrSell(hcode, someDay, nextDay, operList);
 		}
 		

@@ -9,9 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import me.common.SimpleException;
 import me.common.jdbcutil.ArrayHandler;
 import me.common.jdbcutil.ArrayListHandler;
@@ -24,6 +21,9 @@ import me.common.util.Util;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StockAnalysisDao {
 
@@ -306,4 +306,43 @@ public class StockAnalysisDao {
 		return (String) result[0];
 	}
 
+	/**
+	 * 查出code的最后一次获取历史数据的endDate
+	 * @param code
+	 * @return
+	 * @throws SQLException
+	 */
+	public String getLastDate(String code) throws SQLException {
+		if(TypeUtil.isEmpty(code)) 
+			return null;
+		String sql = "select to_char(lastDate,'yyyy-mm-dd') from his_data_progress "
+				+ "where code = ? ";
+		Object[] params = {code};
+
+		List<Object[]> result = sqlrunner.query(sql, new ArrayListHandler(), params);
+
+		return (String)result.get(0)[0];		
+	}
+	
+	/**
+	 * 更新历史数据下载进度
+	 * @param code
+	 * @param endDate
+	 */
+	public void saveHisProgress(List<String> codes, Date endDate) {
+		String sql = "update his_data_progress set lastDate=? where code = ?";
+		//Object[] params = {endDate, code};
+		Object[][] params = new Object[codes.size()][];
+
+		for (int i = 0; i < codes.size(); i++) {
+			params[i] = new Object[]{endDate, codes.get(i)};
+		}
+		try {
+			sqlrunner.insertBatch(sql, new ArrayHandler(), params);
+		} catch (SQLException e) {
+			logger.error("更新历史数据下载进度失败.");
+			e.printStackTrace();
+			throw new SimpleException("更新历史数据下载进度失败");
+		}
+	}
 }

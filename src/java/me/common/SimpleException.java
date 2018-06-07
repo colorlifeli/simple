@@ -1,5 +1,8 @@
 package me.common;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * 简单的自定义异常类
  * 
@@ -7,6 +10,8 @@ package me.common;
  *
  */
 public class SimpleException extends RuntimeException {
+	
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	private static final long serialVersionUID = 1L;
 	private String retCd; //异常对应的返回码
@@ -19,6 +24,18 @@ public class SimpleException extends RuntimeException {
 	public SimpleException(String message) {
 		super(message);
 		msgDes = message;
+	}
+	
+	
+	public SimpleException(String message, Exception ex) {
+		super(message);
+		msgDes = message;
+		logger.error(message, ex);
+	}
+	
+
+	public SimpleException(Exception ex) {
+		this(ex.getMessage(), ex);
 	}
 
 	public SimpleException(String retCd, String msgDes) {

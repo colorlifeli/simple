@@ -4,9 +4,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.common.SimpleException;
 import me.common.internal.BeanContext;
 import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
+import me.common.util.Util;
 import me.net.StockSourceImpl2;
 import me.net.dao.StockSourceDao;
 
@@ -19,9 +21,13 @@ public class GetStockHisData {
 	 * 
 	 * 如果怀疑某段日期开始的数据可能有问题，则可填上 startDate，则会从这个日期开始的数据都会下载，插入时有主键冲突插入不了，没有主键冲突的会正常插入。(已多次确认)
 	 * 
+	 * 使用 getHistData速度较快，但获取的 startDate 不一定准确。
+	 * 20180426: 由于sina会返回拒绝访问，只能多次执行。调用getHisData2，逐个code获取。
+	 * getHisData2 如果是周末，为了可以忽略那些已完全获取完的code，不需要再次访问sina, 填周五日期。
 	 * 执行日志：
 	 * 20130101-20161021 数据执行无异常。
 	 * 20100101-20121231 数据执行无异常.
+	 * 获取到 20180425，数据正常
 	 * 
 	 * @param args
 	 */
@@ -35,8 +41,9 @@ public class GetStockHisData {
 
 		long start = System.currentTimeMillis();
 
-		getHisData(impl);
-		//getHisData2(impl, stockSourceDao);
+		//getHisData(impl);
+		getHisData2(impl, stockSourceDao);
+		//getHisDataByCode(impl, "002351");
 
 		long end = System.currentTimeMillis();
 		System.out.println("use time:" + (end - start));
@@ -46,7 +53,7 @@ public class GetStockHisData {
 	}
 	
 	public static void getHisData(StockSourceImpl2 impl) {
-		impl.getHistoryAll("20161110", null);
+		impl.getHistoryAll("20161130", null);
 		//impl.getHistoryAll(null, null);
 	}
 	
@@ -58,11 +65,26 @@ public class GetStockHisData {
 			for(String code : codes) {
 				tmp.clear();
 				tmp.add(code);
-				impl.getHistory(tmp, null, "20161130"); //endDate 由于今天的数据还没出，所以一般填昨天的日期。如果是周末，为了可以忽略已完全获取取的，可填周五日期。
+				//endDate 由于今天的数据还没出，所以一般填昨天的日期。
+				//如果是周末，为了可以忽略那些已完全获取完的code，不需要再次访问新浪。可填周五日期。
+				impl.getHistory(tmp, null, "20180425"); 
+				
 			}
+		} catch(SimpleException se) {
+			Util.logger.error(se.getMessage(), se);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			Util.logger.error("", e);
 		}
 	}
 
+	/**
+	 * 获取单个历史数据，主要用于调试程序
+	 * @param impl
+	 * @param code
+	 */
+	public static void getHisDataByCode(StockSourceImpl2 impl, String code) {
+		List<String> codes = new ArrayList<String>();
+		codes.add(code);
+		impl.getHistory(codes, "20161130", null);
+	}
 }

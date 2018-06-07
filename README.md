@@ -20,3 +20,8 @@ create index on sto_day_tmp2 (code);
 2016-11-22
 action 改成是非单例的。每次调用 new 一个实例。
 而 service 仍然是单例的，所以这个action 所有实例都共享的数据，应放在 service 里。
+
+2018-06-07
+增加历史数据下载进度表；初始化：
+insert into his_data_progress(code)
+select code from STO_CODE ;

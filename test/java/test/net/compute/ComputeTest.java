@@ -78,4 +78,18 @@ public class ComputeTest {
 			e.printStackTrace();
 		}
 	}
+	
+	@Test
+	public void computeAll2_2() {
+		try {
+			compute2.setStartDate("2013-04-01");
+			compute2.setEndDate("2015-04-01");
+			//compute.compute("603116");
+			//compute.compute("002570");
+			
+			compute2.computeAll();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }

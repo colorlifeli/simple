@@ -15,6 +15,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * 其它公用方法
  * 
@@ -22,6 +25,9 @@ import java.util.Map;
  *
  */
 public class Util {
+	
+
+	public static Logger logger = LoggerFactory.getLogger("common.logger");
 
 	// 按照 field1:value1,field2:value3,...的格式打印对象的值
 	public static String printFields(Class<?> clazz, Object object) {
@@ -235,5 +241,18 @@ public class Util {
 		}
 		
 		return map;
+	}
+	
+	/**
+	 * 将list合并为 str1,str2,str3...
+	 * @param strs
+	 * @return
+	 */
+	public static String getString(List<String> strs) {
+		StringBuilder sb = new StringBuilder();
+		for(String str : strs) {
+			sb.append(str).append(",");
+		}
+		return sb.substring(0, sb.length()-1).toString();
 	}
 }

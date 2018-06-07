@@ -2,7 +2,6 @@ package me.net.supplier;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -13,6 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import me.common.SimpleException;
 import me.common.util.Constant;
 import me.common.util.Util;
 import me.net.NetType.eStockSource;
@@ -31,14 +31,17 @@ import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SinaHisSupplier implements IStockSupplier {
-	//private Logger logger = LoggerFactory.getLogger(this.getClass());
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	private final String url = "http://vip.stock.finance.sina.com.cn/corp/go.php/vMS_FuQuanMarketHistory/stockid/%s.phtml?year=%s&jidu=%s";
 	//指数的url不一样
 	//private final String url_index = "http://vip.stock.finance.sina.com.cn/corp/go.php/vMS_MarketHistory/stockid/%s/type/S.phtml?year=%s&jidu=%s";
-
+	private final static String charset = "UTF-8";
+	
 	@Override
 	public List<?> getData(List<String> codes, Object... obj) {
 
@@ -72,7 +75,8 @@ public class SinaHisSupplier implements IStockSupplier {
 				
 			//return this.sigleThread(httpclient, codes, seasons);
 			List<StockDay> days = new ArrayList<StockDay>();
-			days = this.multiThread(httpclient, codes, seasons);
+			//days = this.multiThread(httpclient, codes, seasons);
+			days = sigleThread(httpclient, codes, seasons);
 			
 			//筛选，取start与end之间
 			Date startDate = format.parse(start);
@@ -85,11 +89,13 @@ public class SinaHisSupplier implements IStockSupplier {
 			
 			return result;
 			
+		} catch(SimpleException se) {
+			throw se;
 		} catch (Exception e) { 
 			//发生exception，则返回空表。要保持原子性，不成功就全部时间不成功。
 			//不然只是中间部分不成功的话，程序没办法检查出来重新执行。因为没有数据有可能是停牌
-			e.printStackTrace();
-			return null;
+			throw new SimpleException(e);
+			//return null;
 		} finally {
 			try {
 				httpclient.close();
@@ -106,7 +112,7 @@ public class SinaHisSupplier implements IStockSupplier {
 	}
 	
 	@SuppressWarnings("unused")
-	private List<StockDay> sigleThread(CloseableHttpClient httpclient, List<String> codes, List<int[]> seasons) throws ParseException, IOException {
+	private List<StockDay> sigleThread(CloseableHttpClient httpclient, List<String> codes, List<int[]> seasons) throws Exception, IOException {
 
 		List<StockDay> days = new ArrayList<StockDay>();
 		
@@ -236,7 +242,10 @@ public class SinaHisSupplier implements IStockSupplier {
             HttpEntity entity = response.getEntity();
             // 打印响应状态
             if (entity != null) {
-                return EntityUtils.toString(entity);
+            	//toString 函数本身也会尝试在 header 中查找 charset，没找到才用 default的。
+            	//如果没有default，则 text/html content type的charset默认是 ISO_8859_1
+            	//很多时候 header 中也没有，但html 页面倒是有说明
+                return EntityUtils.toString(entity, charset);
             }
         } finally {
             response.close();
@@ -245,34 +254,42 @@ public class SinaHisSupplier implements IStockSupplier {
         return null;
 	}
 	
-	private List<StockDay> parseToDay(String code, String html) throws ParseException {
+	private List<StockDay> parseToDay(String code, String html) throws Exception {
 
 		SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
 		List<StockDay> days = new ArrayList<StockDay>();
-		
-		Document doc = Jsoup.parse(html);
-		Elements trs = doc.select("#FundHoldSharesTable").select("tr");
-		
-		for(int j = 2;j<trs.size();j++){ //跳过表头
-            Elements tds = trs.get(j).select("td");
-            if(tds.size() == 8) {
-            	StockDay day = new StockDay();
-            	day.setCode(code);
-            	day.setSource(eStockSource.SINA.toString());
-            	
-            	//'date', 'open', 'high', 'close', 'low', 'volume', 'amount', 'factor']
-            	day.setDate_(format1.parse(tds.get(0).text()));
-            	day.setOpen_(tds.get(1).text());
-            	day.setHigh(tds.get(2).text());
-            	day.setClose_(tds.get(3).text());
-            	day.setLow(tds.get(4).text());
-            	day.setVolume(tds.get(5).text());
-            	day.setFactor(tds.get(7).text());
-            	
-            	//logger.debug(day.toString());
-            	days.add(day);
-            }
-        }
+		if(html.contains("拒绝访问")) {
+			logger.error("sina access denied");
+			throw new SimpleException("sina access denied");
+		}
+		try {
+			Document doc = Jsoup.parse(html);
+			Elements trs = doc.select("#FundHoldSharesTable").select("tr");
+			
+			for(int j = 2;j<trs.size();j++){ //跳过表头
+	            Elements tds = trs.get(j).select("td");
+	            if(tds.size() == 8) {
+	            	StockDay day = new StockDay();
+	            	day.setCode(code);
+	            	day.setSource(eStockSource.SINA.toString());
+	            	
+	            	//'date', 'open', 'high', 'close', 'low', 'volume', 'amount', 'factor']
+	            	day.setDate_(format1.parse(tds.get(0).text()));
+	            	day.setOpen_(tds.get(1).text());
+	            	day.setHigh(tds.get(2).text());
+	            	day.setClose_(tds.get(3).text());
+	            	day.setLow(tds.get(4).text());
+	            	day.setVolume(tds.get(5).text());
+	            	day.setFactor(tds.get(7).text());
+	            	
+	            	//logger.debug(day.toString());
+	            	days.add(day);
+	            }
+	        }
+		} catch(Exception e) {
+			//重新抛出异常，不返回任何数据，以保持原子性
+			throw new SimpleException(e); 
+		}
 		return days;
 	}
 
@@ -292,7 +309,7 @@ public class SinaHisSupplier implements IStockSupplier {
 		}
 
 		@Override
-		public Object call() throws ParseException, IOException {
+		public Object call() throws Exception, IOException {
 			return parseToDay(code, getData(httpClient, httpget));
 		}
 
