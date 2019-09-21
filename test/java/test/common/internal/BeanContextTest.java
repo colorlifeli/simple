@@ -1,12 +1,13 @@
 package test.common.internal;
 
-import me.common.internal.BeanContext;
-import me.web.example.HelloAction;
-
 import org.junit.Assert;
 import org.junit.Test;
 
-public class BeanContextTest {
+import me.common.internal.BeanContext;
+import test.MyTest;
+import test.common.annotion.HelloAction;
+
+public class BeanContextTest extends MyTest {
 
 	@Test
 	public void testReadBean() {

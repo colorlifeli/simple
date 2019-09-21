@@ -1,4 +1,4 @@
-package me.web.example;
+package test.common.annotion;
 
 import me.common.ActionIf;
 import me.common.annotation.ActionAnno.Action;
@@ -11,8 +11,8 @@ public class HelloAction extends ActionIf {
 	@Ioc(name = "helloService")
 	private HelloService hservice;
 
-	@Action(path = "hello", targets = { @Result(name = "success", value = "Hello.jsp") })
-	public String hello() {
+	@Action(path = "sayHello", targets = { @Result(name = "success", value = "Hello.jsp") })
+	public String sayHello() {
 
 		request.setAttribute("str", "Hello world");
 

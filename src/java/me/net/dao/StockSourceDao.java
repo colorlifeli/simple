@@ -9,11 +9,11 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import me.common.Config;
 import me.common.jdbcutil.ArrayHandler;
 import me.common.jdbcutil.ArrayListHandler;
 import me.common.jdbcutil.BeanListHandler;
 import me.common.jdbcutil.SqlRunner;
-import me.common.util.Constant;
 import me.net.NetType.eStockSource;
 import me.net.model.Item;
 import me.net.model.RealTime;
@@ -309,9 +309,9 @@ public class StockSourceDao {
 		Date date = new Date();
 		String now = format.format(date);
 
-		if ((now.compareTo(Constant.stock.morningStart) > 0 && now.compareTo(Constant.stock.morningEnd) <= 0)
-				|| (now.compareTo(Constant.stock.afternoonStart) > 0
-						&& now.compareTo(Constant.stock.afternoonEnd) <= 0)) {
+		if ((now.compareTo(Config.stock.morningStart) > 0 && now.compareTo(Config.stock.morningEnd) <= 0)
+				|| (now.compareTo(Config.stock.afternoonStart) > 0
+						&& now.compareTo(Config.stock.afternoonEnd) <= 0)) {
 			return true;
 		}
 
@@ -328,7 +328,7 @@ public class StockSourceDao {
 		Date date = new Date();
 		String now = format.format(date);
 
-		if (now.compareTo(Constant.stock.afternoonEnd) >= 0) {
+		if (now.compareTo(Config.stock.afternoonEnd) >= 0) {
 			return true;
 		}
 

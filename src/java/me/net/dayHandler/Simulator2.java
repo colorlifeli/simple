@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import me.common.Config;
 import me.common.annotation.IocAnno.Ioc;
-import me.common.util.Constant;
 import me.net.NetType.eStockDayFlag;
 import me.net.NetType.eStockOper;
 import me.net.model.CentralInfo;
@@ -56,7 +56,7 @@ public class Simulator2 {
 		eStockOper operation = eStockOper.None;
 		if (!analyzer.includeOne(his, day)) {
 			//不需要独立k线，似乎结果更好
-			String type = analyzer.recognizeTypeOne(his, day, Constant.simulate.isNeedK);
+			String type = analyzer.recognizeTypeOne(his, day, Config.simulate.isNeedK);
 
 			//对分型进行处理，必须是顶底交叉，从而可以形成笔
 			if (type != null) {

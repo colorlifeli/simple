@@ -1,26 +1,26 @@
-package me.common.util;
+package me.common;
 
-public class Constant {
+public class Config {
 
-	public class db {
+	public static class db {
 
 		// ***** db start parameters ******* //
 
 		//public final static String url_server = "jdbc:h2:tcp://localhost/~/db/simple";
-		public final static String url_server = "jdbc:h2:tcp://localhost/d:/develop/db/simple";
+		public static String url_server = "jdbc:h2:tcp://localhost/d:/develop/db/simple";
 		//public final static String url_embeded = "jdbc:h2:~/db/simple";
-		public final static String url_embeded = "jdbc:h2:d:/develop/db/simple";
+		public static String url_embeded = "jdbc:h2:d:/develop/db/simple";
 		//public final static String url_test_embeded = "jdbc:h2:~/db/test";
-		public final static String url_test_embeded = "jdbc:h2:d:/develop/db/test";
-		public final static String user = "sa";
-		public final static String password = "sa";
+		//public final static String url_test_embeded = "jdbc:h2:d:/develop/db/test";
+		public static String user = "sa";
+		public static String password = "sa";
 		// 如使用 embeded模式，则置 为 null
 		public final static String tcpServer = "-tcpAllowOthers";
 
 		// ***** db start parameters end ******* //
 	}
 
-	public class net {
+	public static class net {
 		public final static String proxy_ip = "proxy.piccnet.com.cn";
 		public final static String proxy_port = "3128";
 	}
@@ -30,7 +30,7 @@ public class Constant {
 		public final static String jspPrefix = "/WEB-INF/jsp/";
 
 		// bean 扫描目录
-		public final static String[] packages = { "me.web", "me.net", "me.service" };
+		public static String[] packages = { "me.web", "me.net", "me.service" };
 	}
 
 	// stock 相关

@@ -8,8 +8,8 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import me.common.Config;
 import me.common.jdbcutil.SqlRunner;
-import me.common.util.Constant;
 
 import org.h2.tools.Server;
 import org.h2.util.StringUtils;
@@ -31,7 +31,7 @@ public class H2StarterListener implements ServletContextListener {
 			logger.info("start h2 db connect");
 
 			// Start the server if configured to do so
-			String serverParams = Constant.db.tcpServer;
+			String serverParams = Config.db.tcpServer;
 			if (serverParams != null) {
 				String[] params = StringUtils.arraySplit(serverParams, ' ', true);
 				server = Server.createTcpServer(params);
@@ -39,7 +39,7 @@ public class H2StarterListener implements ServletContextListener {
 				logger.info("server mode");
 			}
 
-			conn = DriverManager.getConnection(Constant.db.url_server, Constant.db.user, Constant.db.password);
+			conn = DriverManager.getConnection(Config.db.url_server, Config.db.user, Config.db.password);
 
 			SqlRunner.me().setConn(conn);
 

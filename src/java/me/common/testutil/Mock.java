@@ -71,8 +71,9 @@ public class Mock implements InvocationHandler {
 
 		InvoInfo invo = new InvoInfo(this, proxy, method, args);
 
-		// 仅是验证是否调用
+		// 验证方法是否调用过，前面是verify函数
 		if (isVerify) {
+			isVerify = false; //恢复置位
 			for (int i = 0; i < mockInvoInfos.size(); i++) {
 				if (mockInvoInfos.get(i).matches(invo)) {
 					return TypeUtil.emptyValuesFor(method.getReturnType());

@@ -4,6 +4,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import me.common.jdbcutil.ArrayHandler;
 import me.common.jdbcutil.ArrayListHandler;
 import me.common.jdbcutil.BeanHandler;
@@ -11,17 +16,13 @@ import me.common.jdbcutil.BeanListHandler;
 import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
 import me.common.testutil.Mock;
+import test.MyTest;
 
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-public class H2Test {
+public class H2Test extends MyTest {
 
 	@BeforeClass
 	public static void before() throws SQLException {
-		SqlRunner.me().setConn(H2Helper.connEmbededDbTest());
+		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 
 		// create table
 

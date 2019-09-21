@@ -18,6 +18,7 @@ import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
 import me.net.NetType.eStockSource;
 import me.net.dao.StockSourceDao;
+import test.MyTest;
 
 /**
  * 为了按顺序执行 test case，方法名前加了前缀
@@ -25,13 +26,13 @@ import me.net.dao.StockSourceDao;
  *
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class StockSourceDaoTest {
+public class StockSourceDaoTest extends MyTest {
 
 	private StockSourceDao service = new StockSourceDao();
 
 	@BeforeClass
 	public static void before() {
-		SqlRunner.me().setConn(H2Helper.connEmbededDbTest());
+		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 	}
 
 	@AfterClass

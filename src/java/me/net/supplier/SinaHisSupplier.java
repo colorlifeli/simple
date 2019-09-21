@@ -12,8 +12,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import me.common.Config;
 import me.common.SimpleException;
-import me.common.util.Constant;
 import me.common.util.Util;
 import me.net.NetType.eStockSource;
 import me.net.model.StockDay;
@@ -228,7 +228,7 @@ public class SinaHisSupplier implements IStockSupplier {
 		//设置代理
         String ip = InetAddress.getLocalHost().getHostAddress();
 		if ("10.132.8.78".equals(ip)) {
-			HttpHost proxy = new HttpHost(Constant.net.proxy_ip, Integer.parseInt(Constant.net.proxy_port), "http");
+			HttpHost proxy = new HttpHost(Config.net.proxy_ip, Integer.parseInt(Config.net.proxy_port), "http");
 
 	        RequestConfig config = RequestConfig.custom()
 	                .setProxy(proxy)

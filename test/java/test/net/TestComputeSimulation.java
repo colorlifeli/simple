@@ -2,22 +2,23 @@ package test.net;
 
 import java.sql.SQLException;
 
-import me.common.internal.BeanContext;
-import me.common.jdbcutil.SqlRunner;
-import me.common.jdbcutil.h2.H2Helper;
-import me.net.ComputeSimulation;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class TestComputeSimulation {
+import me.common.internal.BeanContext;
+import me.common.jdbcutil.SqlRunner;
+import me.common.jdbcutil.h2.H2Helper;
+import me.net.ComputeSimulation;
+import test.MyTest;
+
+public class TestComputeSimulation extends MyTest {
 
 	private static ComputeSimulation simulation;
 
 	@BeforeClass
 	public static void before() {
-		SqlRunner.me().setConn(H2Helper.connEmbededDbTest());
+		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 		BeanContext bc = BeanContext.me();
 		simulation = (ComputeSimulation) bc.getBean("computeSimulation");
 	}

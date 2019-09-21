@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import me.common.Config;
+
 /**
  * 本实例提供网络相关的公共操作
  * 单例模式的一种，使用内部静态类。利用了classloader线程安全的特性来解决单例的并发问题
@@ -29,7 +31,7 @@ public class NetUtil {
 	 * 为系统访问网络增加代理服务器,采用系统默认值
 	 */
 	public void setProxy() {
-		this.setProxy(Constant.net.proxy_ip, Constant.net.proxy_port);
+		this.setProxy(Config.net.proxy_ip, Config.net.proxy_port);
 	}
 
 	/**

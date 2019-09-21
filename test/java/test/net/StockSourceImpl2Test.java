@@ -27,10 +27,11 @@ import me.net.StockSourceImpl2;
 import me.net.dao.StockAnalysisDao;
 import me.net.dao.StockSourceDao;
 import me.net.supplier.SinaHisSupplier;
+import test.MyTest;
 
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class StockSourceImpl2Test {
+public class StockSourceImpl2Test extends MyTest {
 
 	private StockSourceImpl2 impl = new StockSourceImpl2();
 	private SinaHisSupplier sina = new SinaHisSupplier();
@@ -46,7 +47,7 @@ public class StockSourceImpl2Test {
 
 	@BeforeClass
 	public static void before() throws UnknownHostException {
-		SqlRunner.me().setConn(H2Helper.connEmbededDbTest());
+		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 		String ip = InetAddress.getLocalHost().getHostAddress();
 		System.out.println(ip);
 		if ("10.132.8.78".equals(ip)) {

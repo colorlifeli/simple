@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import me.common.ActionIf;
-import me.common.util.Constant;
+import me.common.Config;
 import me.common.util.TypeUtil;
 
 import org.slf4j.Logger;
@@ -170,7 +170,7 @@ public class ActionAnno {
 				//jsp
 				String url = results.get(ret);
 				if (url.endsWith(".jsp")) {
-					return Constant.web.jspPrefix + url;
+					return Config.web.jspPrefix + url;
 				}
 			}
 

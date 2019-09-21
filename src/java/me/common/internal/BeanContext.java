@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import me.common.Config;
 import me.common.annotation.IocAnno;
-import me.common.util.Constant;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +50,7 @@ public class BeanContext {
 
 		// 读取包下所有类
 		List<Class<?>> classList = new ArrayList<Class<?>>();
-		for (String packageName : Constant.web.packages) {
+		for (String packageName : Config.web.packages) {
 			ScanPackage.scan(packageName, classList);
 		}
 

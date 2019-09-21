@@ -1,4 +1,4 @@
-package me.web.example;
+package test.common.annotion;
 
 public class HelloService {
 	public String getHello() {

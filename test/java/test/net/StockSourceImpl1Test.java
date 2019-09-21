@@ -11,16 +11,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import me.common.jdbcutil.SqlRunner;
-import me.common.jdbcutil.h2.H2Helper;
-import me.common.util.NetUtil;
-import me.net.NetType.eStockSource;
-import me.net.StockSourceImpl1;
-import me.net.dao.StockSourceDao;
-import me.net.model.RealTime;
-import me.net.supplier.SinaRealSupplier;
-import me.net.supplier.YahooHisSupplier;
-
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
@@ -30,8 +20,19 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import me.common.jdbcutil.SqlRunner;
+import me.common.jdbcutil.h2.H2Helper;
+import me.common.util.NetUtil;
+import me.net.NetType.eStockSource;
+import me.net.StockSourceImpl1;
+import me.net.dao.StockSourceDao;
+import me.net.model.RealTime;
+import me.net.supplier.SinaRealSupplier;
+import me.net.supplier.YahooHisSupplier;
+import test.MyTest;
+
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class StockSourceImpl1Test {
+public class StockSourceImpl1Test extends MyTest {
 
 	private StockSourceImpl1 impl = new StockSourceImpl1();
 	private SinaRealSupplier sina = new SinaRealSupplier();
@@ -47,7 +48,7 @@ public class StockSourceImpl1Test {
 
 	@BeforeClass
 	public static void before() throws UnknownHostException {
-		SqlRunner.me().setConn(H2Helper.connEmbededDbTest());
+		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 		String ip = InetAddress.getLocalHost().getHostAddress();
 		System.out.println(ip);
 		if ("10.132.8.78".equals(ip)) {

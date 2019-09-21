@@ -3,23 +3,24 @@ package test.net;
 import java.sql.SQLException;
 import java.util.List;
 
-import me.common.jdbcutil.SqlRunner;
-import me.common.jdbcutil.h2.H2Helper;
-import me.net.dao.StockAnalysisDao;
-import me.net.model.StockDay;
-
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class StockAnalysisDaoTest {
+import me.common.jdbcutil.SqlRunner;
+import me.common.jdbcutil.h2.H2Helper;
+import me.net.dao.StockAnalysisDao;
+import me.net.model.StockDay;
+import test.MyTest;
+
+public class StockAnalysisDaoTest extends MyTest {
 
 	private StockAnalysisDao service = new StockAnalysisDao();
 
 	@BeforeClass
 	public static void before() {
-		SqlRunner.me().setConn(H2Helper.connEmbededDbTest());
+		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 	}
 
 	@AfterClass

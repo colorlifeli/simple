@@ -8,43 +8,28 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import me.common.Config;
 import me.common.jdbcutil.ArrayHandler;
 import me.common.jdbcutil.QueryRule;
 import me.common.jdbcutil.SqlRunner;
-import me.common.util.Constant;
 import me.common.util.TypeUtil;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class H2Helper {
 
 	private static Logger logger = LoggerFactory.getLogger(H2Helper.class);
 
-	public static Connection connEmbededDbTest() {
-		try {
-			org.h2.Driver.load();
-
-			Connection conn = DriverManager.getConnection(Constant.db.url_test_embeded, Constant.db.user,
-					Constant.db.password);
-
-			System.out.println("connect to h2 db in embeded mode...");
-			return conn;
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
 
 	public static Connection connEmbededDb() {
 		try {
 			org.h2.Driver.load();
 
-			Connection conn = DriverManager.getConnection(Constant.db.url_embeded, Constant.db.user,
-					Constant.db.password);
+			Connection conn = DriverManager.getConnection(Config.db.url_embeded, Config.db.user,
+					Config.db.password);
 
-			System.out.println("connect to h2 db in embeded mode...");
+			System.out.println("connect to h2 db in embeded mode... url:" + Config.db.url_embeded);
 			return conn;
 
 		} catch (Exception e) {

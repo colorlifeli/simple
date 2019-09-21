@@ -10,10 +10,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import me.common.util.Constant;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import me.common.Config;
 
 /**
  * ioc 依赖注入注解。用于标记某个 field自动注入
@@ -40,7 +40,7 @@ public class IocAnno {
 		for (Class<?> superClass = clazz.getSuperclass(); superClass != Object.class; 
 				superClass = superClass.getSuperclass()) {
 			//父类是本地父类，才考虑要注入
-			for (String packageName : Constant.web.packages) {
+			for (String packageName : Config.web.packages) {
 				if(superClass.getName().startsWith(packageName)) {
 					Field[] fields2 = superClass.getDeclaredFields();
 					fieldList.addAll(Arrays.asList(fields2));

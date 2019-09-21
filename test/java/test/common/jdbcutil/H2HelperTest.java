@@ -5,18 +5,19 @@ import static org.junit.Assert.fail;
 
 import java.sql.SQLException;
 
-import me.common.jdbcutil.SqlRunner;
-import me.common.jdbcutil.h2.H2Helper;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class H2HelperTest {
+import me.common.jdbcutil.SqlRunner;
+import me.common.jdbcutil.h2.H2Helper;
+import test.MyTest;
+
+public class H2HelperTest extends MyTest {
 
 	@BeforeClass
 	public static void before() {
-		SqlRunner.me().setConn(H2Helper.connEmbededDbTest());
+		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 	}
 
 	@AfterClass
