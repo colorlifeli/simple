@@ -20,10 +20,14 @@ import org.junit.Test;
 public class H2Test {
 
 	@BeforeClass
-	public static void before() {
+	public static void before() throws SQLException {
 		SqlRunner.me().setConn(H2Helper.connEmbededDbTest());
 
 		// create table
+
+		// 创建表
+		String sql = "create table test(id varchar(10) primary key, name varchar(10), age int)";
+		SqlRunner.me().execute(sql);
 	}
 
 	@AfterClass
@@ -50,9 +54,6 @@ public class H2Test {
 		Object[] params;
 		SqlRunner sqlrunner = SqlRunner.me();
 
-		// 创建表
-		sql = "create table test(id varchar(10) primary key, name varchar(10), age int)";
-		SqlRunner.me().execute(sql);
 
 		sql = "insert into test values(?,?,?)";
 		params = new Object[] { "1", "xiaoming", 10 };
