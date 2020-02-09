@@ -14,10 +14,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import me.common.json.Json;
+import me.common.json.Parse;
+
 /** 
  * 用来输出JSON字符串，交给Javascript在页面上进行处理。支持JSON对象的嵌套，支持数组
  * 
  * jquery easyui 的datagrid，必须要使用双引号
+ * 
+ * 20200208 增加从 json 字符串转换为java 对象功能
  * 
  */
 public class JsonUtil {
@@ -199,6 +204,34 @@ public class JsonUtil {
 	public Map<String, Object> getMap() {
 		return this.jsonMap;
 	}
+	
+	/**
+	 * 返回对象
+	 * @param jsonStr
+	 * @param clazz
+	 * @return
+	 * @throws Exception
+	 */
+	public static <T> T parseToObject(String jsonStr, Class<T> clazz) throws Exception {
+		Json jsonObj = Parse.parseJSONObject(jsonStr);
+		
+		return (T)jsonObj.toObject(clazz);
+	}
+	
+	/**
+	 * 返回列表
+	 * @param jsonStr
+	 * @param clazz
+	 * @return
+	 * @throws Exception
+	 */
+	public static <T> List<T> parseToObjectList(String jsonStr, Class<T> clazz) throws Exception {
+		Json jsonObj = Parse.parseJSONObject(jsonStr);
+		
+		return (List<T>)jsonObj.toObject(clazz);
+	}
+	
+//	private static
 
 	public static void main(String[] args) {
 		JsonUtil util = new JsonUtil();

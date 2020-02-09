@@ -16,10 +16,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import jdk.nashorn.internal.ir.annotations.Ignore;
 import me.common.jdbcutil.SqlRunner;
 import me.common.jdbcutil.h2.H2Helper;
 import me.common.util.NetUtil;
@@ -80,7 +80,7 @@ public class StockSourceImpl1Test extends MyTest {
 			List<RealTime> strs;
 			strs = sourceDao.findRealtimeLast(codes);
 
-			assertEquals(8, strs.size());
+			assertEquals(strs.size()%8 , 0);
 
 			// date没有记录，默认都是今天
 			// Date date = new Date();
@@ -106,14 +106,20 @@ public class StockSourceImpl1Test extends MyTest {
 		System.out.println("time:" + (end - start));
 	}
 
-	// 无法测试
-	@Ignore
 	@Test
 	public void checkStocks() {
 
 		try {
 
 			long start = System.currentTimeMillis();
+			Date date = new Date();
+			SimpleDateFormat format = new SimpleDateFormat("hh");
+			int hour = Integer.parseInt(format.format(date));
+			if(hour == 9 || hour == 10)
+			{//新浪开盘时 9:00-9:30 状态不对
+				System.out.println("current hour is " + hour + ", cannot check the stock status");
+				return;
+			}
 
 			impl.checkStocks();
 
@@ -121,6 +127,8 @@ public class StockSourceImpl1Test extends MyTest {
 			System.out.println("time:" + (end - start));
 
 			List<String> list = sourceDao.getAllAvailableCodes(0, eStockSource.SINA);
+	
+			Assert.assertFalse(list == null || list.isEmpty());
 			Assert.assertTrue(list.size() < 2600); // 必然有一些停牌
 		} catch (SQLException e) {
 			Assert.fail();
@@ -207,7 +215,7 @@ public class StockSourceImpl1Test extends MyTest {
 	}
 
 	//时间较长
-	@Ignore
+	//@Ignore
 	@Test
 	public void getHistoryAll() {
 		long start = System.currentTimeMillis();

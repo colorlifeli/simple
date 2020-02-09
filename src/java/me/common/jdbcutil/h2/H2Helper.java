@@ -29,7 +29,7 @@ public class H2Helper {
 			Connection conn = DriverManager.getConnection(Config.db.url_embeded, Config.db.user,
 					Config.db.password);
 
-			System.out.println("connect to h2 db in embeded mode... url:" + Config.db.url_embeded);
+			logger.info("connect to h2 db in embeded mode... url:" + Config.db.url_embeded);
 			return conn;
 
 		} catch (Exception e) {
@@ -42,7 +42,7 @@ public class H2Helper {
 		try {
 			if (conn != null) {
 				conn.close();
-				System.out.println("close connection.");
+				logger.info("close connection.");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

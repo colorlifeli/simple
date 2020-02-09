@@ -1,10 +1,12 @@
 package me.net.compute;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.TypeUtil;
@@ -12,9 +14,6 @@ import me.net.NetType.eStockOper;
 import me.net.dayHandler.Simulator;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 与 compute1 比较：
@@ -155,7 +154,7 @@ public class Compute2 extends Compute {
 //				all.get(i - 1).low, all.get(i - 1).high, all.get(i).date_, all.get(i).low, all.get(i).high,
 //				i==all.size()-1?"":all.get(i + 1).date_, i==all.size()-1?"":all.get(i + 1).low, i==all.size()-1?"":all.get(i + 1).high));
 				if(printOperLog)
-				System.out.println(operList.get(operList.size() - 1).toString());
+					logger.info(operList.get(operList.size() - 1).toString());
 			}
 			return;
 		}
@@ -165,41 +164,7 @@ public class Compute2 extends Compute {
 
 	@Override
 	public List<EveryDayGain> computeGain(List<OperRecord> operList, List<StockDay> all) {
-
-		List<EveryDayGain> gainList = new ArrayList<EveryDayGain>();
-		if(operList == null || operList.size() == 0) 
-			return null;
-
-		int j = 0;
-		int total = 0; //开始时没有数量
-		BigDecimal remain = BigDecimal.ZERO;
-		OperRecord record = operList.get(j);
-		for(int i = 0; i< all.size(); i++) {
-			StockDay day = all.get(i);
-			//第一次买之前 gain 都是0
-			//前后两次操作之间的数量 等于 前面那次的数量
-			Date operDate = record.getDate_();
-			if(day.date_.after(operDate)) {
-				total = record.getTotal();
-				remain = record.getRemain();
-				if(j < operList.size()-1) 
-					record = operList.get(++j); 
-			}
-
-			EveryDayGain gain = new EveryDayGain();
-			gain.date_ = day.date_;
-			//假设以最低价格卖
-			BigDecimal price = new BigDecimal(day.low);
-			gain.balance = price.multiply(new BigDecimal(total)).add(remain);
-			gainList.add(gain);
-			
-		}//end for
-		//输出每一天 gain
-		
-		//output(gainList);
-		
-		return gainList;
-		
+		return super.computeGain(operList, all);
 	}
 	
 	/**
@@ -245,7 +210,7 @@ public class Compute2 extends Compute {
 					balance = gain.balance;
 				}
 
-				System.out.println(format.format(start) + " " + balance);
+				logger.info(format.format(start) + " " + balance);
 				c.add(Calendar.DAY_OF_YEAR, 1);
 				start = c.getTime();
 			}

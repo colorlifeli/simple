@@ -8,10 +8,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.net.model.RealTime;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import me.net.model.RealTime;
 
 /**
  * sina 数据特点：
@@ -161,7 +161,7 @@ public class SinaRealSupplier implements IStockSupplier {
 	 */
 	private RealTime toRealtime(String[] datas) {
 		RealTime realtime = new RealTime();
-		if (datas.length != 33) {
+		if (datas.length < 33) {
 			// 指数
 			realtime.code = datas[0];
 			realtime.tOpen = datas[1];// 当前点数

@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.Config;
 import me.common.annotation.IocAnno.Ioc;
 import me.net.NetType.eStockDayFlag;
@@ -13,9 +16,6 @@ import me.net.NetType.eStockOper;
 import me.net.model.Central;
 import me.net.model.CentralInfo;
 import me.net.model.StockDay;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 模拟处理器
@@ -71,6 +71,7 @@ public class Simulator {
 
 	public eStockOper handle2(StockDay day) {
 		eStockOper operation = eStockOper.None;
+		boolean result = false;
 		if (!analyzer.includeOne(his, day)) {
 			//不需要独立k线，似乎结果更好
 			String type = analyzer.recognizeTypeOne(his, day, Config.simulate.isNeedK);
@@ -132,13 +133,10 @@ public class Simulator {
 
 //				logger.debug("point:{}, {}, {}, {}, {}", point.value, point.type, point.sn,
 //						String.format("%.2f", point.degree), day.date_);
-			}
-
-			boolean result = false;
-			if (eStockDayFlag.TOP.toString().equals(type) || eStockDayFlag.BOTTOM.toString().equals(type)) {
 				result = info.makeNewCentral();
 			}
 
+			
 			//因为判断包含关系时会修改数据，为了不修改原来的数据，复制一份出来
 			his.add(day.duplicate()); 
 			
@@ -246,6 +244,7 @@ public class Simulator {
 		return operation;
 	}
 
+	@Deprecated
 	public eStockOper handle(StockDay day, StockDay nextDay, StockDay tmp) {
 
 		eStockOper operation = eStockOper.None;

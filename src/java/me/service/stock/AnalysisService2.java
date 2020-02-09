@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.TypeUtil;
 import me.net.NetType.eStockOper;
@@ -23,9 +26,7 @@ import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+@Deprecated
 public class AnalysisService2 {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 

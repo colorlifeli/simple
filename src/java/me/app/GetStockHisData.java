@@ -4,6 +4,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.SimpleException;
 import me.common.internal.BeanContext;
 import me.common.jdbcutil.SqlRunner;
@@ -15,15 +18,18 @@ import me.net.dao.StockSourceDao;
 public class GetStockHisData {
 
 	/**
-	 * 一般使用 getHisData 获取数据。会自动判断从上一次的日期开始获取。
-	 * 
-	 * 每次执行应执行是否有异常。有异常使用 getHisData2 重新执行。直到没有异常为止。
-	 * 
-	 * 如果怀疑某段日期开始的数据可能有问题，则可填上 startDate，则会从这个日期开始的数据都会下载，插入时有主键冲突插入不了，没有主键冲突的会正常插入。(已多次确认)
 	 * 
 	 * 使用 getHistData速度较快，但获取的 startDate 不一定准确。
+	 * 如果调用getHistData，每次执行应查看是否有异常。有异常使用 getHisData2 重新执行。直到没有异常为止。
+	 * 如果怀疑某段日期开始的数据可能有问题，则可填上 startDate，则会从这个日期开始的数据都会下载，插入时有主键冲突插入不了，没有主键冲突的会正常插入。(已多次确认)
+	 * 
+	 * 20200206: 对getHisData2进一步优化。不再需要传入 startDate和endDate
+	 * 如果早上执行程序时，只能保存到上一天的数据，因此为了一致，如果endDate不填，默认只保存到上一天的数据；如需要下载今天的数据，则endDate填上今天日期即可。
+	 * 为防止访问拒绝，进行了sleep。一个code所需时间约1.4秒。所有2800多个code要1个多小时。
+	 * 
 	 * 20180426: 由于sina会返回拒绝访问，只能多次执行。调用getHisData2，逐个code获取。
 	 * getHisData2 如果是周末，为了可以忽略那些已完全获取完的code，不需要再次访问sina, 填周五日期。
+	 * 
 	 * 执行日志：
 	 * 20130101-20161021 数据执行无异常。
 	 * 20100101-20121231 数据执行无异常.
@@ -31,6 +37,9 @@ public class GetStockHisData {
 	 * 
 	 * @param args
 	 */
+
+	private static Logger logger = LoggerFactory.getLogger(GetStockHisData.class);
+	
 	public static void main(String[] args) {
 		SqlRunner.me().setConn(H2Helper.connEmbededDb());
 
@@ -41,12 +50,10 @@ public class GetStockHisData {
 
 		long start = System.currentTimeMillis();
 
-		//getHisData(impl);
 		getHisData2(impl, stockSourceDao);
-		//getHisDataByCode(impl, "002351");
 
 		long end = System.currentTimeMillis();
-		System.out.println("use time:" + (end - start));
+		logger.info("use time:" + (end - start));
 		
 		H2Helper.close(SqlRunner.me().getConn());
 		System.exit(0);
@@ -65,10 +72,8 @@ public class GetStockHisData {
 			for(String code : codes) {
 				tmp.clear();
 				tmp.add(code);
-				//endDate 由于今天的数据还没出，所以一般填昨天的日期。
-				//如果是周末，为了可以忽略那些已完全获取完的code，不需要再次访问新浪。可填周五日期。
-				impl.getHistory(tmp, null, "20180425"); 
-				
+				//if("000001".equals(code))
+				impl.getHistory(tmp, null, null); 
 			}
 		} catch(SimpleException se) {
 			Util.logger.error(se.getMessage(), se);

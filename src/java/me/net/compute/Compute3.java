@@ -11,31 +11,27 @@ import org.slf4j.LoggerFactory;
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.TypeUtil;
 import me.net.NetType.eStockOper;
-import me.net.dayHandler.Simulator;
+import me.net.dayHandler.Simulator3;
 import me.net.model.OperRecord;
 import me.net.model.StockDay;
 
 /**
- * 本计算方法：
- * 1. 使用simulator， 根据历史数据，不断生成图形，并得到这个图形走势的当天推荐操作eStockOper
- * 2. 根据eStockOper的结果，有如下策略：
- * 卖策略：
- * 		1.eStockOper为Sell。由于要今天完成了，才最终确定图形走势，因此明天才能进行
- * 		2.eStockOper为none, 则根据一定的盈亏区间进行卖出部分或全部
- * 买策略：
- * 		eStockOper为Buy. 需明天才能进行
+ * 与 compute1 比较：
+ * 1.赚10%即卖。只要当日最高价大于10%，那一般就能以10%的价格卖
  * @author James
+ * 
+ * ***** 使用 Simulator3
  *
  */
-public class Compute1 extends Compute {
+public class Compute3 extends Compute {
 
 	@Ioc
-	private Simulator simulator;
+	private Simulator3 simulator3;
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Override
 	public void codeStart() {
-		simulator.reset();
+		simulator3.reset();
 	}
 
 	@Override
@@ -44,11 +40,7 @@ public class Compute1 extends Compute {
 	}
 
 	/**
-	 * 卖策略：
-	 * 		1.根据图形走势决定。由于要今天完成了，才最终确定图形走势，因此明天才能进行
-	 * 		2.在一定区间进行，如 1.2~0.8之间。可以在今天卖出
-	 * 买策略：
-	 * 		根据图形走势决定，明天才能进行
+	 * 买卖操作
 	 */
 	@Override
 	public void buyOrSell(String hcode, StockDay someDay, 
@@ -67,7 +59,7 @@ public class Compute1 extends Compute {
 		if(operList.size() > 0)
 			last = operList.get(operList.size() - 1);
 
-		eStockOper result = simulator.handle2(someDay);
+		eStockOper result = simulator3.handle(someDay);
 
 		if (nextDay != null && result == eStockOper.Buy) {
 			symbol = 1;
@@ -117,7 +109,8 @@ public class Compute1 extends Compute {
 			BigDecimal cost = computeCost(operList);
 			int lastTotal = last.getTotal();
 			//当前价格*数量=总价
-			BigDecimal gain_l = price.multiply(new BigDecimal(lastTotal));
+			BigDecimal gain_high = new BigDecimal(someDay.high).multiply(new BigDecimal(lastTotal));
+			BigDecimal gain_low = new BigDecimal(someDay.low).multiply(new BigDecimal(lastTotal));
 			date = someDay.date_;
 			sn = last.getSn()+1;
 			//BigDecimal sum_l = BigDecimal.ZERO;
@@ -128,24 +121,31 @@ public class Compute1 extends Compute {
 				sn = 999;
 			}else if(result == eStockOper.Sell) {
 				num = lastTotal;
-				logger.debug("oper is sell : {},{},{}", hcode, date, num);
-			} else if (gain_l.doubleValue() > cost.doubleValue() * 1.2) {
+//				logger.debug("oper is sell : {},{},{}", hcode, date, num);
+			} else if (gain_high.doubleValue() > cost.doubleValue() * 1.2) {
 				num = lastTotal;
-			} else if (gain_l.doubleValue() < cost.doubleValue() * 0.9 && gain_l.doubleValue() >= cost.doubleValue() * 0.8) {
+				sum = new BigDecimal(cost.doubleValue() * 1.2);
+			} else if (gain_high.doubleValue() > cost.doubleValue() * 0.9 &&
+					gain_low.doubleValue() < cost.doubleValue() * 0.9 && 
+					gain_low.doubleValue() >= cost.doubleValue() * 0.8) {
 				//logger.debug("0.9 do nothing : {},{},{}", hcode, date, num_l);
-				//num_l = total_l;
-//				num_l = (int) Math.ceil((double)total_l / 2); //进位取整
-			} else if (gain_l.doubleValue() < cost.doubleValue() * 0.8) {
-				//num_l = (int) Math.ceil((double)total_l / 2); 
 				num = lastTotal;
-				//logger.debug("0.8 sell part : {},{},{}", hcode, date, num);
-			} else if (gain_l.doubleValue() < cost.doubleValue() * 0.5) {
+				sum = new BigDecimal(cost.doubleValue() * 0.9);
+				//num_l = (int) Math.ceil((double)total_l / 2); //进位取整
+			} else if (gain_low.doubleValue() < cost.doubleValue() * 0.8) {
+				//num_l = (int) Math.ceil((double)total_l / 2); 
+				//num = lastTotal;
+				logger.debug("0.8 sell part : {},{},{}", hcode, date, num);
+			} else if (gain_low.doubleValue() < cost.doubleValue() * 0.5) {
 				//num_l = total_l;
 				logger.debug("0.5 sell all : {},{},{}", hcode, date, num);
+			} else {
+				//logger.error("***************  unexpect *************" + cost.doubleValue()/gain_low.doubleValue());
 			}
 
 			if (num > 0) {
-				sum = price.multiply(new BigDecimal(num));
+				if(sum.doubleValue() == 0)
+					sum = price.multiply(new BigDecimal(num));
 				remain = last.getRemain().add(sum);//remain += -sum; //买是付钱，用负表示
 				//cost = cost.multiply(new BigDecimal((total_l - num_l) / total_l));
 				//输出前后2天，共5天的k线

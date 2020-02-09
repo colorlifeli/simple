@@ -7,6 +7,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.TypeUtil;
 import me.common.util.Util;
@@ -15,14 +18,18 @@ import me.net.dao.StockSourceDao;
 import me.net.model.StockDay;
 import me.net.supplier.IStockSupplier;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+/**
+ * 20200208 由于原因的新浪历史数据接口不能用了，启用了新的实现 sinaHisSupplier2
+ * 			如果早上执行程序时，只能保存到上一天的数据，因此为了一致，如果endDate不填，默认只保存到上一天的数据
+ * 经测试，每个code 1秒间隔是可行的，加上执行时间0.4秒，一个code所需时间约1.4秒。所有2800多个code要1个多小时。
+ * @author opq
+ *
+ */
 public class StockSourceImpl2 implements StockSource {
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	@Ioc(name = "sinaHisSupplier")
+	@Ioc(name = "sinaHisSupplier2")
 	private IStockSupplier history_supplier;
 
 	@Ioc
@@ -39,29 +46,31 @@ public class StockSourceImpl2 implements StockSource {
 	/**
 	 * 为了保证supplier每次获取数据中间不会因为网络异常等原因而漏数，有任何异常应该马上往外抛，
 	 * 中断执行过程，保证后面的数据也不被插入。
+	 * 
+	 * 20200206 
+	 * 
+	 * startDate: yyyyMMdd
+	 * endDate: yyyyMMdd
 	 */
 	public void getHistory(List<String> codes, String startDate, String endDate) {
 		if (startDate == null) {
+			// 多个codes时不指定 startDate，则无法确定 startDate是什么。如果赋一个常量值，可能会带来大量不必要的数据下载。
+			// 因此直接返回。
+			if (codes.size() > 1) {
+				logger.error(" ******  多个 code 时必须指定 startDate。******* ");
+				return;
+			}
 			try {
-				//List<String> allDates = stockAnalysisDao.getAllDate(codes.get(0));
-//				if (allDates != null && allDates.size() > 0) {
-//					Calendar c = Calendar.getInstance();
-//					c.setTime(format_db.parse(allDates.get(allDates.size() - 1)));
-//					c.add(Calendar.DAY_OF_YEAR, 1);
-//					startDate = format.format(c.getTime());
-//					logger.debug(Util.getString(codes) + " start date: " + startDate);
-//				} else
-//					startDate = historyStartDate;
 				//原来 startDate 是根据已有数据的最后一天，再加一天来确定，
 				//现在改为用表记录到底插入到哪一天。主要是因为有些会停牌，现有数据的最后
 				//一天并不是查询过的最后一天。避免每次执行都要重新get
 				String lastDate = null;
+				lastDate = stockAnalysisDao.getLastDate(codes.get(0));
 				if (!TypeUtil.isEmpty(lastDate)) {
 					Calendar c = Calendar.getInstance();
 					c.setTime(format_db.parse(lastDate));
 					c.add(Calendar.DAY_OF_YEAR, 1);
 					startDate = format.format(c.getTime());
-					logger.debug(Util.getString(codes) + " start date: " + startDate);
 				} else {
 					List<String> allDates = stockAnalysisDao.getAllDate(codes.get(0));
 					if (allDates != null && allDates.size() > 0) {
@@ -69,7 +78,6 @@ public class StockSourceImpl2 implements StockSource {
 						c.setTime(format_db.parse(allDates.get(allDates.size() - 1)));
 						c.add(Calendar.DAY_OF_YEAR, 1);
 						startDate = format.format(c.getTime());
-						logger.debug(Util.getString(codes) + " start date: " + startDate);
 					} else {
 						logger.error("no start date");
 						return;
@@ -82,14 +90,19 @@ public class StockSourceImpl2 implements StockSource {
 			}
 		}
 		if (endDate == null) {
+			//如果早上执行程序时，只能保存到上一天的数据，为了一致，只保存到上一天。
 			Date date = new Date();
-			endDate = format.format(date);
+			Calendar c = Calendar.getInstance();
+			c.setTime(date);
+			c.add(Calendar.DAY_OF_YEAR, -1);
+			endDate = format.format(c.getTime());
 		}
 		if(startDate.compareTo(endDate) > 0) {
-			logger.error("start is after end!! start:" + startDate + ",end:" + endDate);
+			logger.error("start is after end!! start:" + startDate + ", end:" + endDate);
 			return;
 		}
-		
+
+		logger.debug(Util.getString(codes) + " will be got. start:" + startDate + ", end:" + endDate);
 		@SuppressWarnings("unchecked")
 		List<StockDay> days = (List<StockDay>) history_supplier.getData(codes, startDate, endDate);
 		
@@ -97,9 +110,10 @@ public class StockSourceImpl2 implements StockSource {
 		try {
 			stockAnalysisDao.saveHisProgress(codes, format.parse(endDate));
 		
-		//新浪加强了管制，用了防爬虫的措施，访问太快会被禁
+			//新浪加强了管制，用了防爬虫的措施，访问太快会被禁
+			//2020208新接口也会被拒绝！！！
 			//if(days != null && days.size() > 0)
-				Thread.sleep(10000);
+				Thread.sleep(1000);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

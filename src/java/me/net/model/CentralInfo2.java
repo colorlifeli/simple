@@ -14,9 +14,11 @@ import me.common.util.Util;
  * 这里的中枢是指连续3笔的公共区域。数字上即连续的 4点 top/bottom的交叉范围：{max(bottom),min(top)}，如果没有交叉（max(bottom)>min(top)）时，则不构成中枢，继续取后面的点。
  * 
  * @author James
+ * 
+ * ****** 与CentralInfo区别：CentralInfo用3条线段的公共区域作为中枢；CentralInfo2用最高点和最低点作为中枢。
  *
  */
-public class CentralInfo {
+public class CentralInfo2 {
 	
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -32,7 +34,7 @@ public class CentralInfo {
 
 	//public List<String> pointsHis;
 
-	public CentralInfo() {
+	public CentralInfo2() {
 		centrals = new ArrayList<Central>();
 		points = new ArrayList<Point>();
 		//pointsHis = new ArrayList<String>();
@@ -60,19 +62,28 @@ public class CentralInfo {
 		//logger.debug("{},{},{},{}", point1, point2, point3, point4);
 
 		Central c = new Central();
+		String high = "";
+		String low = "";
 		if (Double.parseDouble(point1) < Double.parseDouble(point2)) {
 			//向上笔
 			c.low = Util.max(point1, point3);
 			c.high = Util.min(point2, point4);
+			high = Util.max(point2, point4);
+			low = Util.min(point1, point3);
 		} else {
 			c.low = Util.max(point2, point4);
 			c.high = Util.min(point1, point3);
+			high = Util.max(point1, point3);
+			low = Util.min(point2, point4);
 		}
 
 		boolean result = false;
 
 		if (Double.parseDouble(c.low) < Double.parseDouble(c.high)) {
 			//有公共区域，才有中枢
+			//****20200205  重设中枢，不是公共区域，而是最高点与最低之间的区域
+			c.high = high;
+			c.low = low;
 
 			//这是第一个中枢
 			if (centrals.size() == 0) {

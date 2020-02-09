@@ -145,6 +145,9 @@ public class StockSourceDao {
 
 	/**
 	 * 将code转为 sina code
+	 * 
+	 * 20200209 因为000001为查出2个，暂时先去掉指数的code.增加type_ is null 条件
+	 * 
 	 * @param codes
 	 * @param source 不同的source，id的格式可能不同，在数据库中通过不同的字段来保存
 	 * @return
@@ -166,7 +169,7 @@ public class StockSourceDao {
 		codestr = codestr.substring(0, codestr.length() - 1) + ")";
 		String sql = null;
 
-		sql = String.format("select %s from sto_code where code in %s", fieldName, codestr);
+		sql = String.format("select %s from sto_code where type_ is null and code in %s", fieldName, codestr);
 
 		List<Object[]> result = sqlrunner.query(sql, new ArrayListHandler());
 

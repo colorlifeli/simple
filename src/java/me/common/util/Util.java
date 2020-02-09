@@ -7,6 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,6 +18,8 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import me.common.SimpleException;
 
 /**
  * 其它公用方法
@@ -254,5 +257,52 @@ public class Util {
 			sb.append(str).append(",");
 		}
 		return sb.substring(0, sb.length()-1).toString();
+	}
+	
+	/**
+	 * 计算2个日期之间天数
+	 * @param startDate：yyyy-MM-dd
+	 * @param endDate：yyyy-MM-dd
+	 * @return
+	 */
+	public static int totalDays(String startDate, String endDate) {
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		try {
+			Date date = formatter.parse(startDate);
+			long start = date.getTime();
+			Date date1 = formatter.parse(endDate);
+			long end = date1.getTime();
+
+			Long l = (end - start) / (1000 * 60 * 60 * 24);
+
+			return l.intValue();
+			
+		} catch (Exception e) {
+			throw new SimpleException("totalDays error", e);
+		}
+		
+	}
+
+	/**
+	 * 计算2个日期之间天数
+	 * @param startDate
+	 * @param endDate
+	 * @return
+	 */
+	public static int totalDays(Date start, Date end) {
+		try {
+
+			Long l = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+
+			return l.intValue();
+			
+		} catch (Exception e) {
+			throw new SimpleException("totalDays error", e);
+		}
+		
+	}
+	public static void main(String[] args) {
+		int i = totalDays("2019-12-01", "2020-01-01");
+		logger.info(i+"");
 	}
 }

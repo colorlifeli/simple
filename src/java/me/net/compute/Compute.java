@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import me.common.annotation.IocAnno.Ioc;
 import me.common.util.TypeUtil;
 import me.net.NetType.eStockOper;
@@ -20,13 +23,15 @@ import me.net.model.OperRecord;
 import me.net.model.StockDay;
 import me.net.model.StockOperSum;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * 本类提供计算买入、卖出操作的业务逻辑
  * 
  * 概念解释：
+ * 20200205: remain含义是手里的钱剩多少，开始时是0。作用是：负数表示曾经最大的投入额；正数表示盈利；
+ * 				最后一刻全卖了，可以看到是赚了还是亏了。
+ * 			balance 含义是某一天以当天最低价格把持有的股票都卖了，余额是多少。作用是为了看看在这种买卖策略下，随时卖掉是否会
+ * 				亏损很大，也就是想看看持仓是不是一直亏损;如某一天，看到自己的持仓已经亏了很多，可能会觉得风险太大，
+ * 				这时并不确定以后能升回来。持仓一直亏损考验人的耐心，也对资金的随时取出使用带来困难。
  * remain = 产出 - 投入。当产出为0时，remain的绝对值=投入
  * 		remain 也可看作是负债，一开始时借钱买，如果有盈利，就会还钱，盈利多的时候，直接使用盈利去买
  * 		不用借了；如果是亏的，则钱越借越多了
@@ -71,7 +76,7 @@ public abstract class Compute {
 	abstract public void codeEnd(List<OperRecord> operList);
 	abstract public void buyOrSell(String hcode, StockDay someDay, 
 			StockDay nextDay, List<OperRecord> operList);
-	abstract public List<EveryDayGain> computeGain(List<OperRecord> operList, List<StockDay> all);
+	//abstract public List<EveryDayGain> computeGain(List<OperRecord> operList, List<StockDay> all);
 	
 	/**
 	 * 计算某个 code 的操作
@@ -129,7 +134,7 @@ public abstract class Compute {
 			e.printStackTrace();
 		}
 		long endTime=System.currentTimeMillis();
-		System.out.println("运行时间： "+(endTime-startTime)+" ms");
+		logger.info("运行时间： "+(endTime-startTime)+" ms");
 	}
 	
 	/**
@@ -315,6 +320,8 @@ public abstract class Compute {
 	
 	/**
 	 * 计算每一天的收益合计
+	 * 最后一天balance 不等于 remain原因：有可能在倒数第二决定最后一天买，这些买入就不会卖掉。因为卖的时候判断了，
+	 * 									有买入就不能卖。
 	 * @return
 	 * @throws Exception
 	 */
@@ -366,13 +373,51 @@ public abstract class Compute {
 			
 			if(balanceSum.doubleValue() != 0 || allRemain.doubleValue() != 0)
 			//对比 gain 和 remain，可以看到在多大的负债情况下获得此收益。
-				System.out.println(String.format("%s %.0f %.0f", 
+				logger.info(String.format("%s %.0f %.0f", 
 						format.format(start), balanceSum, allRemain));
 			c.add(Calendar.DAY_OF_YEAR, 1);
 			start = c.getTime();
 		}
 		
 		return null;
+	}
+	
+	public List<EveryDayGain> computeGain(List<OperRecord> operList, List<StockDay> all) {
+
+		List<EveryDayGain> gainList = new ArrayList<EveryDayGain>();
+		if(operList == null || operList.size() == 0) 
+			return null;
+
+		int j = 0;
+		int total = 0; //开始时没有数量
+		BigDecimal remain = BigDecimal.ZERO;
+		OperRecord record = operList.get(j);
+		for(int i = 0; i< all.size(); i++) {
+			StockDay day = all.get(i);
+			//第一次买之前 gain 都是0
+			//前后两次操作之间的数量 等于 前面那次的数量
+			Date operDate = record.getDate_();
+			if(!day.date_.before(operDate)) { //20200205 resolve bug
+				total = record.getTotal();
+				remain = record.getRemain();
+				if(j < operList.size()-1) 
+					record = operList.get(++j); 
+			}
+
+			EveryDayGain gain = new EveryDayGain();
+			gain.date_ = day.date_;
+			//假设以最低价格卖
+			BigDecimal price = new BigDecimal(day.low);
+			gain.balance = price.multiply(new BigDecimal(total)).add(remain);
+			gainList.add(gain);
+			
+		}//end for
+		//输出每一天 gain
+		
+		//output(gainList);
+		
+		return gainList;
+		
 	}
 	
 	public void setStrategy(eStrategy strategy) {

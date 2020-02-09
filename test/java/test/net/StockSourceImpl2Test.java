@@ -83,7 +83,7 @@ public class StockSourceImpl2Test extends MyTest {
 
 		long start = System.currentTimeMillis();
 
-		impl.getHistory(codes, null, null);
+		impl.getHistory(codes, "20160101", null);
 
 		long end = System.currentTimeMillis();
 		System.out.println("use time:" + (end - start));

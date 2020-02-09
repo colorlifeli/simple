@@ -11,12 +11,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
-import me.common.Config;
-import me.common.SimpleException;
-import me.common.util.Util;
-import me.net.NetType.eStockSource;
-import me.net.model.StockDay;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -33,6 +28,12 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import me.common.Config;
+import me.common.SimpleException;
+import me.common.util.Util;
+import me.net.NetType.eStockSource;
+import me.net.model.StockDay;
 
 public class SinaHisSupplier implements IStockSupplier {
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -178,7 +179,13 @@ public class SinaHisSupplier implements IStockSupplier {
 			for(int i=0; i<j; i++) {
 				days.addAll((List<StockDay>)f[i].get());
 			}
-			
+
+			pool.shutdown(); //马上关闭
+			try {
+			     pool.awaitTermination(30, TimeUnit.SECONDS);//最长等待时间，也即此程序最长执行时间
+			} catch (InterruptedException e) {
+			     e.printStackTrace();
+			}
         } finally {
             httpclient.close();
         }
