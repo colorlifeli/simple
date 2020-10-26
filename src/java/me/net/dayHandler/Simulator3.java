@@ -2,6 +2,7 @@ package me.net.dayHandler;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Stack;
 
@@ -60,8 +61,6 @@ public class Simulator3 {
 			return eStockOper.None;
 		// 不需要独立k线，似乎结果更好
 		String type = analyzer.recognizeTypeOne(his, day, Config.simulate.isNeedK);
-		// 因为判断包含关系时会修改数据，为了不修改原来的数据，复制一份出来
-		his.add(day.duplicate());
 
 		// if (type == null)
 		// return eStockOper.None; // ******** 只在顶底点进行买卖
@@ -147,51 +146,58 @@ public class Simulator3 {
 
 		Point point = new Point();
 		point.type = type;
-		point.sn = his.get(his.size() - 1).sn;
+		//point.sn = his.get(his.size() - 1).sn;
 
 		if (eStockDayFlag.TOP.toString().equals(type)) {
+			Date date_ = his.get(his.size() - 1).date_;
 			// 同为顶点，选取高的那个，去除另一个
 			point.value = his.get(his.size() - 1).high;
 			if (lastP == null) {
 				points.push(point);
 
-				info.addPoint(point.value, format.format(day.date_));
+				info.addPoint(point.value, format.format(date_));
 			} else if (lastP.type.equals(type) && Double.parseDouble(point.value) > Double.parseDouble(lastP.value)) {
 				// 新顶点更高
 				points.pop();
 				points.push(point);
 
-				info.reassignPoint(point.value, format.format(day.date_));
+				info.reassignPoint(point.value, format.format(date_));
 			} else if (!lastP.type.equals(type) && Double.parseDouble(point.value) > Double.parseDouble(lastP.value)) {
 				// 和上一个分型不一样，则要判断是否符合顶高于底
 				points.push(point);
 
-				info.addPoint(point.value, format.format(day.date_));
+				info.addPoint(point.value, format.format(date_));
 			}
 
 		} else if (eStockDayFlag.BOTTOM.toString().equals(type)) {
+			Date date_ = his.get(his.size() - 1).date_;
 			point.value = his.get(his.size() - 1).low;
 			if (lastP == null) {
 				points.push(point);
 
-				info.addPoint(point.value, format.format(day.date_));
+				info.addPoint(point.value, format.format(date_));
 			} else if (lastP.type.equals(type) && Double.parseDouble(point.value) < Double.parseDouble(lastP.value)) {
 				// 新底更低
 				points.pop();
 				points.push(point);
 
-				info.reassignPoint(point.value, format.format(day.date_));
+				info.reassignPoint(point.value, format.format(date_));
 			} else if (!lastP.type.equals(type) && Double.parseDouble(point.value) < Double.parseDouble(lastP.value)) {
 				// 和上一个分型不一样，则要判断是否符合顶高于底
 				points.push(point);
 
-				info.addPoint(point.value, format.format(day.date_));
+				info.addPoint(point.value, format.format(date_));
 			}
 		}
 
 		// logger.debug("point:{}, {}, {}, {}, {}", point.value, point.type,
 		// point.sn,
 		// String.format("%.2f", point.degree), day.date_);
+		
+
+		// 因为判断包含关系时会修改数据，为了不修改原来的数据，复制一份出来。在recognizeTypeOne中，修改的是his里的最后一个元素
+		// 20201026 bug，要在判断完中枢点后才执行，否则会取了顶或底的下一个点的值
+		his.add(day.duplicate());
 
 		return info.makeNewCentral();
 

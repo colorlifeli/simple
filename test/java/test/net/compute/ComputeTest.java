@@ -114,8 +114,8 @@ public class ComputeTest {
 	@Test
 	public void computeAll3_2() {
 		try {
-			compute3.setStartDate("2015-04-01");
-			compute3.setEndDate("2016-11-11");
+			compute3.setStartDate("2017-04-01");
+			compute3.setEndDate("2019-11-11");
 			compute3.compute("002415");
 			//compute.compute("002570");
 			

@@ -100,7 +100,7 @@ public class StockSourceImpl2 implements StockSource {
 			endDate = format.format(c.getTime());
 		}
 		if(startDate.compareTo(endDate) > 0) {
-			logger.info("start is after end. start:" + startDate + ", end:" + endDate);
+			logger.info(Util.getString(codes) + " start is after end. start:" + startDate + ", end:" + endDate);
 			return;
 		}
 
