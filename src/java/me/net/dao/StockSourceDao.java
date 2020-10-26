@@ -361,7 +361,7 @@ public class StockSourceDao {
 			logger.info("saveDayData2: list is empty");
 			return;
 		}
-		String sql = "insert into sto_day_tmp2 (code,date_,open_,high,low,close_,volume,factor,source) values (?,?,?,?,?,?,?,?,?)";
+		String sql = "insert into sto_day_tmp (code,date_,open_,high,low,close_,volume,factor,source) values (?,?,?,?,?,?,?,?,?)";
 		Object[][] params = new Object[list.size()][];
 		for (int i = 0; i < list.size(); i++) {
 			params[i] = list.get(i).toObjectArray2();

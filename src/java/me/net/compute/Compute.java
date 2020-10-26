@@ -59,12 +59,12 @@ public abstract class Compute {
 	// --------------- 可配置参数 end  -------------
 	
 	//操作记录列表
-	private Map<String, List<OperRecord>> g_operListMap = new HashMap<String, List<OperRecord>>();
+	protected Map<String, List<OperRecord>> g_operListMap = new HashMap<String, List<OperRecord>>();
 	private List<StockOperSum> g_operSumList = new ArrayList<StockOperSum>();
 	private Map<String, List<EveryDayGain>> g_gainListMap = new HashMap<String, List<EveryDayGain>>();
 
 	SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-
+	
 	/**
 	 * 每个code 计算前做的准备工作
 	 */
@@ -86,6 +86,7 @@ public abstract class Compute {
 	public void compute(String hcode) throws Exception {
 		List<StockDay> all = null;
 		List<OperRecord> operList = new ArrayList<OperRecord>();
+		g_operListMap.put(hcode, operList);
 		
 		all = stockAnalysisDao.getDay(hcode, startDate, endDate);
 		this.addSequence(all);
@@ -102,7 +103,6 @@ public abstract class Compute {
 		
 		codeEnd(operList);
 		
-		g_operListMap.put(hcode, operList);
 
 		computeOperSum(hcode, operList);
 		
@@ -124,6 +124,8 @@ public abstract class Compute {
 			g_operListMap.clear();
 
 			List<String> codes = stockSourceDao.getAllAvailableCodes(0, null);
+//			List<String> codes = new ArrayList<String>();
+//			codes.add("603729");
 			for (String code : codes) {
 				this.compute(code);
 			}
@@ -179,16 +181,19 @@ public abstract class Compute {
 
 		BigDecimal minRemain = BigDecimal.ZERO; //余额最小时，即最大的投资额度
 		int buys = 0, sells = 0, times = 0, winTimes = 0, loseTimes = 0;
-		for (int i = operList.size() - 1; i >= 0; i--) {
+		BigDecimal preRemain = BigDecimal.ZERO; //上一次的remain
+		for (int i = 0 ; i < operList.size(); i++) {
 			OperRecord record = operList.get(i);
 			if (record.getRemain().compareTo(minRemain) == -1) //record.remain < minRemain
 				minRemain = record.getRemain();
 			if (record.getTotal() == 0) {
 				times++;
-				if (record.getRemain().doubleValue() > 0)
+				//不能简单地根据 remain是否大于0来判断win or lose。应该是这次卖了之后比上次的remain大
+				if (record.getRemain().doubleValue() > preRemain.doubleValue())
 					winTimes++;
 				else
 					loseTimes++;
+				preRemain = record.getRemain();
 			}
 			if (record.getOper().equals(eStockOper.Buy.toString()))
 				buys++;
@@ -320,8 +325,8 @@ public abstract class Compute {
 	
 	/**
 	 * 计算每一天的收益合计
-	 * 最后一天balance 不等于 remain原因：有可能在倒数第二决定最后一天买，这些买入就不会卖掉。因为卖的时候判断了，
-	 * 									有买入就不能卖。
+	 * 20200720 确认最后为什么 balance不他仿佛官方 remain原因是：代码有bug，最后一天操作是买的话，会跳过执行卖。buy的判断条件里有 nextDay!=null
+	 * 		增加输入每天操作次数，可以看到操作是否集中在某些时间
 	 * @return
 	 * @throws Exception
 	 */
@@ -371,10 +376,29 @@ public abstract class Compute {
 				}
 			}
 			
+			//计算当天操作次数
+			int buys = 0;
+			int sells = 0;
+			for (String code : g_operListMap.keySet()) {
+				int i =0;
+				List<OperRecord> operList = g_operListMap.get(code);
+				if(operList == null || operList.size() == 0)
+					continue;
+				for(; i<operList.size(); i++) {
+					if(format.format(start).equals(format.format(operList.get(i).getDate_()))) {
+						if(operList.get(i).getOper().equals(eStockOper.Buy.toString()))
+							buys++;
+						else
+							sells++;
+					}
+				}
+				
+			}
+			
 			if(balanceSum.doubleValue() != 0 || allRemain.doubleValue() != 0)
 			//对比 gain 和 remain，可以看到在多大的负债情况下获得此收益。
-				logger.info(String.format("%s %.0f %.0f", 
-						format.format(start), balanceSum, allRemain));
+				logger.info(String.format("%s %.0f %.0f buys:%d sells:%d", 
+						format.format(start), balanceSum, allRemain, buys, sells));
 			c.add(Calendar.DAY_OF_YEAR, 1);
 			start = c.getTime();
 		}

@@ -16,6 +16,7 @@ import me.common.util.Util;
  * @author James
  * 
  * ****** 与CentralInfo区别：CentralInfo用3条线段的公共区域作为中枢；CentralInfo2用最高点和最低点作为中枢。
+ * 2020725 增加记录中枢的公共区域
  *
  */
 public class CentralInfo2 {
@@ -81,6 +82,9 @@ public class CentralInfo2 {
 
 		if (Double.parseDouble(c.low) < Double.parseDouble(c.high)) {
 			//有公共区域，才有中枢
+			//****20200725 先记录公共区域
+			c.share_high = c.high;
+			c.share_low = c.low;
 			//****20200205  重设中枢，不是公共区域，而是最高点与最低之间的区域
 			c.high = high;
 			c.low = low;

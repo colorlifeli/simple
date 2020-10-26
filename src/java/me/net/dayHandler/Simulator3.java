@@ -12,6 +12,7 @@ import me.common.Config;
 import me.common.annotation.IocAnno.Ioc;
 import me.net.NetType.eStockDayFlag;
 import me.net.NetType.eStockOper;
+import me.net.model.CentralInfo;
 import me.net.model.CentralInfo2;
 import me.net.model.StockDay;
 
@@ -22,7 +23,7 @@ import me.net.model.StockDay;
  * 
  * @author James
  * 
- * ******* 使用 CentralInfo2
+ *         ******* 使用 CentralInfo2
  *
  */
 public class Simulator3 {
@@ -32,13 +33,16 @@ public class Simulator3 {
 	@Ioc
 	private Analyzer analyzer;
 
-	//记录所有符合笔要求的点
+	// 记录所有符合笔要求的点
 	public Stack<Point> points = new Stack<Point>();
 	// 已进行分析过的历史数据
 	List<StockDay> his = new ArrayList<StockDay>();
-	//中枢信息
-	CentralInfo2 info = new CentralInfo2();
+	// 中枢信息
+	// ****** 尝试使用不同的中枢定义方法：效果不好
+	//CentralInfo2 info = new CentralInfo2();
 	
+	public CentralInfo info = new CentralInfo();
+
 	SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
 	/**
@@ -52,35 +56,30 @@ public class Simulator3 {
 	}
 
 	public eStockOper handle(StockDay day) {
-		if (analyzer.includeOne(his, day)) //包含关系 
+		if (analyzer.includeOne(his, day)) // 包含关系
 			return eStockOper.None;
 		// 不需要独立k线，似乎结果更好
 		String type = analyzer.recognizeTypeOne(his, day, Config.simulate.isNeedK);
 		// 因为判断包含关系时会修改数据，为了不修改原来的数据，复制一份出来
 		his.add(day.duplicate());
 
-		if (type == null)
-			return eStockOper.None; // ******** 只在顶底点进行买卖
+		// if (type == null)
+		// return eStockOper.None; // ******** 只在顶底点进行买卖
 
-		return this.operation2(day, type, this.central(day, type));
+		return this.operation(day, type, this.central(day, type));
 	}
-	
-	//策略：在中枢区间内，底则买，顶则卖。思想：认为中枢的力量较大，底能拉起来
+
+	// 策略：低于中枢最低点则买，高于中枢的最高点则卖。思想：认为中枢的力量较大，底能拉起来
 	private eStockOper operation(StockDay day, String type, boolean isMakeCentral) {
 
 		eStockOper operation = eStockOper.None;
-		if (isMakeCentral == false && eStockDayFlag.BOTTOM.toString().equals(type) && info.centrals.size() > 0) {
-			// 中枢后面的底，认为会有上升的机会。
-			if (Double.parseDouble(day.high) < Double.parseDouble(info.centrals.get(info.centrals.size() - 1).high)) {
-				// 还没达到中枢高点
-				operation = eStockOper.Buy;
-			}
-		} else if (isMakeCentral == false && eStockDayFlag.TOP.toString().equals(type) && info.centrals.size() > 0) {
-			// 中枢后面的底，认为会有上升的机会。
-			if (Double.parseDouble(day.low) > Double.parseDouble(info.centrals.get(info.centrals.size() - 1).low)) {
-				// 还没达到中枢高点
-				operation = eStockOper.Sell;
-			}
+		if (info.centrals.size() == 0)
+			return eStockOper.None;
+
+		if (Double.parseDouble(day.high) < Double.parseDouble(info.centrals.get(info.centrals.size() - 1).low)) {
+			operation = eStockOper.Buy;
+		} else if (Double.parseDouble(day.low) > Double.parseDouble(info.centrals.get(info.centrals.size() - 1).high)) {
+			operation = eStockOper.Sell;
 		}
 
 		// if(operation != eStockOper.None)
@@ -88,18 +87,40 @@ public class Simulator3 {
 		return operation;
 	}
 	
+	// 策略：在中枢区间内，高于中枢最低点但低于中枢区间则买，低于中枢的最高点但高于中枢区间则卖。思想：认为中枢的力量较大，底能拉起来
+	// 失败，结果不好
+	private eStockOper operation3(StockDay day, String type, boolean isMakeCentral) {
+
+		eStockOper operation = eStockOper.None;
+		if (info.centrals.size() == 0)
+			return eStockOper.None;
+
+		if (Double.parseDouble(day.high) > Double.parseDouble(info.centrals.get(info.centrals.size() - 1).low)
+				&& Double.parseDouble(day.high) < Double.parseDouble(info.centrals.get(info.centrals.size() - 1).share_low)) {
+			operation = eStockOper.Buy;
+		} else if (Double.parseDouble(day.low) < Double.parseDouble(info.centrals.get(info.centrals.size() - 1).high)
+				&& Double.parseDouble(day.low) > Double.parseDouble(info.centrals.get(info.centrals.size() - 1).share_high)) {
+			operation = eStockOper.Sell;
+		}
+
+		// if(operation != eStockOper.None)
+		// logger.debug(operation.name());
+		return operation;
+	}
+
 	// ****** Simulator的handler2策略。
+	// ****** 因为使用了新的中枢定义方法，这个策略不能使用了
+	@Deprecated
 	private eStockOper operation2(StockDay day, String type, boolean isMakeCentral) {
 		eStockOper operation = eStockOper.None;
-		
+
 		if (!isMakeCentral && info.centrals.size() > 0) { // 非产生中枢时
-			
+
 			int pos = info.centrals.get(info.centrals.size() - 1).position;
 
 			// 正负交替，比前一个负更低时
 			if (pos == -1 && type.equals(eStockDayFlag.BOTTOM.toString()) && Double.parseDouble(day.high) < Double
-					.parseDouble(info.centrals.get(info.centrals.size() - 1).low)
-			) {
+					.parseDouble(info.centrals.get(info.centrals.size() - 1).low)) {
 				if (info.centrals.size() > 2) {
 					for (int i = info.centrals.size() - 2; i > 0; i--) {
 						int tmp_pos = info.centrals.get(i).position;
@@ -114,11 +135,11 @@ public class Simulator3 {
 				}
 			}
 		}
-		
+
 		return operation;
 	}
 
-	//计算中枢, 返回是否成功生成中枢
+	// 计算中枢, 返回是否成功生成中枢
 	private boolean central(StockDay day, String type) {
 		Point lastP = null;
 		if (points.size() > 0)
@@ -129,22 +150,20 @@ public class Simulator3 {
 		point.sn = his.get(his.size() - 1).sn;
 
 		if (eStockDayFlag.TOP.toString().equals(type)) {
-			//同为顶点，选取高的那个，去除另一个
+			// 同为顶点，选取高的那个，去除另一个
 			point.value = his.get(his.size() - 1).high;
 			if (lastP == null) {
 				points.push(point);
 
 				info.addPoint(point.value, format.format(day.date_));
-			} else if (lastP.type.equals(type)
-					&& Double.parseDouble(point.value) > Double.parseDouble(lastP.value)) {
-				//新顶点更高
+			} else if (lastP.type.equals(type) && Double.parseDouble(point.value) > Double.parseDouble(lastP.value)) {
+				// 新顶点更高
 				points.pop();
 				points.push(point);
 
 				info.reassignPoint(point.value, format.format(day.date_));
-			} else if (!lastP.type.equals(type)
-					&& Double.parseDouble(point.value) > Double.parseDouble(lastP.value)) {
-				//和上一个分型不一样，则要判断是否符合顶高于底
+			} else if (!lastP.type.equals(type) && Double.parseDouble(point.value) > Double.parseDouble(lastP.value)) {
+				// 和上一个分型不一样，则要判断是否符合顶高于底
 				points.push(point);
 
 				info.addPoint(point.value, format.format(day.date_));
@@ -156,24 +175,23 @@ public class Simulator3 {
 				points.push(point);
 
 				info.addPoint(point.value, format.format(day.date_));
-			} else if (lastP.type.equals(type)
-					&& Double.parseDouble(point.value) < Double.parseDouble(lastP.value)) {
-				//新底更低
+			} else if (lastP.type.equals(type) && Double.parseDouble(point.value) < Double.parseDouble(lastP.value)) {
+				// 新底更低
 				points.pop();
 				points.push(point);
 
 				info.reassignPoint(point.value, format.format(day.date_));
-			} else if (!lastP.type.equals(type)
-					&& Double.parseDouble(point.value) < Double.parseDouble(lastP.value)) {
-				//和上一个分型不一样，则要判断是否符合顶高于底
+			} else if (!lastP.type.equals(type) && Double.parseDouble(point.value) < Double.parseDouble(lastP.value)) {
+				// 和上一个分型不一样，则要判断是否符合顶高于底
 				points.push(point);
 
 				info.addPoint(point.value, format.format(day.date_));
 			}
 		}
 
-//		logger.debug("point:{}, {}, {}, {}, {}", point.value, point.type, point.sn,
-//				String.format("%.2f", point.degree), day.date_);
+		// logger.debug("point:{}, {}, {}, {}, {}", point.value, point.type,
+		// point.sn,
+		// String.format("%.2f", point.degree), day.date_);
 
 		return info.makeNewCentral();
 
@@ -181,9 +199,9 @@ public class Simulator3 {
 
 	class Point {
 		String value = "0";
-		String type = ""; //是顶还是底
+		String type = ""; // 是顶还是底
 		int sn = 0;
-		double degree = 0.0; //角度，变化值/间隔
+		double degree = 0.0; // 角度，变化值/间隔
 	}
 
 }

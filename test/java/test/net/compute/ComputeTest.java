@@ -85,9 +85,9 @@ public class ComputeTest {
 	@Test
 	public void computeAll2_2() {
 		try {
-			compute2.setStartDate("2013-04-01");
-			compute2.setEndDate("2015-04-01");
-			compute.compute("603116");
+			compute2.setStartDate("2015-04-01");
+			compute2.setEndDate("2016-11-11");
+			compute2.compute("603729");
 			//compute.compute("002570");
 			
 			//compute2.computeAll();
@@ -101,7 +101,7 @@ public class ComputeTest {
 		logger.info("enter computeAll3");
 		try {
 			compute3.setStartDate("2015-04-01");
-			compute3.setEndDate("2017-01-01");
+			compute3.setEndDate("2017-01-06");
 			//compute3.compute("603116");
 			//compute3.compute("002570");
 			
@@ -110,6 +110,19 @@ public class ComputeTest {
 			e.printStackTrace();
 		}
 	}
-	
+
+	@Test
+	public void computeAll3_2() {
+		try {
+			compute3.setStartDate("2015-04-01");
+			compute3.setEndDate("2016-11-11");
+			compute3.compute("002415");
+			//compute.compute("002570");
+			
+			//compute2.computeAll();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 }

@@ -79,8 +79,10 @@ public class StockSourceImpl2 implements StockSource {
 						c.add(Calendar.DAY_OF_YEAR, 1);
 						startDate = format.format(c.getTime());
 					} else {
-						logger.error("no start date");
-						return;
+//						logger.error("no start date");
+//						return;
+						//20201026  startdate使用默认,此函数已取代 getHistoryAll 函数
+						startDate = historyStartDate;
 					}
 				}
 			} catch (Exception e) {
@@ -98,7 +100,7 @@ public class StockSourceImpl2 implements StockSource {
 			endDate = format.format(c.getTime());
 		}
 		if(startDate.compareTo(endDate) > 0) {
-			logger.error("start is after end!! start:" + startDate + ", end:" + endDate);
+			logger.info("start is after end. start:" + startDate + ", end:" + endDate);
 			return;
 		}
 

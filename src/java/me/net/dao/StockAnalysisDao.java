@@ -45,7 +45,7 @@ public class StockAnalysisDao {
 	 */
 	public List<StockDay> getDay(String code, String startDate, String endDate) throws SQLException {
 
-		String sql = "SELECT * FROM STO_DAY_TMP2 where code=?";
+		String sql = "SELECT * FROM sto_day_tmp where code=?";
 		List<Object> params = new ArrayList<Object>();
 		params.add(code);
 
@@ -89,7 +89,7 @@ public class StockAnalysisDao {
 			return Util.deepCopy(all.get(code + startDate + endDate));
 		}
 
-		String sql = "SELECT * FROM STO_DAY_TMP2 where code=?";
+		String sql = "SELECT * FROM sto_day_tmp where code=?";
 		List<Object> params = new ArrayList<Object>();
 		params.add(code);
 
@@ -262,8 +262,8 @@ public class StockAnalysisDao {
 	 * @throws SQLException
 	 */
 	public List<String> getAllDate() throws SQLException {
-		String sql = "select to_char(date_,'yyyy-mm-dd') from sto_day_tmp2 "
-				+ "where code =(select top 1 code from (select code,count(1)  num from sto_day_tmp2 group by code) order by num  desc) order by date_";
+		String sql = "select to_char(date_,'yyyy-mm-dd') from sto_day_tmp "
+				+ "where code =(select top 1 code from (select code,count(1)  num from sto_day_tmp group by code) order by num  desc) order by date_";
 		Object[] params = null;
 
 		List<Object[]> result = sqlrunner.query(sql, new ArrayListHandler(), params);
@@ -279,7 +279,7 @@ public class StockAnalysisDao {
 	public List<String> getAllDate(String code) throws SQLException {
 		if(TypeUtil.isEmpty(code)) 
 			return null;
-		String sql = "select to_char(date_,'yyyy-mm-dd') from sto_day_tmp2 "
+		String sql = "select to_char(date_,'yyyy-mm-dd') from sto_day_tmp "
 				+ "where code = ? order by date_";
 		Object[] params = {code};
 
@@ -294,7 +294,7 @@ public class StockAnalysisDao {
 	}
 	
 	public String getFactor(String code, Date date) throws SQLException {
-		String sql = "select factor from sto_day_tmp2 "
+		String sql = "select factor from sto_day_tmp "
 				+ "where code = ? and date_= ? ";
 		
 		Object[] result = sqlrunner.query(sql, new ArrayHandler(), code, date);
@@ -321,6 +321,8 @@ public class StockAnalysisDao {
 
 		List<Object[]> result = sqlrunner.query(sql, new ArrayListHandler(), params);
 
+		if(result == null || result.size() == 0)
+			return null;
 		return (String)result.get(0)[0];		
 	}
 	

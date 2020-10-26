@@ -100,6 +100,7 @@ flag varchar(2)  --最后一次卖过时情况，01 表示数据过好还过坏�
 
 --20180525 历史数据下载进度表，记录下载到了哪一天。主要是因为不少股会停牌，
 --不能确定下载到哪一天。
+--- ****  第一次要先初始化：insert into his_data_progress(code) select code from sto_code;
 create table his_data_progress (
 code varchar(10),
 lastDate date
