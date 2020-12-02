@@ -43,7 +43,7 @@ public class Util {
 				continue;
 			try {
 				if(field.getType().getName().equals("java.math.BigDecimal")){
-					sb.append(String.format("%s:%.0f,", field.getName(), field.get(object)));
+					sb.append(String.format("%s:%.2f,", field.getName(), field.get(object)));
 				} else
 					sb.append(field.getName()).append(":").append(field.get(object)).append(",");
 			} catch (Exception e) {

@@ -49,13 +49,18 @@ public abstract class Compute {
 	
 	// --------------- 可配置参数  -------------
 	protected eStrategy strategy = eStrategy.One;
-	protected String startDate = null;
+	protected String startDate = null; //开始查询的日期。即基于哪些历史数据
 	protected String endDate = null;
-	protected boolean printOperLog = false;
-	protected boolean isPractice = false;
+	protected boolean isPractice = false; //如果true，则最后一天不卖
+	protected boolean isPrintOper = false;
+	protected String startBuyDate = null;
+	protected double buyNumRatio = 0.7; //当 strategy 为 ratio 时有效.
+	protected double sellRatio_win = 1.3; //赢利多少卖
+	protected double sellRatio_lose = 0.6; //亏多少卖
+	protected String operationFunction = "operation";
 	//不以量来买，以总价来买，更贴合实际
 	protected final int oneAmount = 10000;
-	protected double abnormal = 20000; //绝对值超过这个值视为异常值
+	protected double abnormal = 20000; //绝对值超过这个值视为异常值，进行标记
 	// --------------- 可配置参数 end  -------------
 	
 	//操作记录列表
@@ -117,6 +122,10 @@ public abstract class Compute {
 	public void computeAll() {
 
 		long startTime = System.currentTimeMillis();
+		if (startBuyDate == null) {
+			logger.error("startBuyDate is null");
+			return;
+		}
 		try {
 			g_operSumList.clear();
 			for (String code : g_operListMap.keySet())
@@ -131,7 +140,7 @@ public abstract class Compute {
 			}
 			
 			logger.info(summary(false));
-			summaryGain();
+			//summaryGain();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -167,7 +176,7 @@ public abstract class Compute {
 			if (record.getTotal() == 0) {
 				lastRemain = record.getRemain();
 
-				//去除结果过好过坏数据
+				//标记结果过好过坏数据
 				if (Math.abs(record.getRemain().doubleValue()) > abnormal) {
 					if(lastRemain.doubleValue() > 0)
 						lastFlag = "01";
@@ -319,8 +328,8 @@ public abstract class Compute {
 		//数值太大没什么意义，主要还是看比例
 		//BigDecimal factor = new BigDecimal(1000000);
 		BigDecimal factor = new BigDecimal(1);
-		return String.format("total:%s, win stocks:%s, lose:%s, last day sell stocks:%s, remain:%.0f, investment:%.0f|%s, buys:%s, sells:%s, win times:%s, lose times:%s", 
-				operSumList.size(), win, lose, lastDaySell, allRecordsSum.divide(factor), investment.divide(factor), minDate, buys, sells, wins, loses);
+		return String.format("total:%s, win stocks:%s, lose:%s, last day sell stocks:%s, remain:%.0f, investment:%.0f|%s, rate:%.2f, buys:%s, sells:%s, win times:%s, lose times:%s", 
+				operSumList.size(), win, lose, lastDaySell, allRecordsSum.divide(factor), investment.divide(factor), minDate, allRecordsSum.divide(investment, 2, BigDecimal.ROUND_HALF_UP), buys, sells, wins, loses);
 	}
 	
 	/**
@@ -444,24 +453,57 @@ public abstract class Compute {
 		
 	}
 	
-	public void setStrategy(eStrategy strategy) {
+	public Compute setStrategy(eStrategy strategy) {
 		this.strategy = strategy;
+		return this;
 	}
-	public void setStartDate(String startDate) {
+	public Compute setStartDate(String startDate) {
 		this.startDate = startDate;
+		return this;
 	}
-	public void setEndDate(String endDate) {
+	public Compute setEndDate(String endDate) {
 		this.endDate = endDate;
+		return this;
 	}
-	public void setPrintOperLog(boolean printOperLog) {
-		this.printOperLog = printOperLog;
-	}
-	public void setPractice(boolean isPractice) {
+
+	public Compute setPractice(boolean isPractice) {
 		this.isPractice = isPractice;
+		return this;
 	}
 	
 	class EveryDayGain {
 		public Date date_;
 		public BigDecimal balance; //当前日期的结算
 	}
+
+	public Compute setPrintOper(boolean isPrintOper) {
+		this.isPrintOper = isPrintOper;
+		return this;
+	}
+
+	public Compute setStartBuyDate(String startBuyDate) {
+		this.startBuyDate = startBuyDate;
+		return this;
+	}
+
+	public Compute setBuyNumRatio(double buyNumRatio) {
+		this.buyNumRatio = buyNumRatio;
+		return this;
+	}
+
+	public Compute setSellRatio_win(double sellRatio_win) {
+		this.sellRatio_win = sellRatio_win;
+		return this;
+	}
+
+	public Compute setSellRatio_lose(double sellRatio_lose) {
+		this.sellRatio_lose = sellRatio_lose;
+		return this;
+	}
+
+	public Compute setOperationFunction(String operationFunction) {
+		this.operationFunction = operationFunction;
+		return this;
+	}
+	
 }

@@ -88,7 +88,8 @@ public class NetType {
 	public static enum eStrategy {
 		One, // 每次按推荐操作一单位
 		OneBuyOneSell, // 严格按照：买一单位后必然卖一单位
-		Double;// 符合某些条件则买入（或卖出）更多
+		Double,// 符合某些条件则买入（或卖出）更多
+		Ratio; //连续买时，后一次按前一次数量的某个比率买
 	}
 
 }

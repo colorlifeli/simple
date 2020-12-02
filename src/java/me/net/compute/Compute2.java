@@ -153,7 +153,7 @@ public class Compute2 extends Compute {
 //				all.get(i - 2).date_, all.get(i - 2).low, all.get(i - 2).high, all.get(i - 1).date_,
 //				all.get(i - 1).low, all.get(i - 1).high, all.get(i).date_, all.get(i).low, all.get(i).high,
 //				i==all.size()-1?"":all.get(i + 1).date_, i==all.size()-1?"":all.get(i + 1).low, i==all.size()-1?"":all.get(i + 1).high));
-				if(printOperLog)
+				if(isPrintOper)
 					logger.info(operList.get(operList.size() - 1).toString());
 			}
 			return;
